@@ -1,0 +1,31 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  externalId  String
+  provider    String
+  title       String
+  description String?
+  category    String
+  url         String?
+  startTime   DateTime
+  endTime     DateTime?
+  venueName   String
+  latitude    Float
+  longitude   Float
+  geom        Unsupported("geometry(Point, 4326)")?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([externalId, provider])
+  @@index([startTime])
+}
