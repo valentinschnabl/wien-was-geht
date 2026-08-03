@@ -4,6 +4,59 @@ import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
 
+interface StadtWienApiResponse {
+  hits?: {
+    hits?: StadtWienRawEvent[];
+  };
+}
+
+interface StadtWienRawEvent {
+  _id?: string;
+  _source?: StadtWienSource;
+}
+
+interface StadtWienSource {
+  title?: string;
+  short_description?: string | null;
+  link?: string | null;
+  address?: StadtWienAddress[];
+  teaser_event_image?: StadtWienImage[];
+  teaser_image?: StadtWienImage[];
+  daoh_edit?: {
+    logic?: {
+      sets?: StadtWienSet[];
+    };
+  };
+}
+
+interface StadtWienAddress {
+  addressName?: string | null;
+  addressStreet?: string | null;
+  location?: {
+    coordinates?: [number | string, number | string] | null;
+  } | null;
+}
+
+interface StadtWienImage {
+  url?: string | null;
+}
+
+interface StadtWienSet {
+  type?: string | null;
+  ranges?: StadtWienRange[] | null;
+  dates?: StadtWienSchedule[][] | null;
+}
+
+interface StadtWienRange {
+  from?: string | null;
+  to?: string | null;
+}
+
+interface StadtWienSchedule {
+  from?: string | null;
+  to?: string | null;
+}
+
 @Injectable()
 export class StadtWienService implements IEventProvider {
   private readonly logger = new Logger(StadtWienService.name);
@@ -15,7 +68,7 @@ export class StadtWienService implements IEventProvider {
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.post(
+        this.httpService.post<StadtWienApiResponse>(
           this.endpoint,
           {
             id: 'search_template_specific',
@@ -41,7 +94,7 @@ export class StadtWienService implements IEventProvider {
         ),
       );
 
-      const rawEvents = response.data?.hits?.hits || [];
+      const rawEvents = response.data?.hits?.hits ?? [];
       this.logger.debug(
         `Extracted ${rawEvents.length} events from Stadt Wien.`,
       );
@@ -53,15 +106,24 @@ export class StadtWienService implements IEventProvider {
     }
   }
 
-  private normalizeData(rawEvents: any[]): Prisma.EventCreateInput[] {
+  private normalizeData(
+    rawEvents: StadtWienRawEvent[],
+  ): Prisma.EventCreateInput[] {
     const todayIsoString = new Date().toISOString().split('T')[0];
     const events: Prisma.EventCreateInput[] = [];
 
     for (const event of rawEvents) {
       const source = event._source;
+
+      if (!source) {
+        continue;
+      }
+
       const set = source.daoh_edit?.logic?.sets?.[0];
 
-      if (!set) continue;
+      if (!set) {
+        continue;
+      }
 
       let startTime: Date | null = null;
       let endTime: Date | undefined = undefined;
@@ -69,50 +131,58 @@ export class StadtWienService implements IEventProvider {
       if (set.type === 'recurring' && set.ranges && set.ranges.length > 0) {
         // Langzeitveranstaltungen: Übergreifenden Zeitraum erfassen
         const range = set.ranges[0];
-        if (range.from) startTime = new Date(range.from);
+        if (range.from) {
+          startTime = new Date(range.from);
+        }
         if (range.to) {
           // Setzt das Ende auf 23:59:59 lokaler Zeit des letzten Tages
           endTime = new Date(`${range.to}T23:59:59+02:00`);
         }
       } else {
         // Einzelveranstaltungen: Spezifischen Zeitblock für heute suchen
-        const rawDates = set.dates || [];
+        const rawDates = set.dates ?? [];
         const flatDates = rawDates.flat(2);
 
-        const todaySchedule = flatDates.find(
-          (d: any) => d.from && d.from.includes(todayIsoString),
+        const todaySchedule = flatDates.find((d) =>
+          Boolean(d.from && d.from.includes(todayIsoString)),
         );
 
-        const scheduleToUse = todaySchedule || flatDates[0];
+        const scheduleToUse = todaySchedule ?? flatDates[0];
 
-        if (scheduleToUse?.from) startTime = new Date(scheduleToUse.from);
-        if (scheduleToUse?.to) endTime = new Date(scheduleToUse.to);
+        if (scheduleToUse?.from) {
+          startTime = new Date(scheduleToUse.from);
+        }
+        if (scheduleToUse?.to) {
+          endTime = new Date(scheduleToUse.to);
+        }
       }
 
       // Datensätze ohne jegliche Startzeit verwerfen
-      if (!startTime) continue;
+      if (!startTime) {
+        continue;
+      }
 
-      const addressObj = source.address?.[0] || {};
-      const coordinates = addressObj.location?.coordinates || [0, 0];
+      const addressObj = source.address?.[0] ?? {};
+      const coordinates = addressObj.location?.coordinates ?? [0, 0];
 
       const imageObj =
-        source.teaser_event_image?.[0] || source.teaser_image?.[0];
+        source.teaser_event_image?.[0] ?? source.teaser_image?.[0];
       const imageUrl = imageObj?.url
         ? `https://www.wien.gv.at${imageObj.url}`
         : null;
 
       events.push({
-        externalId: event._id,
+        externalId: event._id ?? '',
         provider: 'STADT_WIEN',
-        title: source.title,
-        description: source.short_description || null,
+        title: source.title ?? 'Untitled event',
+        description: source.short_description ?? null,
         category: 'General',
-        url: source.link || null,
-        imageUrl: imageUrl,
-        startTime: startTime,
-        endTime: endTime,
+        url: source.link ?? null,
+        imageUrl,
+        startTime,
+        endTime,
         venueName:
-          addressObj.addressName || addressObj.addressStreet || 'Vienna',
+          addressObj.addressName ?? addressObj.addressStreet ?? 'Vienna',
         longitude: Number(coordinates[0]),
         latitude: Number(coordinates[1]),
       });

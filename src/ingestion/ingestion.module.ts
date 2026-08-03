@@ -2,12 +2,21 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { EventPersistenceService } from './event-persistence.service';
+import { IngestionService } from './ingestion.service';
+import { IngestionController } from './ingestion.controller';
 
 @Module({
-  imports: [
-    HttpModule, // Required because the service uses HttpService
+  imports: [HttpModule],
+  controllers: [IngestionController],
+  providers: [
+    PrismaService,
+    OpenwebNinjaService,
+    StadtWienService,
+    EventPersistenceService,
+    IngestionService,
   ],
-  providers: [OpenwebNinjaService, StadtWienService],
-  exports: [OpenwebNinjaService, StadtWienService], // This allows other modules to use it
+  exports: [OpenwebNinjaService, StadtWienService, IngestionService],
 })
 export class IngestionModule {}
