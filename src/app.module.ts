@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
+import { EventsController } from './events/events.controller';
+import { EventsService } from './events/events.service';
 import { IngestionModule } from './ingestion/ingestion.module';
+import { PrismaService } from './prisma/prisma.service';
 
 @Module({
   imports: [
@@ -10,7 +13,7 @@ import { IngestionModule } from './ingestion/ingestion.module';
     }),
     IngestionModule,
   ],
-  controllers: [AppController],
-  providers: [],
+  controllers: [AppController, EventsController],
+  providers: [PrismaService, EventsService],
 })
 export class AppModule {}
