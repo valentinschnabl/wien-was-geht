@@ -1,12 +1,16 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { StadtWienService } from './ingestion/stadt-wien/stadt-wien.service';
 
-@Controller()
+@Controller('test-ingestion')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly wienService: StadtWienService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('wien')
+  async testWien() {
+    const events = await this.wienService.fetchEvents();
+    return {
+      count: events.length,
+      data: events,
+    };
   }
 }

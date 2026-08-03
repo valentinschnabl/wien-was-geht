@@ -17,6 +17,7 @@ model Event {
   description String?
   category    String
   url         String?
+  imageUrl    String?
   startTime   DateTime
   endTime     DateTime?
   venueName   String
@@ -28,4 +29,5 @@ model Event {
 
   @@unique([externalId, provider])
   @@index([startTime])
+  @@index([geom], type: Gist)
 }

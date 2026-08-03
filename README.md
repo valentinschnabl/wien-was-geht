@@ -1,98 +1,89 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Vienna Event Mapping Application
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A Progressive Web App (PWA) designed to aggregate, visualize, and discover current events in Vienna, Austria, via an interactive geographical map. Built with a strict $0/month deployment constraint, this project prioritizes proximity-aware discovery and high-performance geospatial queries while explicitly excluding routing features.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Key Features
 
-## Description
+* **Interactive Event Map:** Real-time marker plotting on a Vienna-centered map using Leaflet and OpenStreetMap tiles.
+* **Proximity Discovery:** Client-side geolocation processing to show events relative to the user's current physical location (privacy-preserving).
+* **Advanced Filtering:** Filter events by categories, time horizons, and a dynamic "in progress / already concluded" temporal toggle.
+* **High-Performance Geospatial Queries:** Sub-200ms bounding-box resolution as the map pans, utilizing PostGIS GiST indexing.
+* **Automated Data Ingestion:** Daily scheduled normalization and deduplication of third-party event data (e.g., Stadt Wien Open Data).
+* **Bilingual Interface:** Seamless runtime toggling between German and English.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## System Architecture & Tech Stack
 
-## Project setup
+The architecture separates the client-facing REST API from the frontend to allow future integration with native mobile clients.
 
-```bash
-$ npm install
-```
+### Frontend (PWA)
 
-## Compile and run the project
+* **Framework:** Next.js (React) with Server-Side Rendering (SSR) for optimal FCP and SEO.
+* **Mapping:** `react-leaflet` + OpenStreetMap (Zero-cost, no API keys required).
+* **Deployment:** Vercel (Hobby Tier).
 
-```bash
-# development
-$ npm run start
+### Backend (REST API)
 
-# watch mode
-$ npm run start:dev
+* **Framework:** Standalone NestJS application.
+* **Language:** TypeScript, sharing types and validation schemas (Zod/class-validator) across the stack.
+* **Documentation:** Auto-generated Swagger/OpenAPI specifications.
+* **Deployment:** Render or Railway (Free Tier).
 
-# production mode
-$ npm run start:prod
-```
+### Database
 
-## Run tests
+* **Engine:** PostgreSQL with the PostGIS extension for spatial geometries.
+* **ORM:** Prisma Client.
+* **Hosting:** Supabase (Free Tier) — chosen to maintain continuous compute and avoid NFR-breaking cold starts on database queries.
 
-```bash
-# unit tests
-$ npm run test
+### Data Ingestion Pipeline
 
-# e2e tests
-$ npm run test:e2e
+* **Scheduler:** Vercel Cron (Daily Cadence).
+* **Process:** Triggers an internal Next.js route handler (`/api/cron/ingest`) that fetches, parses, deduplicates (FR-403), and writes standardized event data directly to Supabase.
 
-# test coverage
-$ npm run test:cov
-```
+## Local Development Setup
 
-## Deployment
+### Prerequisites
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+* Node.js (v18+)
+* Docker (optional, for local PostGIS database) or a remote Supabase instance
+* Yarn or npm
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 1. Database Setup
+
+Ensure you have a PostgreSQL database running with the PostGIS extension enabled.
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Push the schema and generate the Prisma client
+npx prisma db push
+npx prisma generate
+
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 2. Backend (NestJS API)
 
-## Resources
+```bash
+cd backend
+npm install
+# Set your DATABASE_URL in .env
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+*The API will be available at `http://localhost:3000`. Swagger UI is accessible at `/api/docs`.*
 
-## Support
+### 3. Frontend (Next.js)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+cd frontend
+npm install
+# Set your API base URL in .env.local
+npm run dev
 
-## Stay in touch
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+*The web application will be available at `http://localhost:3001`.*
 
-## License
+## Privacy & Security
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+* Geolocation data is processed strictly on the client side for map centering only and is never persisted to the backend (NFR-401).
+* Explicit user consent is requested prior to utilizing the browser Geolocation API.
+* Analytics are implemented via privacy-preserving, cookieless tracking mechanisms.
