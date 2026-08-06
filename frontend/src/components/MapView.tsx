@@ -2,9 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import type { LatLngExpression } from "leaflet";
 import { translations, Language } from "@/lib/i18n";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 export interface EventRecord {
   id: string;
@@ -154,84 +157,91 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* Event Markers */}
-        {events.map((event) => {
-          if (
-            typeof event.latitude !== "number" ||
-            typeof event.longitude !== "number" ||
-            (event.latitude === 0 && event.longitude === 0)
-          ) {
-            return null;
-          }
+        {/* FR-203 Marker Clustering */}
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={35}
+          spiderfyOnMaxZoom={true}
+          showCoverageOnHover={false}
+        >
+          {events.map((event) => {
+            if (
+              typeof event.latitude !== "number" ||
+              typeof event.longitude !== "number" ||
+              (event.latitude === 0 && event.longitude === 0)
+            ) {
+              return null;
+            }
 
-          const isHovered = event.id === hoveredEventId;
+            const isHovered = event.id === hoveredEventId;
 
-          // Truncate description snippet for mini map popup
-          const descSnippet = event.description
-            ? event.description.length > 70
-              ? event.description.slice(0, 70).trim() + "…"
-              : event.description
-            : null;
+            // Truncate description snippet for mini map popup
+            const descSnippet = event.description
+              ? event.description.length > 70
+                ? event.description.slice(0, 70).trim() + "…"
+                : event.description
+              : null;
 
-          return (
-            <Marker
-              key={event.id}
-              position={[event.latitude, event.longitude]}
-              icon={isHovered ? highlightedEventIcon : eventIcon}
-              zIndexOffset={isHovered ? 1000 : 0}
-              eventHandlers={{
-                mouseover: () => onHoverEvent?.(event.id),
-                mouseout: () => onHoverEvent?.(null),
-              }}
-            >
-              {/* Compact Mini Map Popup with autoPan padding */}
-              <Popup
-                className="custom-compact-popup"
-                autoPan={true}
-                autoPanPadding={[50, 50]}
+            return (
+              <Marker
+                key={event.id}
+                position={[event.latitude, event.longitude]}
+                icon={isHovered ? highlightedEventIcon : eventIcon}
+                zIndexOffset={isHovered ? 1000 : 0}
                 eventHandlers={{
-                  add: () => onPopupStateChange?.(true),
-                  remove: () => onPopupStateChange?.(false),
+                  mouseover: () => onHoverEvent?.(event.id),
+                  mouseout: () => onHoverEvent?.(null),
                 }}
               >
-                <div className="compact-popup-content">
-                  <div className="compact-popup-header">
-                    {event.temporalStatus === "live" && (
-                      <span className="badge badge-live">{t.statusLive}</span>
+                {/* Compact Mini Map Popup with autoPan padding */}
+                <Popup
+                  className="custom-compact-popup"
+                  autoPan={true}
+                  autoPanPadding={[50, 50]}
+                  eventHandlers={{
+                    add: () => onPopupStateChange?.(true),
+                    remove: () => onPopupStateChange?.(false),
+                  }}
+                >
+                  <div className="compact-popup-content">
+                    <div className="compact-popup-header">
+                      {event.temporalStatus === "live" && (
+                        <span className="badge badge-live">{t.statusLive}</span>
+                      )}
+                      {event.temporalStatus === "upcoming" && (
+                        <span className="badge badge-upcoming">HEUTE</span>
+                      )}
+                      {event.temporalStatus === "concluded" && (
+                        <span className="badge badge-concluded">BEENDET</span>
+                      )}
+                      {typeof event.distanceKm === "number" && (
+                        <span className="compact-distance">
+                          {event.distanceKm.toFixed(1)} km
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="compact-popup-title">{event.title}</h4>
+                    <p className="compact-popup-venue">📍 {event.venueName || t.venueDefault}</p>
+
+                    {/* Truncated description preview */}
+                    {descSnippet && (
+                      <p className="compact-popup-snippet">{descSnippet}</p>
                     )}
-                    {event.temporalStatus === "upcoming" && (
-                      <span className="badge badge-upcoming">HEUTE</span>
-                    )}
-                    {event.temporalStatus === "concluded" && (
-                      <span className="badge badge-concluded">BEENDET</span>
-                    )}
-                    {typeof event.distanceKm === "number" && (
-                      <span className="compact-distance">
-                        {event.distanceKm.toFixed(1)} km
-                      </span>
-                    )}
+
+                    <button
+                      type="button"
+                      className="btn-popup-details"
+                      onClick={() => onSelectEvent?.(event)}
+                    >
+                      {t.showDetails} →
+                    </button>
                   </div>
-
-                  <h4 className="compact-popup-title">{event.title}</h4>
-                  <p className="compact-popup-venue">📍 {event.venueName || t.venueDefault}</p>
-
-                  {/* Truncated description preview */}
-                  {descSnippet && (
-                    <p className="compact-popup-snippet">{descSnippet}</p>
-                  )}
-
-                  <button
-                    type="button"
-                    className="btn-popup-details"
-                    onClick={() => onSelectEvent?.(event)}
-                  >
-                    {t.showDetails} →
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );
