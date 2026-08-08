@@ -4,15 +4,21 @@ A Progressive Web App (PWA) designed to aggregate, visualize, and discover curre
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start with Docker Compose
 
-### Prerequisites
-- **Node.js**: v18 or higher (v20+ recommended)
-- **npm**: v9 or higher
+Run the complete multi-container stack (PostgreSQL + PostGIS, NestJS API, Next.js Frontend) with a single command:
+
+```bash
+docker compose up --build
+```
+
+- **Frontend Application**: `http://localhost:3001`
+- **Backend API**: `http://localhost:3000`
+- **PostgreSQL / PostGIS Database**: `localhost:5432`
 
 ---
 
-## 🛠️ Step-by-Step Instructions
+## 🛠️ Step-by-Step Manual Setup
 
 ### 1. Repository Setup & Dependencies
 
