@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { EventsController } from './events/events.controller';
 import { EventsService } from './events/events.service';
@@ -9,8 +10,9 @@ import { PrismaService } from './prisma/prisma.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Makes the .env variables available everywhere
+      isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     IngestionModule,
   ],
   controllers: [AppController, EventsController],
