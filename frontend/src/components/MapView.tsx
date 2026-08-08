@@ -199,18 +199,19 @@ export default function MapView({
 }: MapViewProps) {
   const t = translations[language];
 
-  // Efficient DOM class toggle on cluster badges without unmounting/remounting MarkerClusterGroup
+  // Efficient DOM class toggle on cluster badges for both hovered and selected events
   useEffect(() => {
+    const activeId = hoveredEventId || selectedEvent?.id;
     const badges = document.querySelectorAll(".custom-cluster-badge");
     badges.forEach((badge) => {
       const ids = badge.getAttribute("data-event-ids")?.split(",") ?? [];
-      if (hoveredEventId && ids.includes(hoveredEventId)) {
+      if (activeId && ids.includes(activeId)) {
         badge.classList.add("cluster-highlighted");
       } else {
         badge.classList.remove("cluster-highlighted");
       }
     });
-  }, [hoveredEventId]);
+  }, [hoveredEventId, selectedEvent]);
 
   return (
     <div className="map-view-wrapper">
@@ -274,7 +275,8 @@ export default function MapView({
               return null;
             }
 
-            const isHovered = event.id === hoveredEventId;
+            const isHighlighted =
+              event.id === hoveredEventId || event.id === selectedEvent?.id;
 
             // Truncate description snippet for mini map popup
             const descSnippet = event.description
@@ -287,8 +289,8 @@ export default function MapView({
               <Marker
                 key={event.id}
                 position={[event.latitude, event.longitude]}
-                icon={isHovered ? highlightedEventIcon : eventIcon}
-                zIndexOffset={isHovered ? 1000 : 0}
+                icon={isHighlighted ? highlightedEventIcon : eventIcon}
+                zIndexOffset={isHighlighted ? 1000 : 0}
                 // @ts-expect-error custom property for cluster hover detection
                 eventId={event.id}
                 eventHandlers={{
