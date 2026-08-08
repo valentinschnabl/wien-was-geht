@@ -19,7 +19,7 @@ export default function LanguageSwitcher({
         onClick={() => onLanguageChange("de")}
         aria-label="Auf Deutsch wechseln"
       >
-        <span className="flag-icon">🇦🇹</span> DE
+        DE
       </button>
       <button
         type="button"
@@ -27,7 +27,7 @@ export default function LanguageSwitcher({
         onClick={() => onLanguageChange("en")}
         aria-label="Switch to English"
       >
-        <span className="flag-icon">🇬🇧</span> EN
+        EN
       </button>
     </div>
   );

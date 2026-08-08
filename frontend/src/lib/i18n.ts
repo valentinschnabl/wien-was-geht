@@ -56,15 +56,22 @@ export interface Translations {
   loadingEvents: string;
   errorLoading: string;
   
-  // Privacy Footer / Badge
-  privacyBadge: string;
+  // Footer & Impressum / Privacy Modal
+  imprint: string;
+  privacyPolicy: string;
+  openDataNotice: string;
+  imprintTitle: string;
+  imprintText: string;
+  privacyTitle: string;
+  privacyText: string;
+  close: string;
 }
 
 export const translations: Record<Language, Translations> = {
   de: {
-    appTitle: "Wien Heute — Veranstaltungen in Wien",
-    appSubtitle: "Öffentliches Stadtportal für heutige Events, Ausstellungen und Kultur-Highlights.",
-    eyebrow: "Stadt Wien Event-Karte (PWA)",
+    appTitle: "WasGehtWien — Events & Kultur in Wien",
+    appSubtitle: "Dein Guide für heutige Veranstaltungen, Konzerte und Kultur-Highlights in Wien.",
+    eyebrow: "WasGehtWien",
     pwaBadge: "Datenschutzkonforme Ortung",
     mapTitle: "Karte von Wien",
     mapSubtitle: "Zentriert auf Wien (48.2082° N, 16.3738° O) mit lokaler Standort-Anzeige.",
@@ -74,7 +81,7 @@ export const translations: Record<Language, Translations> = {
     locationDenied: "Standort nicht freigegeben (Wien Zentrum)",
     locationUnsupported: "Geolocation wird nicht unterstützt",
     myLocation: "Ihr aktueller Standort",
-    locationPrivacyNotice: "Standort wird ausschließlich lokal in Ihrem Browser verarbeitet (NFR-401).",
+    locationPrivacyNotice: "Wird nur lokal auf Ihrem Gerät verarbeitet.",
 
     consentTitle: "Standortfreigabe für Wien Heute",
     consentDescription: "Möchten Sie Ihren Standort auf der Karte anzeigen, um nahegelegene Events heute in Wien zu entdecken?",
@@ -113,12 +120,19 @@ export const translations: Record<Language, Translations> = {
     loadingEvents: "Lade heutige Veranstaltungen...",
     errorLoading: "Fehler beim Laden der Eventdaten",
 
-    privacyBadge: "🔒 DSGVO-konform: Standortverarbeitung ausschließlich lokal",
+    imprint: "Impressum",
+    privacyPolicy: "Datenschutz",
+    openDataNotice: "Datenquelle: Stadt Wien (data.wien.gv.at)",
+    imprintTitle: "Impressum & Offenlegung",
+    imprintText: "WasGehtWien ist eine öffentliche Veranstaltungskarte zur Visualisierung von heutigen Events in Wien.\n\nMedieninhaber & Herausgeber: Dipl.-Ing. Valentin Schnabl\nKontakt: valentin.cello@gmail.com\nDatenquelle: Öffentliche Open Data Schnittstelle der Stadt Wien (CC BY 4.0).",
+    privacyTitle: "Datenschutzerklärung (DSGVO)",
+    privacyText: "Der Schutz Ihrer Daten hat für uns höchste Priorität.\n\n- Geolocation / Standort: Ihre GPS-Koordinaten verbleiben ausschließlich lokal in Ihrem Browser und werden niemals an unsere Server gesendet oder gespeichert.\n- Keine Erfassung von Tracking-Cookies.",
+    close: "Schließen",
   },
   en: {
-    appTitle: "Wien Heute — Vienna Events Today",
-    appSubtitle: "Public city directory for today's events, exhibitions, and cultural highlights in Vienna.",
-    eyebrow: "Vienna Public Event Map",
+    appTitle: "WasGehtWien — Vienna Events Today",
+    appSubtitle: "Your guide for today's events, concerts, and cultural highlights in Vienna.",
+    eyebrow: "WasGehtWien",
     pwaBadge: "Privacy-Preserving Location",
     mapTitle: "Vienna Map View",
     mapSubtitle: "Centered on Vienna (48.2082° N, 16.3738° E) with local proximity awareness.",
@@ -128,7 +142,7 @@ export const translations: Record<Language, Translations> = {
     locationDenied: "Location Off (Vienna Center)",
     locationUnsupported: "Geolocation not supported",
     myLocation: "Your Location",
-    locationPrivacyNotice: "Your location stays local inside your browser (NFR-401).",
+    locationPrivacyNotice: "Processed strictly locally on your device.",
 
     consentTitle: "Share Location for Vienna Events",
     consentDescription: "Would you like to share your location to view nearby events happening in Vienna today?",
@@ -167,6 +181,13 @@ export const translations: Record<Language, Translations> = {
     loadingEvents: "Loading today's events...",
     errorLoading: "Error loading event data",
 
-    privacyBadge: "🔒 GDPR Compliant: Geolocation processed strictly on client",
+    imprint: "Imprint",
+    privacyPolicy: "Privacy Policy",
+    openDataNotice: "Data Source: City of Vienna (data.wien.gv.at)",
+    imprintTitle: "Legal Notice & Imprint",
+    imprintText: "WasGehtWien is a public event map for visualizing today's events in Vienna.\n\nMedia Owner & Publisher: Dipl.-Ing. Valentin Schnabl\nContact: valentin.cello@gmail.com\nData Source: Public Open Data API of the City of Vienna (CC BY 4.0).",
+    privacyTitle: "Privacy Policy (GDPR)",
+    privacyText: "Protecting your privacy is our highest priority.\n\n- Geolocation / Location: Your GPS coordinates remain strictly local inside your browser and are never transmitted to our servers or stored.\n- No tracking cookies.",
+    close: "Close",
   },
 };

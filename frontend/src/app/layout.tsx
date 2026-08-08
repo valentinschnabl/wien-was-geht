@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vienna Event Map",
-  description: "A minimal Next.js frontend for browsing Vienna events.",
+  title: "WasGehtWien — Events & Kultur in Wien",
+  description: "Dein Guide für heutige Veranstaltungen, Konzerte und Kultur-Highlights in Wien.",
 };
 
 export default function RootLayout({

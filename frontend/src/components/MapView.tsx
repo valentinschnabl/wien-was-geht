@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -59,9 +59,34 @@ function MapController({ center }: { center: LatLngExpression }) {
   return null;
 }
 
-// Pans and zooms in smoothly when an event is selected from the sidebar
+// Invalidates Leaflet map container bounds whenever visibility changes (e.g. mobile tab switch)
+function MapResizeController() {
+  const map = useMap();
+
+  useEffect(() => {
+    map.invalidateSize();
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [map]);
+
+  return null;
+}
+
+// Pans and zooms smoothly when an event is selected from the sidebar or reset back to overview
 function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord | null }) {
   const map = useMap();
+  const prevSelectedRef = useRef<EventRecord | null>(null);
 
   useEffect(() => {
     if (
@@ -75,6 +100,13 @@ function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord |
       map.flyTo([selectedEvent.latitude, selectedEvent.longitude], 16.5, {
         duration: 0.8,
       });
+      prevSelectedRef.current = selectedEvent;
+    } else if (!selectedEvent && prevSelectedRef.current) {
+      // Smoothly zoom out and fly back to full Vienna overview (48.2082, 16.3738) at zoom 11.5
+      map.flyTo([48.2082, 16.3738], 11.5, {
+        duration: 0.8,
+      });
+      prevSelectedRef.current = null;
     }
   }, [map, selectedEvent]);
 
@@ -132,6 +164,27 @@ function LocateControl({
   );
 }
 
+// Custom cluster icon creation with data-event-ids attribute for non-destructive hover highlighting
+const createClusterIcon = (cluster: L.MarkerCluster) => {
+  const childMarkers = cluster.getAllChildMarkers();
+  const childIds = childMarkers
+    .map(
+      (m: L.Marker & { options?: { eventId?: string }; eventId?: string }) =>
+        m.options?.eventId || m.eventId
+    )
+    .filter(Boolean)
+    .join(",");
+
+  const count = cluster.getChildCount();
+
+  return L.divIcon({
+    html: `<div class="custom-cluster-badge" data-event-ids="${childIds}"><span>${count}</span></div>`,
+    className: "custom-cluster-icon-wrapper",
+    iconSize: L.point(38, 38),
+    iconAnchor: L.point(19, 19),
+  });
+};
+
 export default function MapView({
   events,
   userLocation,
@@ -146,28 +199,17 @@ export default function MapView({
 }: MapViewProps) {
   const t = translations[language];
 
-  // Dynamically create cluster icons - turns RED if any child marker inside is hovered!
-  const createClusterIcon = useMemo(() => {
-    return (cluster: L.MarkerCluster) => {
-      const childMarkers = cluster.getAllChildMarkers();
-      const containsHovered = hoveredEventId
-        ? childMarkers.some(
-            (m: L.Marker & { options?: { eventId?: string } }) =>
-              m.options?.eventId === hoveredEventId
-          )
-        : false;
-
-      const count = cluster.getChildCount();
-
-      return L.divIcon({
-        html: `<div class="custom-cluster-badge ${
-          containsHovered ? "cluster-highlighted" : ""
-        }"><span>${count}</span></div>`,
-        className: "custom-cluster-icon-wrapper",
-        iconSize: L.point(38, 38),
-        iconAnchor: L.point(19, 19),
-      });
-    };
+  // Efficient DOM class toggle on cluster badges without unmounting/remounting MarkerClusterGroup
+  useEffect(() => {
+    const badges = document.querySelectorAll(".custom-cluster-badge");
+    badges.forEach((badge) => {
+      const ids = badge.getAttribute("data-event-ids")?.split(",") ?? [];
+      if (hoveredEventId && ids.includes(hoveredEventId)) {
+        badge.classList.add("cluster-highlighted");
+      } else {
+        badge.classList.remove("cluster-highlighted");
+      }
+    });
   }, [hoveredEventId]);
 
   return (
@@ -179,9 +221,12 @@ export default function MapView({
         className="map-shell"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; Esri &bull; OpenStreetMap'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
         />
+
+        {/* Resizes and invalidates map container size on mobile tab switch */}
+        <MapResizeController />
 
         {/* Standard Map Overlay Locate Button */}
         <LocateControl
@@ -201,16 +246,18 @@ export default function MapView({
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
             <Popup className="custom-compact-popup" autoPan={true} autoPanPadding={[50, 50]}>
               <div className="popup-user-location">
-                <strong><i className="fa-solid fa-location-dot"></i> {t.myLocation}</strong>
-                <p className="small-muted">{t.locationPrivacyNotice}</p>
+                <span className="user-location-badge">
+                  <i className="fa-solid fa-location-crosshairs"></i> {t.myLocation}
+                </span>
+                <p className="user-location-sub">{t.locationPrivacyNotice}</p>
               </div>
             </Popup>
           </Marker>
         )}
 
-        {/* FR-203 Marker Clustering with dynamic red highlight on hover */}
+        {/* FR-203 Stable Marker Clustering Group */}
         <MarkerClusterGroup
-          key={hoveredEventId ?? "cluster-group"}
+          key="stable-vienna-cluster-group"
           chunkedLoading
           maxClusterRadius={35}
           spiderfyOnMaxZoom={true}
@@ -245,6 +292,9 @@ export default function MapView({
                 // @ts-expect-error custom property for cluster hover detection
                 eventId={event.id}
                 eventHandlers={{
+                  add: (e) => {
+                    e.target.options.eventId = event.id;
+                  },
                   mouseover: () => onHoverEvent?.(event.id),
                   mouseout: () => onHoverEvent?.(null),
                 }}
@@ -261,26 +311,31 @@ export default function MapView({
                 >
                   <div className="compact-popup-content">
                     <div className="compact-popup-header">
-                      {event.temporalStatus === "live" && (
-                        <span className="badge badge-live">{t.statusLive}</span>
-                      )}
-                      {event.temporalStatus === "upcoming" && (
-                        <span className="badge badge-upcoming">HEUTE</span>
-                      )}
-                      {event.temporalStatus === "concluded" && (
-                        <span className="badge badge-concluded">BEENDET</span>
-                      )}
-                      {typeof event.distanceKm === "number" && (
-                        <span className="compact-distance">
-                          {event.distanceKm.toFixed(1)} km
-                        </span>
-                      )}
+                      <div className="compact-popup-tags">
+                        {event.temporalStatus === "live" && (
+                          <span className="badge badge-live">{t.statusLive}</span>
+                        )}
+                        {event.temporalStatus === "upcoming" && (
+                          <span className="badge badge-upcoming">HEUTE</span>
+                        )}
+                        {event.temporalStatus === "concluded" && (
+                          <span className="badge badge-concluded">BEENDET</span>
+                        )}
+                        {typeof event.distanceKm === "number" && (
+                          <span className="compact-distance">
+                            <i className="fa-solid fa-location-arrow"></i>{" "}
+                            {event.distanceKm.toFixed(1)} km
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <h4 className="compact-popup-title">{event.title}</h4>
-                    <p className="compact-popup-venue">
-                      <i className="fa-solid fa-location-dot"></i> {event.venueName || t.venueDefault}
-                    </p>
+
+                    <div className="compact-popup-venue-box">
+                      <i className="fa-solid fa-location-dot venue-icon"></i>
+                      <span className="venue-name">{event.venueName || t.venueDefault}</span>
+                    </div>
 
                     {/* Truncated description preview */}
                     {descSnippet && (
@@ -302,7 +357,7 @@ export default function MapView({
                         onSelectEvent?.(event);
                       }}
                     >
-                      {t.showDetails} →
+                      {t.showDetails} &rarr;
                     </button>
                   </div>
                 </Popup>

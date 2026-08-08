@@ -4,26 +4,31 @@
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
-  --bg-color: #f8fafc;
+  --bg-color: #f8f7f4;
   --panel-bg: #ffffff;
-  --panel-border: #e2e8f0;
+  --panel-border: #e2e0d8;
   --card-bg: #ffffff;
-  --card-border: #e2e8f0;
+  --card-border: #e2e0d8;
 
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-main: #1d271d;
+  --text-muted: #586357;
+  --text-light: #7c887b;
 
-  --accent-blue: #0284c7;
-  --accent-blue-hover: #0369a1;
-  --accent-blue-light: #e0f2fe;
+  /* Otto Wagner Signature Reseda Green (RAL 6011 Resedagrün) */
+  --accent-primary: #5b7b55;
+  --accent-primary-hover: #486243;
+  --accent-primary-light: #edf3eb;
+
+  /* Dedicated User Location GPS Blue (Electric Cyan) */
+  --user-location-blue: #0284c7;
+  --user-location-light: #e0f2fe;
 
   --live-bg: #dcfce7;
   --live-text: #15803d;
-  --upcoming-bg: #e0f2fe;
-  --upcoming-text: #0369a1;
-  --concluded-bg: #f1f5f9;
-  --concluded-text: #64748b;
+  --upcoming-bg: #edf3eb;
+  --upcoming-text: #486243;
+  --concluded-bg: #f2f1ec;
+  --concluded-text: #7c887b;
 }
 
 * {
@@ -69,7 +74,7 @@ html, body {
   border: 1px solid var(--panel-border);
   border-radius: 14px;
   padding: 18px 28px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 12px rgba(29, 39, 29, 0.04);
 }
 
 .city-badge-row {
@@ -85,8 +90,9 @@ html, body {
   gap: 6px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent-blue);
-  background: var(--accent-blue-light);
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  border: 1px solid rgba(91, 123, 85, 0.25);
   padding: 4px 12px;
   border-radius: 999px;
 }
@@ -94,8 +100,8 @@ html, body {
 .stats-pill {
   font-size: 0.76rem;
   font-weight: 700;
-  color: #475569;
-  background: #f1f5f9;
+  color: #434d43;
+  background: #f2f1ec;
   border: 1px solid var(--panel-border);
   padding: 3px 10px;
   border-radius: 999px;
@@ -117,7 +123,7 @@ html, body {
 /* Language Switcher */
 .language-switcher-pill {
   display: flex;
-  background: #f1f5f9;
+  background: #f2f1ec;
   padding: 3px;
   border-radius: 10px;
   border: 1px solid var(--panel-border);
@@ -140,7 +146,7 @@ html, body {
 
 .lang-btn.active {
   background: var(--panel-bg);
-  color: var(--accent-blue);
+  color: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
@@ -153,7 +159,7 @@ html, body {
 
 .chip-btn {
   flex: 1;
-  background: #f1f5f9;
+  background: #f2f1ec;
   border: 1px solid var(--panel-border);
   color: var(--text-muted);
   padding: 7px 10px;
@@ -166,15 +172,15 @@ html, body {
 }
 
 .chip-btn:hover {
-  background: #e2e8f0;
+  background: #e2e0d8;
   color: var(--text-main);
 }
 
 .chip-btn.active {
-  background: var(--accent-blue);
+  background: var(--accent-primary);
   color: #ffffff;
-  border-color: var(--accent-blue);
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(91, 123, 85, 0.25);
 }
 
 /* Sidebar Search Bar */
@@ -195,7 +201,7 @@ html, body {
 
 .sidebar-search-input {
   width: 100%;
-  background: #f8fafc;
+  background: #f8f7f4;
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 9px 12px 9px 34px;
@@ -206,9 +212,9 @@ html, body {
 }
 
 .sidebar-search-input:focus {
-  border-color: var(--accent-blue);
+  border-color: var(--accent-primary);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 0 0 3px rgba(91, 123, 85, 0.15);
 }
 
 .header-toggle {
@@ -234,7 +240,7 @@ html, body {
 .checkbox-custom {
   width: 16px;
   height: 16px;
-  border: 2px solid #cbd5e1;
+  border: 2px solid #c8c5ba;
   border-radius: 4px;
   display: inline-block;
   position: relative;
@@ -242,8 +248,8 @@ html, body {
 }
 
 .checkbox-input:checked + .checkbox-custom {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
 .checkbox-input:checked + .checkbox-custom::after {
@@ -276,7 +282,7 @@ html, body {
   min-width: 0;
   min-height: 0;
   height: 100%;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 2px 12px rgba(29, 39, 29, 0.03);
 }
 
 .panel-header {
@@ -286,11 +292,24 @@ html, body {
   margin-bottom: 12px;
 }
 
+.map-panel-header {
+  margin-bottom: 8px;
+}
+
+.map-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
 .panel-eyebrow {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent-blue);
+  color: var(--accent-primary);
   font-weight: 700;
 }
 
@@ -325,7 +344,7 @@ html, body {
   height: 34px;
   background: #ffffff;
   border: none;
-  color: #0f172a;
+  color: #1d271d;
   font-size: 1.1rem;
   cursor: pointer;
   display: flex;
@@ -335,14 +354,31 @@ html, body {
 }
 
 .leaflet-control-locate-btn:hover {
-  background: #f1f5f9;
+  background: #f2f1ec;
 }
 
 .leaflet-control-locate-btn.active {
-  background: var(--accent-blue-light);
+  background: var(--user-location-light);
+  color: var(--user-location-blue);
 }
 
-/* Custom User Location Marker */
+/* Micro-styled Unobtrusive Leaflet Attribution */
+.leaflet-container .leaflet-control-attribution {
+  font-size: 0.65rem !important;
+  color: #78716c !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(2px);
+  opacity: 0.7;
+  padding: 2px 6px !important;
+  border-radius: 4px 0 0 0;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: #586357 !important;
+  text-decoration: none !important;
+}
+
+/* Custom User Location Marker (Dedicated GPS Cyan Blue) */
 .custom-user-location-marker {
   background: transparent;
   border: none;
@@ -361,12 +397,12 @@ html, body {
 .user-inner-dot {
   width: 12px;
   height: 12px;
-  background: #0284c7;
+  background: var(--user-location-blue);
   border: 2px solid #ffffff;
   border-radius: 50%;
 }
 
-/* Custom Event Pin */
+/* Custom Event Pin (Otto Wagner RAL 6011 Resedagrün) */
 .custom-event-marker {
   background: transparent;
   border: none;
@@ -374,13 +410,13 @@ html, body {
 }
 
 .event-pin {
-  width: 24px;
-  height: 24px;
-  background: #0284c7;
-  border: 2px solid #ffffff;
+  width: 26px;
+  height: 26px;
+  background: var(--accent-primary);
+  border: 2.5px solid #ffffff;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,13 +425,14 @@ html, body {
 
 .event-pin-highlighted {
   background: #e11d48 !important;
-  transform: rotate(-45deg) scale(1.35) !important;
-  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.7) !important;
+  border-color: #ffffff !important;
+  transform: rotate(-45deg) scale(1.4) !important;
+  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.85) !important;
 }
 
 .pin-inner {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   background: #ffffff;
   border-radius: 50%;
 }
@@ -409,7 +446,7 @@ html, body {
 .custom-cluster-badge {
   width: 38px;
   height: 38px;
-  background: rgba(2, 132, 199, 0.92);
+  background: rgba(91, 123, 85, 0.92);
   border: 2px solid #ffffff;
   border-radius: 50%;
   color: #ffffff;
@@ -418,7 +455,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 4px 12px rgba(91, 123, 85, 0.35);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -445,59 +482,116 @@ html, body {
 .custom-compact-popup .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   color: var(--text-main) !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(29, 39, 29, 0.16) !important;
   padding: 0 !important;
   overflow: hidden;
 }
 
 .custom-compact-popup .leaflet-popup-content {
   margin: 0 !important;
-  width: 220px !important;
+  width: 250px !important;
 }
 
 .custom-compact-popup .leaflet-popup-tip {
   background: #ffffff !important;
 }
 
+.custom-compact-popup .leaflet-popup-close-button {
+  top: 10px !important;
+  right: 10px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 14px !important;
+  color: #7c887b !important;
+  background: #f2f1ec !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: none !important;
+  transition: all 0.15s ease !important;
+  z-index: 10 !important;
+}
+
+.custom-compact-popup .leaflet-popup-close-button:hover {
+  background: #e2e0d8 !important;
+  color: #1d271d !important;
+}
+
 .compact-popup-content {
-  padding: 10px 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
+  position: relative;
 }
 
 .compact-popup-header {
+  padding-right: 28px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+}
+
+.compact-popup-tags {
+  display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .compact-distance {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--accent-blue);
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  padding: 2px 7px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .compact-popup-title {
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-main);
-  line-height: 1.3;
+  line-height: 1.35;
+  margin-top: 2px;
 }
 
-.compact-popup-venue {
+.compact-popup-venue-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8f7f4;
+  border: 1px solid #e2e0d8;
+  padding: 6px 10px;
+  border-radius: 6px;
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: #434d43;
+  margin-top: 2px;
+}
+
+.compact-popup-venue-box .venue-icon {
+  color: var(--accent-primary);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.compact-popup-venue-box .venue-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .compact-popup-snippet {
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.3;
-  margin-top: 2px;
+  line-height: 1.4;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -506,22 +600,49 @@ html, body {
 }
 
 .btn-popup-details {
-  background: var(--accent-blue-light);
-  color: var(--accent-blue);
+  width: 100%;
+  background: var(--accent-primary);
+  color: #ffffff;
   border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.78rem;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   margin-top: 4px;
   text-align: center;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(91, 123, 85, 0.2);
 }
 
 .btn-popup-details:hover {
-  background: var(--accent-blue);
+  background: var(--accent-primary-hover);
   color: #ffffff;
+  box-shadow: 0 4px 12px rgba(91, 123, 85, 0.35);
+}
+
+/* Clean User Location Popup Styling */
+.popup-user-location {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-location-badge {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--user-location-blue);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-location-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin: 0;
 }
 
 /* Badges */
@@ -602,13 +723,25 @@ html, body {
   min-width: 64px;
   border-radius: 8px;
   overflow: hidden;
-  background: #e2e8f0;
+  background: #e2e0d8;
 }
 
 .compact-thumb {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.compact-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f2f1ec;
+  color: #a09d94;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border-radius: 8px;
 }
 
 .compact-info {
@@ -629,8 +762,8 @@ html, body {
 .distance-pill {
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--accent-blue);
-  background: var(--accent-blue-light);
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
@@ -665,7 +798,7 @@ html, body {
 .btn-card-details {
   background: transparent;
   border: none;
-  color: var(--accent-blue);
+  color: var(--accent-primary);
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
@@ -700,7 +833,7 @@ html, body {
 }
 
 .btn-back-sidebar {
-  background: #f1f5f9;
+  background: #f2f1ec;
   border: 1px solid var(--panel-border);
   color: var(--text-main);
   padding: 8px 14px;
@@ -713,8 +846,8 @@ html, body {
 }
 
 .btn-back-sidebar:hover {
-  background: var(--accent-blue-light);
-  color: var(--accent-blue);
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
 }
 
 .sidebar-detail-image-wrapper {
@@ -722,13 +855,34 @@ html, body {
   height: 180px;
   border-radius: 10px;
   overflow: hidden;
-  background: #e2e8f0;
+  background: #e2e0d8;
 }
 
 .sidebar-detail-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.sidebar-detail-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f8f7f4 0%, #e2e0d8 100%);
+  border: 1px dashed #c8c5ba;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #7c887b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sidebar-detail-placeholder .placeholder-icon {
+  font-size: 2.2rem;
+  color: #a09d94;
 }
 
 .sidebar-detail-content {
@@ -745,8 +899,8 @@ html, body {
 }
 
 .sidebar-detail-meta {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #f8f7f4;
+  border: 1px solid #e2e0d8;
   border-radius: 8px;
   padding: 10px;
   display: flex;
@@ -786,7 +940,7 @@ html, body {
 }
 
 .btn-primary {
-  background: var(--accent-blue);
+  background: var(--accent-primary);
   color: #ffffff;
 }
 
@@ -799,24 +953,222 @@ html, body {
   opacity: 0.9;
 }
 
-@media (max-width: 960px) {
+/* Sleek Municipal Footer Bar */
+.app-footer-clean {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.footer-left, .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-divider {
+  color: #c8c5ba;
+}
+
+.btn-footer-link {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.btn-footer-link:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+/* Modal Overlay (Impressum & Datenschutz) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(29, 39, 29, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInModal 0.15s ease-out;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(29, 39, 29, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f7f4;
+}
+
+.modal-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.btn-close-modal {
+  background: #e2e0d8;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: #586357;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.btn-close-modal:hover {
+  background: #c8c5ba;
+  color: #1d271d;
+}
+
+.modal-body {
+  padding: 20px;
+  font-size: 0.88rem;
+  color: #434d43;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--panel-border);
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f7f4;
+}
+
+@media (max-width: 768px) {
   html, body {
-    height: auto;
-    max-height: none;
-    overflow: auto;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
   }
 
   .main-wrapper {
-    height: auto;
-    max-height: none;
+    height: 100vh;
+    max-height: 100vh;
+    padding: 8px;
+  }
+
+  .app-header-clean {
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .header-title {
+    font-size: 1.2rem;
+  }
+
+  .header-subtitle {
+    display: none;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr;
-    height: auto;
+    height: 100%;
+    overflow: hidden;
   }
 
-  .map-shell {
-    height: 440px;
+  .panel-map {
+    display: none;
+  }
+
+  .panel-list {
+    display: none;
+  }
+
+  .dashboard-grid.mobile-view-map .panel-map {
+    display: flex;
+    height: 100%;
+  }
+
+  .dashboard-grid.mobile-view-list .panel-list {
+    display: flex;
+    height: 100%;
+  }
+
+  .mobile-floating-switcher {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    background: #1d271d;
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(29, 39, 29, 0.35);
+  }
+
+  .mobile-switch-btn {
+    background: transparent;
+    border: none;
+    color: #a09d94;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .mobile-switch-btn.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(91, 123, 85, 0.4);
+  }
+
+  .app-footer-clean {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-floating-switcher {
+    display: none;
   }
 }

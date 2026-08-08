@@ -23,10 +23,17 @@ export default function EventMap() {
   const [includeConcluded, setIncludeConcluded] = useState(false);
   const [quickFilter, setQuickFilter] = useState<"all" | "live">("all");
 
+  // Mobile Tab state (Map vs List View for Mobile UX)
+  const [mobileTab, setMobileTab] = useState<"map" | "list">("map");
+
   // Hover, Selection & Popup state
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventRecord | null>(null);
   const [isMapPopupOpen, setIsMapPopupOpen] = useState(false);
+  const [failedImageIds, setFailedImageIds] = useState<Record<string, boolean>>({});
+
+  // Modal overlay state (Impressum / Datenschutz)
+  const [activeModal, setActiveModal] = useState<"imprint" | "privacy" | null>(null);
 
   // Ref map for sidebar card elements
   const cardRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -63,11 +70,16 @@ export default function EventMap() {
   const handleSelectEvent = (event: EventRecord) => {
     setSelectedEvent(event);
     setHoveredEventId(event.id); // Automatically mark the event with the RED highlighted pin
+    setMobileTab("list"); // On mobile, automatically switch to detailed view panel
   };
 
   const handleBackToList = () => {
     setSelectedEvent(null);
     setHoveredEventId(null);
+  };
+
+  const handleImageError = (id: string) => {
+    setFailedImageIds((prev) => ({ ...prev, [id]: true }));
   };
 
   const requestBrowserLocation = () => {
@@ -223,16 +235,16 @@ export default function EventMap() {
 
   return (
     <div className="app-container-clean">
-      {/* Sleek Municipal Header with FontAwesome Icons */}
+      {/* Rebranded Header */}
       <header className="app-header-clean">
         <div className="header-branding">
           <div className="city-badge-row">
             <span className="city-badge">
-              <i className="fa-solid fa-city"></i> Stadt Wien Event-Portal
+              <i className="fa-solid fa-city"></i> WasGehtWien
             </span>
             <span className="stats-pill">
               <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} Live &bull;{" "}
-              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} Heute
+              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} Demnächst
             </span>
           </div>
           <h1 className="header-title">{t.appTitle}</h1>
@@ -247,14 +259,13 @@ export default function EventMap() {
         </div>
       </header>
 
-      {/* Dashboard Layout - Large Map on Left, Search / Detailed View on Right */}
-      <div className="dashboard-grid">
+      {/* Dashboard Layout - Responsive Grid & Mobile View Switching */}
+      <div className={`dashboard-grid mobile-view-${mobileTab}`}>
         {/* Enlarged Map Panel */}
         <section className="clean-panel panel-map">
-          <div className="panel-header">
-            <div>
-              <p className="panel-eyebrow">Interactive Map</p>
-              <h2>{t.mapTitle}</h2>
+          <div className="panel-header map-panel-header">
+            <div className="map-header-left">
+              <i className="fa-solid fa-map-location-dot"></i> <span>Wien Karte</span>
             </div>
 
             {/* FR-303 Concluded Events Toggle */}
@@ -303,19 +314,26 @@ export default function EventMap() {
                 {language === "de" ? "Zurück zur Übersicht" : "Back to list"}
               </button>
 
-              {/* Event Image Banner */}
-              {selectedEvent.imageUrl && (
-                <div className="sidebar-detail-image-wrapper">
+              {/* Event Image Banner or Clean Informative Placeholder */}
+              <div className="sidebar-detail-image-wrapper">
+                {selectedEvent.imageUrl && !failedImageIds[selectedEvent.id] ? (
                   <img
                     src={selectedEvent.imageUrl}
                     alt={selectedEvent.title}
                     className="sidebar-detail-image"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
+                    onError={() => handleImageError(selectedEvent.id)}
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="sidebar-detail-placeholder">
+                    <i className="fa-solid fa-image placeholder-icon"></i>
+                    <span>
+                      {language === "de"
+                        ? "Kein Bild für dieses Event verfügbar"
+                        : "No image available for this event"}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <div className="sidebar-detail-content">
                 <div className="compact-top-tags">
@@ -456,19 +474,21 @@ export default function EventMap() {
                       onClick={() => handleSelectEvent(event)}
                     >
                       <div className="compact-card-body">
-                        {/* Database Picture Thumbnail */}
-                        {event.imageUrl && (
-                          <div className="compact-thumb-wrapper">
+                        {/* Database Picture Thumbnail or Clean Vector Placeholder */}
+                        <div className="compact-thumb-wrapper">
+                          {event.imageUrl && !failedImageIds[event.id] ? (
                             <img
                               src={event.imageUrl}
                               alt={event.title}
                               className="compact-thumb"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = "none";
-                              }}
+                              onError={() => handleImageError(event.id)}
                             />
-                          </div>
-                        )}
+                          ) : (
+                            <div className="compact-thumb-placeholder">
+                              <i className="fa-solid fa-image"></i>
+                            </div>
+                          )}
+                        </div>
 
                         <div className="compact-info">
                           <div className="compact-top-tags">
@@ -522,6 +542,86 @@ export default function EventMap() {
           )}
         </aside>
       </div>
+
+      {/* Floating View Switcher Bar for Mobile Smartphones (< 768px) */}
+      <div className="mobile-floating-switcher">
+        <button
+          type="button"
+          className={`mobile-switch-btn ${mobileTab === "map" ? "active" : ""}`}
+          onClick={() => setMobileTab("map")}
+        >
+          <i className="fa-solid fa-map-location-dot"></i> Karte
+        </button>
+        <button
+          type="button"
+          className={`mobile-switch-btn ${mobileTab === "list" ? "active" : ""}`}
+          onClick={() => setMobileTab("list")}
+        >
+          <i className="fa-solid fa-list"></i> Liste ({filteredEvents.length})
+        </button>
+      </div>
+
+      {/* Sleek Municipal Footer Bar */}
+      <footer className="app-footer-clean">
+        <div className="footer-left">
+          <span>WasGehtWien &bull; &copy; 2026</span>
+          <span className="footer-divider">&bull;</span>
+          <span className="footer-opendata">{t.openDataNotice}</span>
+        </div>
+
+        <div className="footer-right">
+          <button
+            type="button"
+            className="btn-footer-link"
+            onClick={() => setActiveModal("imprint")}
+          >
+            {t.imprint}
+          </button>
+          <span className="footer-divider">&bull;</span>
+          <button
+            type="button"
+            className="btn-footer-link"
+            onClick={() => setActiveModal("privacy")}
+          >
+            {t.privacyPolicy}
+          </button>
+        </div>
+      </footer>
+
+      {/* Impressum & Datenschutz Modal Overlay */}
+      {activeModal && (
+        <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                {activeModal === "imprint" ? t.imprintTitle : t.privacyTitle}
+              </h3>
+              <button
+                type="button"
+                className="btn-close-modal"
+                onClick={() => setActiveModal(null)}
+                aria-label="Schließen / Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                {activeModal === "imprint" ? t.imprintText : t.privacyText}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setActiveModal(null)}
+              >
+                {t.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

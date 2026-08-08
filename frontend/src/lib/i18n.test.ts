@@ -6,8 +6,15 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.de).toBeDefined();
     expect(translations.en).toBeDefined();
 
-    expect(translations.de.appTitle).toContain("Wien Heute");
-    expect(translations.en.appTitle).toContain("Wien Heute");
+    expect(translations.de.appTitle).toContain("WasGehtWien");
+    expect(translations.en.appTitle).toContain("WasGehtWien");
+  });
+
+  it("should contain correct Impressum legal owner and contact details", () => {
+    expect(translations.de.imprintText).toContain("Dipl.-Ing. Valentin Schnabl");
+    expect(translations.de.imprintText).toContain("valentin.cello@gmail.com");
+    expect(translations.en.imprintText).toContain("Dipl.-Ing. Valentin Schnabl");
+    expect(translations.en.imprintText).toContain("valentin.cello@gmail.com");
   });
 
   it("should correctly format distance string in German and English", () => {
