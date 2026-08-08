@@ -241,7 +241,7 @@ export default function EventMap() {
         <div className="header-branding">
           <div className="city-badge-row">
             <span className="city-badge">
-              <i className="fa-solid fa-city"></i> WasGehtWien
+              <i className="fa-solid fa-city"></i> WienWasGeht
             </span>
             <span className="stats-pill">
               <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} Live &bull;{" "}
@@ -565,7 +565,7 @@ export default function EventMap() {
       {/* Sleek Municipal Footer Bar */}
       <footer className="app-footer-clean">
         <div className="footer-left">
-          <span>WasGehtWien &bull; &copy; 2026</span>
+          <span>WienWasGeht &bull; &copy; 2026</span>
           <span className="footer-divider">&bull;</span>
           <span className="footer-opendata">{t.openDataNotice}</span>
         </div>

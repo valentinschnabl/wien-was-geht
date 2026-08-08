@@ -6,8 +6,8 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.de).toBeDefined();
     expect(translations.en).toBeDefined();
 
-    expect(translations.de.appTitle).toContain("WasGehtWien");
-    expect(translations.en.appTitle).toContain("WasGehtWien");
+    expect(translations.de.appTitle).toContain("WienWasGeht");
+    expect(translations.en.appTitle).toContain("WienWasGeht");
   });
 
   it("should contain correct Impressum legal owner and contact details", () => {
