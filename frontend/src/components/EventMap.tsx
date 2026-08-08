@@ -5,13 +5,12 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { translations, Language } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import type { EventRecord, UserLocation } from "./MapView";
+import { calculateDistanceKm } from "@/lib/distance";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
   loading: () => <div className="map-loading">Lade Karte...</div>,
 });
-
-import { calculateDistanceKm } from "@/lib/distance";
 
 export default function EventMap() {
   const [language, setLanguage] = useState<Language>("de");
@@ -22,6 +21,7 @@ export default function EventMap() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [includeConcluded, setIncludeConcluded] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<"all" | "live">("all");
 
   // Hover, Selection & Popup state
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
@@ -55,7 +55,19 @@ export default function EventMap() {
   }, [hoveredEventId, isMapPopupOpen]);
 
   const handleHoverEvent = (id: string | null) => {
-    setHoveredEventId(id);
+    if (!isMapPopupOpen) {
+      setHoveredEventId(id);
+    }
+  };
+
+  const handleSelectEvent = (event: EventRecord) => {
+    setSelectedEvent(event);
+    setHoveredEventId(event.id); // Automatically mark the event with the RED highlighted pin
+  };
+
+  const handleBackToList = () => {
+    setSelectedEvent(null);
+    setHoveredEventId(null);
   };
 
   const requestBrowserLocation = () => {
@@ -102,24 +114,46 @@ export default function EventMap() {
     void loadEvents();
   }, []);
 
+  // Compute total live & upcoming counts for header stats
+  const eventStats = useMemo(() => {
+    const now = new Date("2026-08-06T15:44:00+02:00");
+    let liveCount = 0;
+    let upcomingCount = 0;
+
+    events.forEach((ev) => {
+      const start = ev.startTime ? new Date(ev.startTime) : new Date();
+      const end = ev.endTime ? new Date(ev.endTime) : start;
+      if (start <= now && end >= now) {
+        liveCount++;
+      } else if (start > now) {
+        upcomingCount++;
+      }
+    });
+
+    return { liveCount, upcomingCount };
+  }, [events]);
+
   // Filter events: SCOPED TO TODAY (2026-08-06)
   const filteredEvents = useMemo(() => {
     const now = new Date("2026-08-06T15:44:00+02:00");
     const todayStart = new Date("2026-08-06T00:00:00+02:00");
     const todayEnd = new Date("2026-08-06T23:59:59+02:00");
 
+    // Reference location: User coordinates or fallback to Vienna City Center (48.2082, 16.3738)
+    const referenceLocation = userLocation ?? { lat: 48.2082, lng: 16.3738 };
+
     return events
       .map((ev) => {
         let dist: number | null = null;
         if (
-          userLocation &&
           typeof ev.latitude === "number" &&
           typeof ev.longitude === "number" &&
-          ev.latitude !== 0
+          ev.latitude !== 0 &&
+          ev.longitude !== 0
         ) {
           dist = calculateDistanceKm(
-            userLocation.lat,
-            userLocation.lng,
+            referenceLocation.lat,
+            referenceLocation.lng,
             ev.latitude,
             ev.longitude
           );
@@ -152,7 +186,7 @@ export default function EventMap() {
           return false;
         }
 
-        // ONLY events happening TODAY (starts on/before today AND ends on/after today)
+        // ONLY events happening TODAY
         const activeToday = ev.startDate <= todayEnd && ev.endDate >= todayStart;
         if (!activeToday) return false;
 
@@ -161,7 +195,12 @@ export default function EventMap() {
           return false;
         }
 
-        // Search Query
+        // Quick Filter Chip Filtering
+        if (quickFilter === "live" && ev.temporalStatus !== "live") {
+          return false;
+        }
+
+        // Search Query Filter
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const titleMatch = ev.title.toLowerCase().includes(q);
@@ -172,24 +211,29 @@ export default function EventMap() {
         return true;
       })
       .sort((a, b) => {
-        // Live events first, then upcoming, then by distance or title
-        if (a.temporalStatus === "live" && b.temporalStatus !== "live") return -1;
-        if (a.temporalStatus !== "live" && b.temporalStatus === "live") return 1;
-
-        if (a.distanceKm !== null && b.distanceKm !== null) {
-          return a.distanceKm - b.distanceKm;
+        // Sort strictly by distance ascending across all filter views
+        const distA = a.distanceKm ?? 9999;
+        const distB = b.distanceKm ?? 9999;
+        if (distA !== distB) {
+          return distA - distB;
         }
         return a.title.localeCompare(b.title);
       });
-  }, [events, userLocation, includeConcluded, searchQuery]);
+  }, [events, userLocation, includeConcluded, searchQuery, quickFilter]);
 
   return (
     <div className="app-container-clean">
-      {/* Clean Municipal Header */}
+      {/* Sleek Municipal Header with FontAwesome Icons */}
       <header className="app-header-clean">
         <div className="header-branding">
-          <div className="city-badge">
-            <span className="wien-icon">🇦🇹</span> Stadt Wien Event-Portal
+          <div className="city-badge-row">
+            <span className="city-badge">
+              <i className="fa-solid fa-city"></i> Stadt Wien Event-Portal
+            </span>
+            <span className="stats-pill">
+              <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} Live &bull;{" "}
+              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} Heute
+            </span>
           </div>
           <h1 className="header-title">{t.appTitle}</h1>
           <p className="header-subtitle">{t.appSubtitle}</p>
@@ -236,7 +280,8 @@ export default function EventMap() {
               language={language}
               onLocateClick={requestBrowserLocation}
               locationState={locationState}
-              onSelectEvent={(ev) => setSelectedEvent(ev)}
+              onSelectEvent={handleSelectEvent}
+              selectedEvent={selectedEvent}
               hoveredEventId={hoveredEventId}
               onHoverEvent={handleHoverEvent}
               onPopupStateChange={(isOpen) => setIsMapPopupOpen(isOpen)}
@@ -252,12 +297,13 @@ export default function EventMap() {
               <button
                 type="button"
                 className="btn-back-sidebar"
-                onClick={() => setSelectedEvent(null)}
+                onClick={handleBackToList}
               >
-                ← {language === "de" ? "Zurück zur Übersicht" : "Back to list"}
+                <i className="fa-solid fa-arrow-left"></i>{" "}
+                {language === "de" ? "Zurück zur Übersicht" : "Back to list"}
               </button>
 
-              {/* Event Image */}
+              {/* Event Image Banner */}
               {selectedEvent.imageUrl && (
                 <div className="sidebar-detail-image-wrapper">
                   <img
@@ -289,7 +335,8 @@ export default function EventMap() {
 
                   {typeof selectedEvent.distanceKm === "number" && (
                     <span className="distance-pill">
-                      🚶 {t.distanceAway(selectedEvent.distanceKm)}
+                      <i className="fa-solid fa-location-arrow"></i>{" "}
+                      {t.distanceAway(selectedEvent.distanceKm)}
                     </span>
                   )}
                 </div>
@@ -297,9 +344,12 @@ export default function EventMap() {
                 <h2 className="sidebar-detail-title">{selectedEvent.title}</h2>
 
                 <div className="sidebar-detail-meta">
-                  <p>📍 <strong>{selectedEvent.venueName || t.venueDefault}</strong></p>
                   <p>
-                    🕒{" "}
+                    <i className="fa-solid fa-location-dot"></i>{" "}
+                    <strong>{selectedEvent.venueName || t.venueDefault}</strong>
+                  </p>
+                  <p>
+                    <i className="fa-solid fa-clock"></i>{" "}
                     {selectedEvent.startTime
                       ? new Date(selectedEvent.startTime).toLocaleString(
                           language === "de" ? "de-AT" : "en-US",
@@ -330,13 +380,14 @@ export default function EventMap() {
                     rel="noopener noreferrer"
                     className="btn btn-primary btn-full-width"
                   >
-                    {t.externalLink}
+                    {t.externalLink}{" "}
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i>
                   </a>
                 )}
               </div>
             </div>
           ) : (
-            /* STANDARD EVENTS SEARCH + LIST VIEW */
+            /* STANDARD EVENTS SEARCH + QUICK FILTERS + LIST VIEW */
             <>
               <div className="panel-header">
                 <div>
@@ -349,7 +400,7 @@ export default function EventMap() {
 
               {/* Search bar strictly over events */}
               <div className="sidebar-search-container">
-                <span className="search-icon">🔍</span>
+                <i className="fa-solid fa-magnifying-glass search-icon"></i>
                 <input
                   type="text"
                   placeholder={t.searchPlaceholder}
@@ -357,6 +408,24 @@ export default function EventMap() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input sidebar-search-input"
                 />
+              </div>
+
+              {/* Quick Filter Segmented Control Chips */}
+              <div className="quick-filter-chips">
+                <button
+                  type="button"
+                  className={`chip-btn ${quickFilter === "all" ? "active" : ""}`}
+                  onClick={() => setQuickFilter("all")}
+                >
+                  Alle
+                </button>
+                <button
+                  type="button"
+                  className={`chip-btn ${quickFilter === "live" ? "active" : ""}`}
+                  onClick={() => setQuickFilter("live")}
+                >
+                  <i className="fa-solid fa-bolt"></i> Live
+                </button>
               </div>
 
               <div className="event-list">
@@ -382,9 +451,9 @@ export default function EventMap() {
                         cardRefs.current[event.id] = el;
                       }}
                       className={`event-compact-card ${isHovered ? "hovered" : ""}`}
-                      onMouseEnter={() => setHoveredEventId(event.id)}
-                      onMouseLeave={() => setHoveredEventId(null)}
-                      onClick={() => setSelectedEvent(event)}
+                      onMouseEnter={() => !isMapPopupOpen && setHoveredEventId(event.id)}
+                      onMouseLeave={() => !isMapPopupOpen && setHoveredEventId(null)}
+                      onClick={() => handleSelectEvent(event)}
                     >
                       <div className="compact-card-body">
                         {/* Database Picture Thumbnail */}
@@ -419,13 +488,17 @@ export default function EventMap() {
 
                             {typeof event.distanceKm === "number" && (
                               <span className="distance-pill">
-                                🚶 {event.distanceKm.toFixed(1)} km
+                                <i className="fa-solid fa-location-arrow"></i>{" "}
+                                {event.distanceKm.toFixed(1)} km
                               </span>
                             )}
                           </div>
 
                           <h3 className="compact-title">{event.title}</h3>
-                          <p className="compact-venue">📍 {event.venueName || t.venueDefault}</p>
+                          <p className="compact-venue">
+                            <i className="fa-solid fa-location-dot"></i>{" "}
+                            {event.venueName || t.venueDefault}
+                          </p>
 
                           <div className="compact-bottom-row">
                             <button
@@ -433,10 +506,10 @@ export default function EventMap() {
                               className="btn-card-details"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedEvent(event);
+                                handleSelectEvent(event);
                               }}
                             >
-                              {t.showDetails} →
+                              {t.showDetails} &rarr;
                             </button>
                           </div>
                         </div>

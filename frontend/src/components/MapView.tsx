@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -37,12 +37,49 @@ interface MapViewProps {
   onLocateClick: () => void;
   locationState: "idle" | "locating" | "active" | "denied";
   onSelectEvent?: (event: EventRecord) => void;
+  selectedEvent?: EventRecord | null;
   hoveredEventId?: string | null;
   onHoverEvent?: (id: string | null) => void;
   onPopupStateChange?: (isOpen: boolean) => void;
 }
 
 const DEFAULT_VIENNA: LatLngExpression = [48.2082, 16.3738];
+
+// Controls map position ONCE on initial location acquire without overriding manual user panning
+function MapController({ center }: { center: LatLngExpression }) {
+  const map = useMap();
+  const initialCenteredRef = useRef(false);
+
+  useEffect(() => {
+    if (!initialCenteredRef.current) {
+      initialCenteredRef.current = true;
+      map.flyTo(center, 12, { duration: 1 });
+    }
+  }, [map, center]);
+  return null;
+}
+
+// Pans and zooms in smoothly when an event is selected from the sidebar
+function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (
+      selectedEvent &&
+      typeof selectedEvent.latitude === "number" &&
+      typeof selectedEvent.longitude === "number" &&
+      selectedEvent.latitude !== 0 &&
+      selectedEvent.longitude !== 0
+    ) {
+      // Zoom to street-level (16.5) so clustered markers automatically uncluster
+      map.flyTo([selectedEvent.latitude, selectedEvent.longitude], 16.5, {
+        duration: 0.8,
+      });
+    }
+  }, [map, selectedEvent]);
+
+  return null;
+}
 
 // Clean User Location Marker
 const userLocationIcon = L.divIcon({
@@ -70,20 +107,6 @@ const highlightedEventIcon = L.divIcon({
   popupAnchor: [0, -38],
 });
 
-// Controls map position ONCE on initial location acquire without overriding manual user panning
-function MapController({ center }: { center: LatLngExpression }) {
-  const map = useMap();
-  const initialCenteredRef = useRef(false);
-
-  useEffect(() => {
-    if (!initialCenteredRef.current) {
-      initialCenteredRef.current = true;
-      map.flyTo(center, 12, { duration: 1 });
-    }
-  }, [map, center]);
-  return null;
-}
-
 // Standard Floating Leaflet Locate Control Button
 function LocateControl({
   onLocate,
@@ -102,7 +125,7 @@ function LocateControl({
           title="Mein Standort / My Location"
           aria-label="Mein Standort / My Location"
         >
-          🎯
+          <i className="fa-solid fa-location-crosshairs"></i>
         </button>
       </div>
     </div>
@@ -116,11 +139,36 @@ export default function MapView({
   onLocateClick,
   locationState,
   onSelectEvent,
+  selectedEvent,
   hoveredEventId,
   onHoverEvent,
   onPopupStateChange,
 }: MapViewProps) {
   const t = translations[language];
+
+  // Dynamically create cluster icons - turns RED if any child marker inside is hovered!
+  const createClusterIcon = useMemo(() => {
+    return (cluster: L.MarkerCluster) => {
+      const childMarkers = cluster.getAllChildMarkers();
+      const containsHovered = hoveredEventId
+        ? childMarkers.some(
+            (m: L.Marker & { options?: { eventId?: string } }) =>
+              m.options?.eventId === hoveredEventId
+          )
+        : false;
+
+      const count = cluster.getChildCount();
+
+      return L.divIcon({
+        html: `<div class="custom-cluster-badge ${
+          containsHovered ? "cluster-highlighted" : ""
+        }"><span>${count}</span></div>`,
+        className: "custom-cluster-icon-wrapper",
+        iconSize: L.point(38, 38),
+        iconAnchor: L.point(19, 19),
+      });
+    };
+  }, [hoveredEventId]);
 
   return (
     <div className="map-view-wrapper">
@@ -141,6 +189,9 @@ export default function MapView({
           isActive={locationState === "active"}
         />
 
+        {/* Controller to fly and zoom to selected event */}
+        <EventFlyToController selectedEvent={selectedEvent} />
+
         {userLocation && (
           <MapController center={[userLocation.lat, userLocation.lng]} />
         )}
@@ -150,19 +201,22 @@ export default function MapView({
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
             <Popup className="custom-compact-popup" autoPan={true} autoPanPadding={[50, 50]}>
               <div className="popup-user-location">
-                <strong>📍 {t.myLocation}</strong>
+                <strong><i className="fa-solid fa-location-dot"></i> {t.myLocation}</strong>
                 <p className="small-muted">{t.locationPrivacyNotice}</p>
               </div>
             </Popup>
           </Marker>
         )}
 
-        {/* FR-203 Marker Clustering */}
+        {/* FR-203 Marker Clustering with dynamic red highlight on hover */}
         <MarkerClusterGroup
+          key={hoveredEventId ?? "cluster-group"}
           chunkedLoading
           maxClusterRadius={35}
           spiderfyOnMaxZoom={true}
           showCoverageOnHover={false}
+          disableClusteringAtZoom={15}
+          iconCreateFunction={createClusterIcon}
         >
           {events.map((event) => {
             if (
@@ -188,6 +242,8 @@ export default function MapView({
                 position={[event.latitude, event.longitude]}
                 icon={isHovered ? highlightedEventIcon : eventIcon}
                 zIndexOffset={isHovered ? 1000 : 0}
+                // @ts-expect-error custom property for cluster hover detection
+                eventId={event.id}
                 eventHandlers={{
                   mouseover: () => onHoverEvent?.(event.id),
                   mouseout: () => onHoverEvent?.(null),
@@ -222,7 +278,9 @@ export default function MapView({
                     </div>
 
                     <h4 className="compact-popup-title">{event.title}</h4>
-                    <p className="compact-popup-venue">📍 {event.venueName || t.venueDefault}</p>
+                    <p className="compact-popup-venue">
+                      <i className="fa-solid fa-location-dot"></i> {event.venueName || t.venueDefault}
+                    </p>
 
                     {/* Truncated description preview */}
                     {descSnippet && (
@@ -232,7 +290,17 @@ export default function MapView({
                     <button
                       type="button"
                       className="btn-popup-details"
-                      onClick={() => onSelectEvent?.(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Close popup cleanly before opening sidebar details to prevent UI flash
+                        const closeBtn = (e.target as HTMLElement)
+                          .closest(".leaflet-popup")
+                          ?.querySelector(".leaflet-popup-close-button") as HTMLElement | null;
+                        if (closeBtn) {
+                          closeBtn.click();
+                        }
+                        onSelectEvent?.(event);
+                      }}
                     >
                       {t.showDetails} →
                     </button>
