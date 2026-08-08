@@ -88,27 +88,30 @@ function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord |
   const map = useMap();
   const prevSelectedRef = useRef<EventRecord | null>(null);
 
+  const selectedId = selectedEvent?.id ?? null;
+  const lat = selectedEvent?.latitude;
+  const lng = selectedEvent?.longitude;
+
   useEffect(() => {
     if (
-      selectedEvent &&
-      typeof selectedEvent.latitude === "number" &&
-      typeof selectedEvent.longitude === "number" &&
-      selectedEvent.latitude !== 0 &&
-      selectedEvent.longitude !== 0
+      typeof lat === "number" &&
+      typeof lng === "number" &&
+      lat !== 0 &&
+      lng !== 0
     ) {
       // Zoom to street-level (16.5) so clustered markers automatically uncluster
-      map.flyTo([selectedEvent.latitude, selectedEvent.longitude], 16.5, {
+      map.flyTo([lat, lng], 16.5, {
         duration: 0.8,
       });
-      prevSelectedRef.current = selectedEvent;
-    } else if (!selectedEvent && prevSelectedRef.current) {
+      prevSelectedRef.current = selectedEvent ?? null;
+    } else if (!selectedId && prevSelectedRef.current) {
       // Smoothly zoom out and fly back to full Vienna overview (48.2082, 16.3738) at zoom 11.5
       map.flyTo([48.2082, 16.3738], 11.5, {
         duration: 0.8,
       });
       prevSelectedRef.current = null;
     }
-  }, [map, selectedEvent]);
+  }, [map, selectedId, lat, lng]);
 
   return null;
 }
@@ -199,9 +202,11 @@ export default function MapView({
 }: MapViewProps) {
   const t = translations[language];
 
+  const selectedEventId = selectedEvent?.id ?? null;
+
   // Efficient DOM class toggle on cluster badges for both hovered and selected events
   useEffect(() => {
-    const activeId = hoveredEventId || selectedEvent?.id;
+    const activeId = hoveredEventId || selectedEventId;
     const badges = document.querySelectorAll(".custom-cluster-badge");
     badges.forEach((badge) => {
       const ids = badge.getAttribute("data-event-ids")?.split(",") ?? [];
@@ -211,7 +216,7 @@ export default function MapView({
         badge.classList.remove("cluster-highlighted");
       }
     });
-  }, [hoveredEventId, selectedEvent]);
+  }, [hoveredEventId, selectedEventId]);
 
   return (
     <div className="map-view-wrapper">
