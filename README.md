@@ -1,89 +1,152 @@
-# Vienna Event Mapping Application
+# Wien Heute — Vienna Event Mapping Application
 
-A Progressive Web App (PWA) designed to aggregate, visualize, and discover current events in Vienna, Austria, via an interactive geographical map. Built with a strict $0/month deployment constraint, this project prioritizes proximity-aware discovery and high-performance geospatial queries while explicitly excluding routing features.
+A Progressive Web App (PWA) designed to aggregate, visualize, and discover current events in Vienna, Austria, via an interactive geographical map.
 
-## Key Features
+---
 
-* **Interactive Event Map:** Real-time marker plotting on a Vienna-centered map using Leaflet and OpenStreetMap tiles.
-* **Proximity Discovery:** Client-side geolocation processing to show events relative to the user's current physical location (privacy-preserving).
-* **Advanced Filtering:** Filter events by categories, time horizons, and a dynamic "in progress / already concluded" temporal toggle.
-* **High-Performance Geospatial Queries:** Sub-200ms bounding-box resolution as the map pans, utilizing PostGIS GiST indexing.
-* **Automated Data Ingestion:** Daily scheduled normalization and deduplication of third-party event data (e.g., Stadt Wien Open Data).
-* **Bilingual Interface:** Seamless runtime toggling between German and English.
-
-## System Architecture & Tech Stack
-
-The architecture separates the client-facing REST API from the frontend to allow future integration with native mobile clients.
-
-### Frontend (PWA)
-
-* **Framework:** Next.js (React) with Server-Side Rendering (SSR) for optimal FCP and SEO.
-* **Mapping:** `react-leaflet` + OpenStreetMap (Zero-cost, no API keys required).
-* **Deployment:** Vercel (Hobby Tier).
-
-### Backend (REST API)
-
-* **Framework:** Standalone NestJS application.
-* **Language:** TypeScript, sharing types and validation schemas (Zod/class-validator) across the stack.
-* **Documentation:** Auto-generated Swagger/OpenAPI specifications.
-* **Deployment:** Render or Railway (Free Tier).
-
-### Database
-
-* **Engine:** PostgreSQL with the PostGIS extension for spatial geometries.
-* **ORM:** Prisma Client.
-* **Hosting:** Supabase (Free Tier) — chosen to maintain continuous compute and avoid NFR-breaking cold starts on database queries.
-
-### Data Ingestion Pipeline
-
-* **Scheduler:** Vercel Cron (Daily Cadence).
-* **Process:** Triggers an internal Next.js route handler (`/api/cron/ingest`) that fetches, parses, deduplicates (FR-403), and writes standardized event data directly to Supabase.
-
-## Local Development Setup
+## 🚀 Quick Start Guide
 
 ### Prerequisites
+- **Node.js**: v18 or higher (v20+ recommended)
+- **npm**: v9 or higher
 
-* Node.js (v18+)
-* Docker (optional, for local PostGIS database) or a remote Supabase instance
-* Yarn or npm
+---
 
-### 1. Database Setup
+## 🛠️ Step-by-Step Instructions
 
-Ensure you have a PostgreSQL database running with the PostGIS extension enabled.
+### 1. Repository Setup & Dependencies
+
+First, navigate to the main project folder:
 
 ```bash
-# Push the schema and generate the Prisma client
-npx prisma db push
-npx prisma generate
-
+cd "vienna-event-api"
 ```
 
-### 2. Backend (NestJS API)
+Install backend dependencies:
 
 ```bash
-cd backend
 npm install
-# Set your DATABASE_URL in .env
-npm run start:dev
-
 ```
 
-*The API will be available at `http://localhost:3000`. Swagger UI is accessible at `/api/docs`.*
-
-### 3. Frontend (Next.js)
+Install frontend dependencies:
 
 ```bash
 cd frontend
 npm install
-# Set your API base URL in .env.local
-npm run dev
-
+cd ..
 ```
 
-*The web application will be available at `http://localhost:3001`.*
+---
 
-## Privacy & Security
+### 2. Database Setup & Prisma Client
 
-* Geolocation data is processed strictly on the client side for map centering only and is never persisted to the backend (NFR-401).
-* Explicit user consent is requested prior to utilizing the browser Geolocation API.
-* Analytics are implemented via privacy-preserving, cookieless tracking mechanisms.
+Ensure your `.env` file in `vienna-event-api/.env` contains your PostgreSQL / Supabase connection string (`DATABASE_URL`).
+
+Generate the Prisma client and sync the schema:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+---
+
+### 3. Running the Backend API (NestJS)
+
+The NestJS backend runs on **port 3000** by default (`http://localhost:3000`).
+
+#### Development Mode (with auto-reload):
+```bash
+# Run from vienna-event-api root folder
+npm run start:dev
+```
+
+#### Production Mode:
+```bash
+# Build NestJS backend
+npm run build
+
+# Start production server
+node dist/src/main.js
+```
+
+> **API Endpoints:**
+> - **Events API**: `GET http://localhost:3000/api/v1/events`
+> - **Single Event**: `GET http://localhost:3000/api/v1/events/:id`
+> - **Trigger Ingestion**: `POST http://localhost:3000/api/v1/ingest/trigger`
+
+---
+
+### 4. Running the Frontend PWA (Next.js)
+
+The Next.js frontend runs on **port 3001** (`http://localhost:3001`).
+
+#### Development Mode:
+```bash
+cd frontend
+npm run dev -- -p 3001
+```
+
+#### Production Mode:
+```bash
+cd frontend
+npm run build
+npm run start -- -p 3001
+```
+
+---
+
+### 5. Running Unit & Integration Tests
+
+The project includes **27 passing unit and integration tests** across the backend and frontend.
+
+#### Run Backend Unit Tests (NestJS / Jest):
+```bash
+# Run from vienna-event-api root folder
+npm run test
+```
+*Executes 21 unit tests covering controllers, services, database persistence, and ingestion pipelines.*
+
+#### Run Frontend Unit Tests (Next.js / Vitest):
+```bash
+# Run from frontend folder
+cd frontend
+npm run test
+```
+*Executes 6 unit tests covering Haversine distance calculations and bilingual i18n dictionaries.*
+
+#### Run All Tests in One Command:
+```bash
+# Run from vienna-event-api root folder
+npm run test; cd frontend; npm run test; cd ..
+```
+
+---
+
+## 🏗️ Tech Stack
+
+- **Frontend**: Next.js 16 (React 19), Vanilla CSS Clean White Mode Theme, Leaflet, `react-leaflet-cluster` (FR-203 Marker Clustering), Vitest.
+- **Backend**: NestJS 11 (REST API), TypeScript, Jest.
+- **Database**: PostgreSQL + PostGIS, Prisma ORM 6, Supabase.
+- **Localization**: Bilingual German (`de`) & English (`en`) runtime language switcher.
+- **Privacy**: Client-side geolocation processing only (NFR-401).
+
+---
+
+## 📜 Available NPM Scripts
+
+### Backend (`vienna-event-api`)
+| Script | Command | Description |
+|---|---|---|
+| `npm run start:dev` | `nest start --watch` | Starts NestJS API in development mode |
+| `npm run build` | `nest build` | Compiles NestJS TypeScript code to `dist/` |
+| `npm run start:prod` | `node dist/main` | Runs compiled NestJS backend |
+| `npm run test` | `jest` | Runs 21 backend unit test suites |
+
+### Frontend (`vienna-event-api/frontend`)
+| Script | Command | Description |
+|---|---|---|
+| `npm run dev` | `next dev` | Starts Next.js frontend server |
+| `npm run build` | `next build` | Builds optimized production Next.js PWA |
+| `npm run start` | `next start` | Runs compiled Next.js frontend production build |
+| `npm run test` | `vitest run` | Runs 6 frontend unit test suites |
