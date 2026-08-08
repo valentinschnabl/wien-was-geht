@@ -104,7 +104,8 @@ export default function EventMap() {
 
   // Fetch events from NestJS API
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+    const rawApiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+    const apiBase = rawApiBase.replace(/\/+$/, "");
 
     const loadEvents = async () => {
       try {
