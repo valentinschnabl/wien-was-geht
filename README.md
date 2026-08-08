@@ -90,7 +90,7 @@ The Next.js frontend runs on **port 3001** (`http://localhost:3001`).
 #### Development Mode:
 ```bash
 cd frontend
-npm run dev -- -p 3001
+npm run dev
 ```
 
 #### Production Mode:
