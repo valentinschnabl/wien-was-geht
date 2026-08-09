@@ -129,7 +129,7 @@ export default function EventMap() {
 
   // Compute total live & upcoming counts for header stats
   const eventStats = useMemo(() => {
-    const now = new Date("2026-08-06T15:44:00+02:00");
+    const now = new Date();
     let liveCount = 0;
     let upcomingCount = 0;
 
@@ -146,11 +146,13 @@ export default function EventMap() {
     return { liveCount, upcomingCount };
   }, [events]);
 
-  // Filter events: SCOPED TO TODAY (2026-08-06)
+  // Filter events: SCOPED TO TODAY
   const filteredEvents = useMemo(() => {
-    const now = new Date("2026-08-06T15:44:00+02:00");
-    const todayStart = new Date("2026-08-06T00:00:00+02:00");
-    const todayEnd = new Date("2026-08-06T23:59:59+02:00");
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
 
     // Reference location: User coordinates or fallback to Vienna City Center (48.2082, 16.3738)
     const referenceLocation = userLocation ?? { lat: 48.2082, lng: 16.3738 };
@@ -188,17 +190,6 @@ export default function EventMap() {
         return { ...ev, distanceKm: dist, temporalStatus, startDate: start, endDate: end };
       })
       .filter((ev) => {
-        // Exclude events without location coordinates
-        if (
-          typeof ev.latitude !== "number" ||
-          typeof ev.longitude !== "number" ||
-          (ev.latitude === 0 && ev.longitude === 0) ||
-          Number.isNaN(ev.latitude) ||
-          Number.isNaN(ev.longitude)
-        ) {
-          return false;
-        }
-
         // ONLY events happening TODAY
         const activeToday = ev.startDate <= todayEnd && ev.endDate >= todayStart;
         if (!activeToday) return false;
