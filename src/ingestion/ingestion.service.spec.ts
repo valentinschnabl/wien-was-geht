@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IngestionService } from './ingestion.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
+import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
   let service: IngestionService;
   let stadtWienService: StadtWienService;
   let eventfrogService: EventfrogService;
+  let ninjaService: OpenwebNinjaService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -38,8 +40,22 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockNinjaService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'nj-1',
+        provider: 'OPENWEB_NINJA',
+        title: 'Event 3',
+        startTime: new Date('2026-08-09T18:00:00Z'),
+        venueName: 'Venue 3',
+        latitude: 48.2300,
+        longitude: 16.4200,
+      },
+    ]),
+  };
+
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(2),
+    saveEvents: jest.fn().mockResolvedValue(3),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -49,6 +65,7 @@ describe('IngestionService', () => {
         IngestionService,
         { provide: StadtWienService, useValue: mockStadtWienService },
         { provide: EventfrogService, useValue: mockEventfrogService },
+        { provide: OpenwebNinjaService, useValue: mockNinjaService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -56,6 +73,7 @@ describe('IngestionService', () => {
     service = module.get<IngestionService>(IngestionService);
     stadtWienService = module.get<StadtWienService>(StadtWienService);
     eventfrogService = module.get<EventfrogService>(EventfrogService);
+    ninjaService = module.get<OpenwebNinjaService>(OpenwebNinjaService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -72,13 +90,14 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(2);
-      expect(summary.persisted).toBe(2);
+      expect(summary.fetched).toBe(3);
+      expect(summary.persisted).toBe(3);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
+      expect(ninjaService.fetchEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
 
@@ -106,6 +125,7 @@ describe('IngestionService', () => {
           longitude: 16.3378, // Tiny coordinate diff
         },
       ]);
+      mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
 
       await service.run();
 

@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
+import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
@@ -19,6 +20,7 @@ export class IngestionService implements OnModuleInit {
   constructor(
     private readonly stadtWienProvider: StadtWienService,
     private readonly eventfrogProvider: EventfrogService,
+    private readonly ninjaProvider: OpenwebNinjaService,
     private readonly persistence: EventPersistenceService,
   ) {}
 
@@ -65,7 +67,14 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Eventfrog ingestion failed', error);
     }
 
-    const combinedEvents = [...stadtWienEvents, ...eventfrogEvents];
+    let ninjaEvents: Prisma.EventCreateInput[] = [];
+    try {
+      ninjaEvents = await this.ninjaProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('OpenWeb Ninja ingestion failed', error);
+    }
+
+    const combinedEvents = [...stadtWienEvents, ...eventfrogEvents, ...ninjaEvents];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
     const persisted = await this.persistence.saveEvents(deduplicatedEvents);
