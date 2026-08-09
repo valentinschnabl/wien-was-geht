@@ -12,6 +12,80 @@ const MapView = dynamic(() => import("./MapView"), {
   loading: () => <div className="map-loading">Lade Karte...</div>,
 });
 
+function formatEventDateRange(
+  startStr: string | null | undefined,
+  endStr: string | null | undefined,
+  lang: "de" | "en"
+): string {
+  if (!startStr) return "";
+
+  const start = new Date(startStr);
+  const end = endStr ? new Date(endStr) : null;
+
+  const locale = lang === "de" ? "de-AT" : "en-US";
+
+  // Check if start and end are on the same calendar day
+  const isSameDay =
+    end === null ||
+    (start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate());
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  if (isSameDay) {
+    const dateFormatted = formatDate(start);
+    if (end) {
+      // Check if they have a real time (meaning not 00:00 to 23:59)
+      const isFullDay =
+        start.getHours() === 0 &&
+        start.getMinutes() === 0 &&
+        end.getHours() === 23 &&
+        end.getMinutes() === 59;
+
+      if (isFullDay) {
+        return dateFormatted;
+      }
+
+      return `${dateFormatted}, ${formatTime(start)} – ${formatTime(end)}`;
+    }
+    return `${dateFormatted}, ${formatTime(start)}`;
+  } else {
+    // Multi-day event
+    const startFormatted = start.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+    });
+    const endFormatted = end ? formatDate(end) : "";
+    
+    // Check if years are the same
+    const sameYear = end && start.getFullYear() === end.getFullYear();
+    const finalStartFormatted = sameYear
+      ? startFormatted
+      : start.toLocaleDateString(locale, {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+
+    return end ? `${finalStartFormatted} – ${endFormatted}` : finalStartFormatted;
+  }
+}
+
 export default function EventMap() {
   const [language, setLanguage] = useState<Language>("de");
   const [events, setEvents] = useState<EventRecord[]>([]);
@@ -359,19 +433,8 @@ export default function EventMap() {
                     <strong>{selectedEvent.venueName || t.venueDefault}</strong>
                   </p>
                   <p>
-                    <i className="fa-solid fa-clock"></i>{" "}
-                    {selectedEvent.startTime
-                      ? new Date(selectedEvent.startTime).toLocaleString(
-                          language === "de" ? "de-AT" : "en-US",
-                          {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )
-                      : t.timeUnknown}
+                    <i className="fa-solid fa-calendar-days"></i>{" "}
+                    {formatEventDateRange(selectedEvent.startTime, selectedEvent.endTime, language)}
                   </p>
                 </div>
 
@@ -510,6 +573,11 @@ export default function EventMap() {
                           <p className="compact-venue">
                             <i className="fa-solid fa-location-dot"></i>{" "}
                             {event.venueName || t.venueDefault}
+                          </p>
+
+                          <p className="compact-time-range">
+                            <i className="fa-solid fa-calendar-days"></i>{" "}
+                            {formatEventDateRange(event.startTime, event.endTime, language)}
                           </p>
 
                           <div className="compact-bottom-row">

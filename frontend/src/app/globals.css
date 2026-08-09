@@ -789,6 +789,21 @@ html, body {
   text-overflow: ellipsis;
 }
 
+.compact-time-range {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.compact-time-range i {
+  color: var(--accent-primary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
 .compact-bottom-row {
   display: flex;
   justify-content: flex-end;
