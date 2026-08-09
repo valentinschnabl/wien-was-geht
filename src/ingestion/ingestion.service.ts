@@ -76,18 +76,21 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('OpenWeb Ninja ingestion failed', error);
     }
 
+    // Falter scraping deactivated pending official permission
     let falterEvents: Prisma.EventCreateInput[] = [];
+    /*
     try {
       falterEvents = await this.falterProvider.fetchEvents();
     } catch (error) {
       this.logger.error('Falter ingestion failed', error);
     }
+    */
 
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
       ...ninjaEvents,
-      ...falterEvents,
+      // ...falterEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 

@@ -71,7 +71,7 @@ describe('IngestionService', () => {
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(4),
+    saveEvents: jest.fn().mockResolvedValue(3),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -108,15 +108,15 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(4);
-      expect(summary.persisted).toBe(4);
+      expect(summary.fetched).toBe(3);
+      expect(summary.persisted).toBe(3);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
       expect(ninjaService.fetchEvents).toHaveBeenCalled();
-      expect(falterService.fetchEvents).toHaveBeenCalled();
+      expect(falterService.fetchEvents).not.toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
 
