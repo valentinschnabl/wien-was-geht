@@ -85,8 +85,8 @@ export class EventfrogService implements IEventProvider {
               country: 'AT',
               lat: 48.2082,
               lng: 16.3738,
-              r: 25, // 25km radius to cover Vienna
-              perPage: 100,
+              r: 35, // 35km radius to cover Vienna metro area
+              perPage: 500, // Fetch up to 500 events
             },
           },
         ),

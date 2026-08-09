@@ -10,19 +10,25 @@ export class EventPersistenceService {
 
   async saveEvents(events: Prisma.EventCreateInput[]): Promise<number> {
     let savedCount = 0;
+    const chunkSize = 30; // Run 30 upserts in parallel per batch
 
-    for (const event of events) {
-      await this.prisma.event.upsert({
-        where: {
-          externalId_provider: {
-            externalId: event.externalId,
-            provider: event.provider,
-          },
-        },
-        create: event,
-        update: event,
-      });
-      savedCount += 1;
+    for (let i = 0; i < events.length; i += chunkSize) {
+      const chunk = events.slice(i, i + chunkSize);
+      await Promise.all(
+        chunk.map((event) =>
+          this.prisma.event.upsert({
+            where: {
+              externalId_provider: {
+                externalId: event.externalId,
+                provider: event.provider,
+              },
+            },
+            create: event,
+            update: event,
+          }),
+        ),
+      );
+      savedCount += chunk.length;
     }
 
     return savedCount;
