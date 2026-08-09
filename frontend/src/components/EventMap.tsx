@@ -201,24 +201,6 @@ export default function EventMap() {
     void loadEvents();
   }, []);
 
-  // Compute total live & upcoming counts for header stats
-  const eventStats = useMemo(() => {
-    const now = new Date();
-    let liveCount = 0;
-    let upcomingCount = 0;
-
-    events.forEach((ev) => {
-      const start = ev.startTime ? new Date(ev.startTime) : new Date();
-      const end = ev.endTime ? new Date(ev.endTime) : start;
-      if (start <= now && end >= now) {
-        liveCount++;
-      } else if (start > now) {
-        upcomingCount++;
-      }
-    });
-
-    return { liveCount, upcomingCount };
-  }, [events]);
 
   // Filter events: SCOPED TO TODAY
   const filteredEvents = useMemo(() => {
@@ -298,6 +280,23 @@ export default function EventMap() {
         return a.title.localeCompare(b.title);
       });
   }, [events, userLocation, includeConcluded, searchQuery, quickFilter]);
+
+  // Compute total live & upcoming counts for today's filtered events
+  const eventStats = useMemo(() => {
+    let liveCount = 0;
+    let upcomingCount = 0;
+
+    filteredEvents.forEach((ev) => {
+      if (ev.temporalStatus === "live") {
+        liveCount++;
+      } else if (ev.temporalStatus === "upcoming") {
+        upcomingCount++;
+      }
+    });
+
+    return { liveCount, upcomingCount };
+  }, [filteredEvents]);
+
 
   return (
     <div className="app-container-clean">
