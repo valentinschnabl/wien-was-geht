@@ -184,7 +184,7 @@ export default function EventMap() {
     const loadEvents = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiBase}/api/v1/events?limit=200`);
+        const response = await fetch(`${apiBase}/api/v1/events?limit=500`);
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
         }
