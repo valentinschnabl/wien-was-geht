@@ -45,6 +45,80 @@ interface MapViewProps {
 
 const DEFAULT_VIENNA: LatLngExpression = [48.2082, 16.3738];
 
+function formatEventDateRange(
+  startStr: string | null | undefined,
+  endStr: string | null | undefined,
+  lang: Language
+): string {
+  if (!startStr) return "";
+
+  const start = new Date(startStr);
+  const end = endStr ? new Date(endStr) : null;
+
+  const locale = lang === "de" ? "de-AT" : "en-US";
+
+  // Check if start and end are on the same calendar day
+  const isSameDay =
+    end === null ||
+    (start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate());
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  if (isSameDay) {
+    const dateFormatted = formatDate(start);
+    if (end) {
+      // Check if they have a real time (meaning not 00:00 to 23:59)
+      const isFullDay =
+        start.getHours() === 0 &&
+        start.getMinutes() === 0 &&
+        end.getHours() === 23 &&
+        end.getMinutes() === 59;
+
+      if (isFullDay) {
+        return dateFormatted;
+      }
+
+      return `${dateFormatted}, ${formatTime(start)} – ${formatTime(end)}`;
+    }
+    return `${dateFormatted}, ${formatTime(start)}`;
+  } else {
+    // Multi-day event
+    const startFormatted = start.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+    });
+    const endFormatted = end ? formatDate(end) : "";
+    
+    // Check if years are the same
+    const sameYear = end && start.getFullYear() === end.getFullYear();
+    const finalStartFormatted = sameYear
+      ? startFormatted
+      : start.toLocaleDateString(locale, {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+
+    return end ? `${finalStartFormatted} – ${endFormatted}` : finalStartFormatted;
+  }
+}
+
 // Controls map position ONCE on initial location acquire without overriding manual user panning
 function MapController({ center }: { center: LatLngExpression }) {
   const map = useMap();
@@ -342,6 +416,11 @@ export default function MapView({
                     <div className="compact-popup-venue-box">
                       <i className="fa-solid fa-location-dot venue-icon"></i>
                       <span className="venue-name">{event.venueName || t.venueDefault}</span>
+                    </div>
+
+                    <div className="compact-popup-time-box">
+                      <i className="fa-solid fa-calendar-days time-icon"></i>
+                      <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
                     </div>
 
                     {/* Truncated description preview */}

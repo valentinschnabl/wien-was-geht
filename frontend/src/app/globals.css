@@ -588,6 +588,32 @@ html, body {
   text-overflow: ellipsis;
 }
 
+.compact-popup-time-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8f7f4;
+  border: 1px solid #e2e0d8;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #434d43;
+  margin-top: 2px;
+}
+
+.compact-popup-time-box .time-icon {
+  color: var(--accent-primary);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.compact-popup-time-box .time-value {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .compact-popup-snippet {
   font-size: 0.78rem;
   color: var(--text-muted);
