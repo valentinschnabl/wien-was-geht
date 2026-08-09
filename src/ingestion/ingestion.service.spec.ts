@@ -3,6 +3,7 @@ import { IngestionService } from './ingestion.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
 import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
+import { GoodnightService } from './goodnight/goodnight.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
@@ -10,6 +11,7 @@ describe('IngestionService', () => {
   let stadtWienService: StadtWienService;
   let eventfrogService: EventfrogService;
   let ninjaService: OpenwebNinjaService;
+  let goodnightService: GoodnightService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -54,8 +56,22 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockGoodnightService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'gn-1',
+        provider: 'GOODNIGHT',
+        title: 'Event 4',
+        startTime: new Date('2026-08-09T20:00:00Z'),
+        venueName: 'Venue 4',
+        latitude: 48.2400,
+        longitude: 16.4400,
+      },
+    ]),
+  };
+
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(3),
+    saveEvents: jest.fn().mockResolvedValue(4),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -66,6 +82,7 @@ describe('IngestionService', () => {
         { provide: StadtWienService, useValue: mockStadtWienService },
         { provide: EventfrogService, useValue: mockEventfrogService },
         { provide: OpenwebNinjaService, useValue: mockNinjaService },
+        { provide: GoodnightService, useValue: mockGoodnightService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -74,6 +91,7 @@ describe('IngestionService', () => {
     stadtWienService = module.get<StadtWienService>(StadtWienService);
     eventfrogService = module.get<EventfrogService>(EventfrogService);
     ninjaService = module.get<OpenwebNinjaService>(OpenwebNinjaService);
+    goodnightService = module.get<GoodnightService>(GoodnightService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -90,14 +108,15 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(3);
-      expect(summary.persisted).toBe(3);
+      expect(summary.fetched).toBe(4);
+      expect(summary.persisted).toBe(4);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
       expect(ninjaService.fetchEvents).toHaveBeenCalled();
+      expect(goodnightService.fetchEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
 
@@ -126,6 +145,7 @@ describe('IngestionService', () => {
         },
       ]);
       mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
+      mockGoodnightService.fetchEvents.mockResolvedValueOnce([]);
 
       await service.run();
 
