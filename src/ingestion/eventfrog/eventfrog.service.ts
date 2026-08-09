@@ -99,14 +99,34 @@ export class EventfrogService implements IEventProvider {
         return [];
       }
 
+      // Filter to only events active today
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(now);
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const activeRawEvents = rawEvents.filter((event) => {
+        if (!event.begin) return false;
+        const start = new Date(event.begin);
+        const end = event.end ? new Date(event.end) : start;
+        return start <= todayEnd && end >= todayStart;
+      });
+
+      this.logger.log(`Filtered to ${activeRawEvents.length} active events for today.`);
+
+      if (activeRawEvents.length === 0) {
+        return [];
+      }
+
       // Fetch location details in batch
       const locationIds = Array.from(
-        new Set(rawEvents.flatMap((e) => e.locationIds ?? [])),
+        new Set(activeRawEvents.flatMap((e) => e.locationIds ?? [])),
       );
 
       const locationMap = await this.fetchLocationsBatch(locationIds, apiKey);
 
-      return this.normalizeData(rawEvents, locationMap);
+      return this.normalizeData(activeRawEvents, locationMap);
     } catch (error) {
       this.logger.error('Failed to fetch events from Eventfrog', error);
       throw error;
