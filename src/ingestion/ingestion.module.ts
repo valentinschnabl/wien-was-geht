@@ -3,7 +3,6 @@ import { HttpModule } from '@nestjs/axios';
 import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
-import { GoodnightService } from './goodnight/goodnight.service';
 import { FalterService } from './falter/falter.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -18,7 +17,6 @@ import { IngestionController } from './ingestion.controller';
     OpenwebNinjaService,
     StadtWienService,
     EventfrogService,
-    GoodnightService,
     FalterService,
     EventPersistenceService,
     IngestionService,
@@ -27,7 +25,6 @@ import { IngestionController } from './ingestion.controller';
     OpenwebNinjaService,
     StadtWienService,
     EventfrogService,
-    GoodnightService,
     FalterService,
     IngestionService,
   ],

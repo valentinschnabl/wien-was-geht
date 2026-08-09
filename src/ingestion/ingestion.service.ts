@@ -3,7 +3,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
 import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
-import { GoodnightService } from './goodnight/goodnight.service';
 import { FalterService } from './falter/falter.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -23,7 +22,6 @@ export class IngestionService implements OnModuleInit {
     private readonly stadtWienProvider: StadtWienService,
     private readonly eventfrogProvider: EventfrogService,
     private readonly ninjaProvider: OpenwebNinjaService,
-    private readonly goodnightProvider: GoodnightService,
     private readonly falterProvider: FalterService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -78,13 +76,6 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('OpenWeb Ninja ingestion failed', error);
     }
 
-    let goodnightEvents: Prisma.EventCreateInput[] = [];
-    try {
-      goodnightEvents = await this.goodnightProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Goodnight.at ingestion failed', error);
-    }
-
     let falterEvents: Prisma.EventCreateInput[] = [];
     try {
       falterEvents = await this.falterProvider.fetchEvents();
@@ -96,7 +87,6 @@ export class IngestionService implements OnModuleInit {
       ...stadtWienEvents,
       ...eventfrogEvents,
       ...ninjaEvents,
-      ...goodnightEvents,
       ...falterEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
