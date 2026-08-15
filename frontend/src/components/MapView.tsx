@@ -334,9 +334,9 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* FR-203 Stable Marker Clustering Group */}
+        {/* Dynamic Marker Clustering Group that updates on category/time filter changes */}
         <MarkerClusterGroup
-          key="stable-vienna-cluster-group"
+          key={`cluster-group-${events.length}-${events[0]?.id || 'empty'}`}
           chunkedLoading
           maxClusterRadius={35}
           spiderfyOnMaxZoom={true}

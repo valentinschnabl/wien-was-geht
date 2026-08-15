@@ -289,7 +289,30 @@ export default function EventMap() {
         }
         return a.title.localeCompare(b.title);
       });
-  }, [events, userLocation, includeConcluded, searchQuery, quickFilter]);
+  }, [events, userLocation, includeConcluded, searchQuery, quickFilter, selectedCategory]);
+
+  // Compute category event counts for badges
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: 0,
+      Culture: 0,
+      Nightlife: 0,
+      Music: 0,
+      Family: 0,
+      Sports: 0,
+      Culinary: 0,
+    };
+
+    events.forEach((ev) => {
+      counts.all++;
+      const norm = normalizeCategory(ev.category);
+      if (counts[norm] !== undefined) {
+        counts[norm]++;
+      }
+    });
+
+    return counts;
+  }, [events]);
 
   // Compute total live & upcoming counts for today's filtered events
   const eventStats = useMemo(() => {
@@ -521,51 +544,72 @@ export default function EventMap() {
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "all" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("all")}
+                    onClick={() => {
+                      setSelectedCategory("all");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-layer-group"></i> {t.filterAllCategories}
+                    <i className="fa-solid fa-layer-group"></i> {t.filterAllCategories} ({categoryCounts.all})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Culture" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Culture")}
+                    onClick={() => {
+                      setSelectedCategory("Culture");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-masks-theater"></i> {t.filterCulture}
+                    <i className="fa-solid fa-masks-theater"></i> {t.filterCulture} ({categoryCounts.Culture})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Nightlife" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Nightlife")}
+                    onClick={() => {
+                      setSelectedCategory("Nightlife");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-moon"></i> {t.filterNightlife}
+                    <i className="fa-solid fa-moon"></i> {t.filterNightlife} ({categoryCounts.Nightlife})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Music" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Music")}
+                    onClick={() => {
+                      setSelectedCategory("Music");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-music"></i> {t.filterMusic}
+                    <i className="fa-solid fa-music"></i> {t.filterMusic} ({categoryCounts.Music})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Family" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Family")}
+                    onClick={() => {
+                      setSelectedCategory("Family");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-children"></i> {t.filterFamily}
+                    <i className="fa-solid fa-children"></i> {t.filterFamily} ({categoryCounts.Family})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Sports" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Sports")}
+                    onClick={() => {
+                      setSelectedCategory("Sports");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-person-running"></i> {t.filterSports}
+                    <i className="fa-solid fa-person-running"></i> {t.filterSports} ({categoryCounts.Sports})
                   </button>
                   <button
                     type="button"
                     className={`cat-chip ${selectedCategory === "Culinary" ? "active" : ""}`}
-                    onClick={() => setSelectedCategory("Culinary")}
+                    onClick={() => {
+                      setSelectedCategory("Culinary");
+                      setSelectedEvent(null);
+                    }}
                   >
-                    <i className="fa-solid fa-utensils"></i> {t.filterCulinary}
+                    <i className="fa-solid fa-utensils"></i> {t.filterCulinary} ({categoryCounts.Culinary})
                   </button>
                 </div>
               </div>
