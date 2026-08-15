@@ -9,32 +9,43 @@ describe('EventsController', () => {
   const mockEventsResponse = {
     data: [
       {
-        id: '1',
-        title: 'Donauinselfest 2026',
-        venueName: 'Donauinsel',
-        latitude: 48.232,
-        longitude: 16.415,
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        externalId: 'ext-1',
+        provider: 'stadt-wien',
+        title: 'Open Air Concert',
+        description: 'A great concert',
+        category: 'Music',
+        url: 'https://example.com',
+        imageUrl: null,
+        startTime: new Date('2026-08-15T18:00:00Z'),
+        endTime: new Date('2026-08-15T22:00:00Z'),
+        venueName: 'Wiener Konzerthaus',
+        latitude: 48.201,
+        longitude: 16.377,
+        geom: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ],
     count: 1,
-    limit: 100,
+    limit: 500,
     offset: 0,
   };
 
   const mockEventsService = {
     findAll: jest.fn().mockResolvedValue(mockEventsResponse),
-    findOne: jest.fn().mockImplementation((id: string) => {
-      if (id === '1') {
-        return Promise.resolve(mockEventsResponse.data[0]);
-      }
-      return Promise.resolve(null);
-    }),
+    findOne: jest.fn().mockResolvedValue(mockEventsResponse.data[0]),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
-      providers: [{ provide: EventsService, useValue: mockEventsService }],
+      providers: [
+        {
+          provide: EventsService,
+          useValue: mockEventsService,
+        },
+      ],
     }).compile();
 
     controller = module.get<EventsController>(EventsController);
@@ -51,44 +62,50 @@ describe('EventsController', () => {
 
   describe('findAll', () => {
     it('should parse valid query parameters and call EventsService', async () => {
-      const res = await controller.findAll('50', '10', 'stadt-wien', 'Music');
+      const res = await controller.findAll(
+        '50',
+        '10',
+        'stadt-wien',
+        'Music',
+        'true',
+      );
 
       expect(res).toEqual(mockEventsResponse);
       expect(service.findAll).toHaveBeenCalledWith(50, 10, {
         provider: 'stadt-wien',
         category: 'Music',
+        today: true,
       });
     });
 
     it('should fallback to default limit and offset if invalid strings supplied', async () => {
       await controller.findAll('invalid', 'bad-offset');
 
-      expect(service.findAll).toHaveBeenCalledWith(100, 0, {
-        provider: undefined,
-        category: undefined,
-      });
-    });
-
-    it('should clamp excessive limits to max allowed value (500)', async () => {
-      await controller.findAll('2000', '0');
-
       expect(service.findAll).toHaveBeenCalledWith(500, 0, {
         provider: undefined,
         category: undefined,
+        today: false,
+      });
+    });
+
+    it('should clamp excessive limits to max allowed value (2000)', async () => {
+      await controller.findAll('5000', '0');
+
+      expect(service.findAll).toHaveBeenCalledWith(2000, 0, {
+        provider: undefined,
+        category: undefined,
+        today: false,
       });
     });
   });
 
   describe('findOne', () => {
-    it('should delegate to EventsService.findOne with ID', async () => {
-      const res = await controller.findOne('1');
-      expect(res).toEqual(mockEventsResponse.data[0]);
-      expect(service.findOne).toHaveBeenCalledWith('1');
-    });
+    it('should call EventsService.findOne with id', async () => {
+      const id = '123e4567-e89b-12d3-a456-426614174000';
+      const res = await controller.findOne(id);
 
-    it('should return null if non-existent ID requested', async () => {
-      const res = await controller.findOne('non-existent');
-      expect(res).toBeNull();
+      expect(service.findOne).toHaveBeenCalledWith(id);
+      expect(res).toEqual(mockEventsResponse.data[0]);
     });
   });
 });

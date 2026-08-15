@@ -11,13 +11,16 @@ export class EventsController {
     @Query('offset') offset?: string,
     @Query('provider') provider?: string,
     @Query('category') category?: string,
+    @Query('today') today?: string,
   ) {
-    const parsedLimit = this.parsePositiveInt(limit, 100, 500);
+    const parsedLimit = this.parsePositiveInt(limit, 500, 2000);
     const parsedOffset = this.parseNonNegativeInt(offset, 0);
+    const isToday = today === 'true' || today === '1';
 
     return this.eventsService.findAll(parsedLimit, parsedOffset, {
       provider,
       category,
+      today: isToday,
     });
   }
 
