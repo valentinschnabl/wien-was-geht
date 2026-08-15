@@ -296,8 +296,19 @@ export default function MapView({
     });
   }, [hoveredEventId, selectedEventId]);
 
-  // Memoize marker elements so hover state updates in parent do not trigger MarkerClusterGroup child changes or unspiderfy
+  // Calculate micro-offsets for co-located events and memoize marker elements
   const markerElements = useMemo(() => {
+    // 1. Group events by coordinate key to detect co-located events
+    const locationCounts = new Map<string, number>();
+    events.forEach((ev) => {
+      if (typeof ev.latitude === "number" && typeof ev.longitude === "number") {
+        const key = `${ev.latitude.toFixed(5)},${ev.longitude.toFixed(5)}`;
+        locationCounts.set(key, (locationCounts.get(key) || 0) + 1);
+      }
+    });
+
+    const locationIndices = new Map<string, number>();
+
     return events.map((event) => {
       if (
         typeof event.latitude !== "number" ||
@@ -305,6 +316,22 @@ export default function MapView({
         (event.latitude === 0 && event.longitude === 0)
       ) {
         return null;
+      }
+
+      const key = `${event.latitude.toFixed(5)},${event.longitude.toFixed(5)}`;
+      const totalAtLoc = locationCounts.get(key) || 1;
+      const indexAtLoc = locationIndices.get(key) || 0;
+      locationIndices.set(key, indexAtLoc + 1);
+
+      let finalLat = event.latitude;
+      let finalLng = event.longitude;
+
+      // Micro-spread co-located events in a clean ~15m radius around the venue location
+      if (totalAtLoc > 1) {
+        const angle = (indexAtLoc / totalAtLoc) * 2 * Math.PI;
+        const radius = 0.00018; // ~15 meters in Vienna coordinates
+        finalLat = event.latitude + Math.sin(angle) * radius;
+        finalLng = event.longitude + Math.cos(angle) * (radius * 1.45);
       }
 
       // Truncate description snippet for mini map popup
@@ -317,7 +344,7 @@ export default function MapView({
       return (
         <Marker
           key={event.id}
-          position={[event.latitude, event.longitude]}
+          position={[finalLat, finalLng]}
           icon={getEventIcon(event.id)}
           // @ts-expect-error custom property for cluster hover detection
           eventId={event.id}
@@ -467,15 +494,15 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* Dynamic Marker Clustering Group that updates on category/time filter changes and stably spiderfies identical venues */}
+        {/* Dynamic Marker Clustering: clusters at overview zoom, cleanly unclusters into separate pins at street level with no spider lines */}
         <MarkerClusterGroup
           key={`cluster-group-${events.map((e) => e.id).join('-').slice(0, 200)}`}
           chunkedLoading
-          maxClusterRadius={40}
-          spiderfyOnMaxZoom={true}
+          maxClusterRadius={35}
+          spiderfyOnMaxZoom={false}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={true}
-          spiderfyDistanceMultiplier={2}
+          disableClusteringAtZoom={15}
           iconCreateFunction={createClusterIcon}
         >
           {markerElements}
