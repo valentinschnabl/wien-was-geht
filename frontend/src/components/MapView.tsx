@@ -3,7 +3,7 @@
 import { useEffect, useRef, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import L from "leaflet";
+import L, { type LatLngExpression } from "leaflet";
 import { translations, Language, getCategoryLabel } from "@/lib/i18n";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
