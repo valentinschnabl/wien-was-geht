@@ -354,6 +354,107 @@ export default function EventMap() {
           />
         </div>
       </header>
+      {/* Global Category & Live Filter Bar (Always accessible on both Map & List views on Mobile & Desktop) */}
+      <div className="global-category-bar">
+        <div className="category-chips-scroll">
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "all" && quickFilter === "all" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory("all");
+              setQuickFilter("all");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-layer-group"></i>
+            <span>{t.filterAllCategories} ({categoryCounts.all})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip cat-chip-live ${quickFilter === "live" ? "active" : ""}`}
+            onClick={() => {
+              setQuickFilter(quickFilter === "live" ? "all" : "live");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-bolt"></i>
+            <span>LIVE ({eventStats.liveCount})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Culture" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Culture" ? "all" : "Culture");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-masks-theater"></i>
+            <span>{t.filterCulture} ({categoryCounts.Culture})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Nightlife" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Nightlife" ? "all" : "Nightlife");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-moon"></i>
+            <span>{t.filterNightlife} ({categoryCounts.Nightlife})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Music" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Music" ? "all" : "Music");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-music"></i>
+            <span>{t.filterMusic} ({categoryCounts.Music})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Family" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Family" ? "all" : "Family");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-children"></i>
+            <span>{t.filterFamily} ({categoryCounts.Family})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Sports" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Sports" ? "all" : "Sports");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-futbol"></i>
+            <span>{t.filterSports} ({categoryCounts.Sports})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip ${selectedCategory === "Culinary" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedCategory(selectedCategory === "Culinary" ? "all" : "Culinary");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-utensils"></i>
+            <span>{t.filterCulinary} ({categoryCounts.Culinary})</span>
+          </button>
+        </div>
+      </div>
 
       {/* Dashboard Layout - Responsive Grid & Mobile View Switching */}
       <div className={`dashboard-grid mobile-view-${mobileTab}`}>
@@ -452,33 +553,39 @@ export default function EventMap() {
                   {typeof selectedEvent.distanceKm === "number" && (
                     <span className="distance-pill">
                       <i className="fa-solid fa-location-arrow"></i>{" "}
-                      {t.distanceAway(selectedEvent.distanceKm)}
+                      {selectedEvent.distanceKm.toFixed(1)} km
                     </span>
                   )}
                 </div>
 
-                <h2 className="sidebar-detail-title">{selectedEvent.title}</h2>
+                <h3 className="sidebar-detail-title">{selectedEvent.title}</h3>
 
                 <div className="sidebar-detail-meta">
-                  <p>
+                  <div>
                     <i className="fa-solid fa-location-dot"></i>{" "}
                     <strong>{selectedEvent.venueName || t.venueDefault}</strong>
-                  </p>
-                  <p>
+                  </div>
+                  <div>
                     <i className="fa-solid fa-calendar-days"></i>{" "}
-                    {formatEventDateRange(selectedEvent.startTime, selectedEvent.endTime, language)}
-                  </p>
-                  <p>
+                    {formatEventDateRange(
+                      selectedEvent.startTime,
+                      selectedEvent.endTime,
+                      language
+                    )}
+                  </div>
+                  <div>
                     <i className="fa-solid fa-tag"></i>{" "}
                     <span>{getCategoryLabel(selectedEvent.category, language)}</span>
-                  </p>
+                  </div>
                 </div>
 
                 <div className="sidebar-detail-description">
-                  <h4>Beschreibung</h4>
+                  <h4>{language === "de" ? "Beschreibung" : "Description"}</h4>
                   <p>
                     {selectedEvent.description ||
-                      "Keine nähere Beschreibung verfügbar."}
+                      (language === "de"
+                        ? "Keine nähere Beschreibung verfügbar."
+                        : "No detailed description available.")}
                   </p>
                 </div>
 
@@ -496,7 +603,7 @@ export default function EventMap() {
               </div>
             </div>
           ) : (
-            /* STANDARD EVENTS SEARCH + QUICK FILTERS + LIST VIEW */
+            /* COMPACT EVENT LIST VIEW */
             <>
               <div className="panel-header">
                 <div>
@@ -517,99 +624,6 @@ export default function EventMap() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input sidebar-search-input"
                 />
-              </div>
-
-              {/* Quick Filter Segmented Control Chips & Category Bar */}
-              <div className="filter-controls-stack">
-                <div className="quick-filter-chips">
-                  <button
-                    type="button"
-                    className={`chip-btn ${quickFilter === "all" ? "active" : ""}`}
-                    onClick={() => setQuickFilter("all")}
-                  >
-                    Alle
-                  </button>
-                  <button
-                    type="button"
-                    className={`chip-btn ${quickFilter === "live" ? "active" : ""}`}
-                    onClick={() => setQuickFilter("live")}
-                  >
-                    <i className="fa-solid fa-bolt"></i> Live
-                  </button>
-                </div>
-
-                <div className="category-chips-scroll">
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "all" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("all");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-layer-group"></i> {t.filterAllCategories} ({categoryCounts.all})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Culture" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Culture");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-masks-theater"></i> {t.filterCulture} ({categoryCounts.Culture})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Nightlife" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Nightlife");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-moon"></i> {t.filterNightlife} ({categoryCounts.Nightlife})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Music" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Music");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-music"></i> {t.filterMusic} ({categoryCounts.Music})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Family" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Family");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-children"></i> {t.filterFamily} ({categoryCounts.Family})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Sports" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Sports");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-person-running"></i> {t.filterSports} ({categoryCounts.Sports})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cat-chip ${selectedCategory === "Culinary" ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedCategory("Culinary");
-                      setSelectedEvent(null);
-                    }}
-                  >
-                    <i className="fa-solid fa-utensils"></i> {t.filterCulinary} ({categoryCounts.Culinary})
-                  </button>
-                </div>
               </div>
 
               <div className="event-list">
