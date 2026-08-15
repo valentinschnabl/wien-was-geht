@@ -102,7 +102,7 @@ export class StadtWienService implements IEventProvider {
       return this.normalizeData(rawEvents);
     } catch (error) {
       this.logger.error('Stadt Wien API request failed', error);
-      throw error;
+      return [];
     }
   }
 
@@ -143,17 +143,18 @@ export class StadtWienService implements IEventProvider {
         const rawDates = set.dates ?? [];
         const flatDates = rawDates.flat(2);
 
-        const todaySchedule = flatDates.find((d) =>
-          Boolean(d.from && d.from.includes(todayIsoString)),
-        );
+        for (const date of flatDates) {
+          if (!date.from) {
+            continue;
+          }
 
-        const scheduleToUse = todaySchedule ?? flatDates[0];
-
-        if (scheduleToUse?.from) {
-          startTime = new Date(scheduleToUse.from);
-        }
-        if (scheduleToUse?.to) {
-          endTime = new Date(scheduleToUse.to);
+          if (date.from.startsWith(todayIsoString)) {
+            startTime = new Date(date.from);
+            if (date.to) {
+              endTime = new Date(date.to);
+            }
+            break;
+          }
         }
       }
 
@@ -168,7 +169,9 @@ export class StadtWienService implements IEventProvider {
       const imageObj =
         source.teaser_event_image?.[0] ?? source.teaser_image?.[0];
       const imageUrl = imageObj?.url
-        ? `https://www.wien.gv.at${imageObj.url}`
+        ? imageObj.url.startsWith('http')
+          ? imageObj.url
+          : `https://www.wien.gv.at${imageObj.url}`
         : null;
 
       events.push({

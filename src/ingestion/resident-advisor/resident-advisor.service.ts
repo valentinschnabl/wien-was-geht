@@ -8,10 +8,12 @@ interface RaVenue {
   id?: string;
   name?: string;
   address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   location?: {
-    latitude?: number;
-    longitude?: number;
-  };
+    latitude?: number | null;
+    longitude?: number | null;
+  } | null;
 }
 
 interface RaImage {
@@ -137,8 +139,8 @@ export class ResidentAdvisorService implements IEventProvider {
         const end = ev.endTime ? new Date(ev.endTime) : null;
 
         // Resolve coordinates
-        let lat = ev.venue?.location?.latitude ?? 0;
-        let lng = ev.venue?.location?.longitude ?? 0;
+        let lat = ev.venue?.latitude ?? ev.venue?.location?.latitude ?? 0;
+        let lng = ev.venue?.longitude ?? ev.venue?.location?.longitude ?? 0;
 
         // If coordinates are missing or 0, fallback to geocoding or central Vienna
         if (lat === 0 || lng === 0) {
@@ -163,7 +165,11 @@ export class ResidentAdvisorService implements IEventProvider {
         let imageUrl: string | null = null;
         if (Array.isArray(ev.images) && ev.images.length > 0) {
           const flyer = ev.images.find((img) => img.type === 'FLYERFRONT') || ev.images[0];
-          imageUrl = flyer?.filename || null;
+          if (flyer?.filename) {
+            imageUrl = flyer.filename.startsWith('http')
+              ? flyer.filename
+              : `https://images.ra.co/images/events/flyer/${flyer.filename}`;
+          }
         }
 
         normalizedEvents.push({
