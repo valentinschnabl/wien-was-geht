@@ -6,6 +6,7 @@ import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { FalterService } from './falter/falter.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
+import { GoodnightService } from './goodnight/goodnight.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
@@ -16,6 +17,7 @@ describe('IngestionService', () => {
   let falterService: FalterService;
   let ticketmasterService: TicketmasterService;
   let eventbriteService: EventbriteService;
+  let goodnightService: GoodnightService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -88,12 +90,26 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockGoodnightService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'gn-1',
+        provider: 'GOODNIGHT',
+        title: 'Event 6',
+        startTime: new Date('2026-08-15T22:00:00Z'),
+        venueName: 'Venue 6',
+        latitude: 48.2600,
+        longitude: 16.4600,
+      },
+    ]),
+  };
+
   const mockFalterService = {
     fetchEvents: jest.fn().mockResolvedValue([]),
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(5),
+    saveEvents: jest.fn().mockResolvedValue(6),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -107,6 +123,7 @@ describe('IngestionService', () => {
         { provide: FalterService, useValue: mockFalterService },
         { provide: TicketmasterService, useValue: mockTicketmasterService },
         { provide: EventbriteService, useValue: mockEventbriteService },
+        { provide: GoodnightService, useValue: mockGoodnightService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -118,6 +135,7 @@ describe('IngestionService', () => {
     falterService = module.get<FalterService>(FalterService);
     ticketmasterService = module.get<TicketmasterService>(TicketmasterService);
     eventbriteService = module.get<EventbriteService>(EventbriteService);
+    goodnightService = module.get<GoodnightService>(GoodnightService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -134,8 +152,8 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(5);
-      expect(summary.persisted).toBe(5);
+      expect(summary.fetched).toBe(6);
+      expect(summary.persisted).toBe(6);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
@@ -144,6 +162,7 @@ describe('IngestionService', () => {
       expect(ninjaService.fetchEvents).toHaveBeenCalled();
       expect(ticketmasterService.fetchEvents).toHaveBeenCalled();
       expect(eventbriteService.fetchEvents).toHaveBeenCalled();
+      expect(goodnightService.fetchEvents).toHaveBeenCalled();
       expect(falterService.fetchEvents).not.toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
@@ -175,6 +194,7 @@ describe('IngestionService', () => {
       mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
       mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
       mockEventbriteService.fetchEvents.mockResolvedValueOnce([]);
+      mockGoodnightService.fetchEvents.mockResolvedValueOnce([]);
       mockFalterService.fetchEvents.mockResolvedValueOnce([]);
 
       await service.run();

@@ -6,6 +6,7 @@ import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { FalterService } from './falter/falter.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
+import { GoodnightService } from './goodnight/goodnight.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
@@ -27,6 +28,7 @@ export class IngestionService implements OnModuleInit {
     private readonly falterProvider: FalterService,
     private readonly ticketmasterProvider: TicketmasterService,
     private readonly eventbriteProvider: EventbriteService,
+    private readonly goodnightProvider: GoodnightService,
     private readonly persistence: EventPersistenceService,
   ) {}
 
@@ -94,6 +96,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Eventbrite ingestion failed', error);
     }
 
+    let goodnightEvents: Prisma.EventCreateInput[] = [];
+    try {
+      goodnightEvents = await this.goodnightProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Goodnight.at ingestion failed', error);
+    }
+
     // Falter scraping deactivated pending official permission
     let falterEvents: Prisma.EventCreateInput[] = [];
     /*
@@ -110,6 +119,7 @@ export class IngestionService implements OnModuleInit {
       ...ninjaEvents,
       ...ticketmasterEvents,
       ...eventbriteEvents,
+      ...goodnightEvents,
       // ...falterEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
