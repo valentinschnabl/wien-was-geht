@@ -354,22 +354,6 @@ export default function EventMap() {
         </div>
 
         <div className="header-actions">
-          <a
-            href="https://buymeacoffee.com/wienwasgeht"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-coffee-header"
-            title={
-              language === "de"
-                ? "WienWasGeht mit einem Kaffee unterstützen"
-                : "Support WienWasGeht with a coffee"
-            }
-          >
-            <i className="fa-solid fa-mug-hot"></i>
-            <span className="coffee-label">
-              {language === "de" ? "Kaffee spendieren" : "Buy me a coffee"}
-            </span>
-          </a>
           <LanguageSwitcher
             currentLanguage={language}
             onLanguageChange={setLanguage}
@@ -790,10 +774,15 @@ export default function EventMap() {
             href="https://buymeacoffee.com/wienwasgeht"
             target="_blank"
             rel="noopener noreferrer"
-            className="footer-coffee-link"
+            className="footer-beer-link"
+            title={
+              language === "de"
+                ? "WienWasGeht ein Bier ausgeben"
+                : "Buy us a beer on Buy Me a Coffee"
+            }
           >
-            <i className="fa-solid fa-mug-hot"></i>{" "}
-            <span>{language === "de" ? "Kaffee spendieren" : "Buy me a coffee"}</span>
+            <i className="fa-solid fa-beer-mug-empty"></i>{" "}
+            <span>{language === "de" ? "Bier ausgeben" : "Buy a beer"}</span>
           </a>
           <span className="footer-divider">&bull;</span>
           <button
@@ -842,12 +831,12 @@ export default function EventMap() {
                   href="https://buymeacoffee.com/wienwasgeht"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-coffee-modal"
+                  className="btn btn-beer-modal"
                 >
-                  <i className="fa-solid fa-mug-hot"></i>{" "}
+                  <i className="fa-solid fa-beer-mug-empty"></i>{" "}
                   {language === "de"
-                    ? "WienWasGeht unterstützen"
-                    : "Support on Buy Me a Coffee"}
+                    ? "Bier ausgeben (Projekt unterstützen) 🍺"
+                    : "Buy a beer (Support project) 🍺"}
                 </a>
               )}
               <button
