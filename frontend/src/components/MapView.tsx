@@ -336,12 +336,11 @@ export default function MapView({
 
         {/* Dynamic Marker Clustering Group that updates on category/time filter changes */}
         <MarkerClusterGroup
-          key={`cluster-group-${events.length}-${events[0]?.id || 'empty'}`}
+          key={`cluster-group-${events.map((e) => e.id).join('-').slice(0, 200)}`}
           chunkedLoading
-          maxClusterRadius={35}
+          maxClusterRadius={40}
           spiderfyOnMaxZoom={true}
           showCoverageOnHover={false}
-          disableClusteringAtZoom={15}
           iconCreateFunction={createClusterIcon}
         >
           {events.map((event) => {
