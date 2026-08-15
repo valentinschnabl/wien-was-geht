@@ -394,14 +394,19 @@ export default function MapView({
                     <div className="compact-popup-header">
                       <div className="compact-popup-tags">
                         {event.temporalStatus === "live" && (
-                          <span className="badge badge-live">{t.statusLive}</span>
+                          <span className="badge badge-live">
+                            <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                          </span>
                         )}
                         {event.temporalStatus === "upcoming" && (
-                          <span className="badge badge-upcoming">HEUTE</span>
+                          <span className="badge badge-upcoming">
+                            <i className="fa-solid fa-clock"></i> HEUTE
+                          </span>
                         )}
                         {event.temporalStatus === "concluded" && (
                           <span className="badge badge-concluded">
-                            {language === "de" ? "● BEENDET" : "● ENDED"}
+                            <i className="fa-solid fa-circle badge-dot"></i>{" "}
+                            {language === "de" ? "BEENDET" : "ENDED"}
                           </span>
                         )}
                         {typeof event.distanceKm === "number" && (

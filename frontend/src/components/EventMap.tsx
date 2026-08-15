@@ -403,16 +403,18 @@ export default function EventMap() {
               <div className="sidebar-detail-content">
                 <div className="compact-top-tags">
                   {selectedEvent.temporalStatus === "live" && (
-                    <span className="badge badge-live">{t.statusLive}</span>
+                    <span className="badge badge-live">
+                      <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                    </span>
                   )}
                   {selectedEvent.temporalStatus === "upcoming" && (
                     <span className="badge badge-upcoming">
-                      {t.statusUpcoming("")}
+                      <i className="fa-solid fa-clock"></i> {t.statusUpcoming("")}
                     </span>
                   )}
                   {selectedEvent.temporalStatus === "concluded" && (
                     <span className="badge badge-concluded">
-                      {t.statusConcluded}
+                      <i className="fa-solid fa-circle badge-dot"></i> {t.statusConcluded}
                     </span>
                   )}
 
@@ -547,16 +549,19 @@ export default function EventMap() {
                         <div className="compact-info">
                           <div className="compact-top-tags">
                             {event.temporalStatus === "live" && (
-                              <span className="badge badge-live">{t.statusLive}</span>
+                              <span className="badge badge-live">
+                                <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                              </span>
                             )}
                             {event.temporalStatus === "upcoming" && (
                               <span className="badge badge-upcoming">
+                                <i className="fa-solid fa-clock"></i>{" "}
                                 {t.statusUpcoming(startTimeStr)}
                               </span>
                             )}
                             {event.temporalStatus === "concluded" && (
                               <span className="badge badge-concluded">
-                                {t.statusConcluded}
+                                <i className="fa-solid fa-circle badge-dot"></i> {t.statusConcluded}
                               </span>
                             )}
 

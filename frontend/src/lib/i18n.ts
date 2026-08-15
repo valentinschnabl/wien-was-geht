@@ -91,9 +91,9 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Standort teilen",
     consentDecline: "Ohne Standort fortfahren",
 
-    statusLive: "● LIVE",
-    statusUpcoming: (time: string) => `🕒 HEUTE (ab ${time})`,
-    statusConcluded: "● HEUTE BEENDET",
+    statusLive: "LIVE",
+    statusUpcoming: (time: string) => (time ? `HEUTE (ab ${time})` : "HEUTE"),
+    statusConcluded: "HEUTE BEENDET",
     eventsTodayNotice: "Zeigt nur Events an, die am heutigen Tag stattfinden.",
 
     filterCategory: "Kategorie",
@@ -115,7 +115,7 @@ export const translations: Record<Language, Translations> = {
     timeUnknown: "Zeit unbekannt",
     startsAt: "Beginn",
     endsAt: "Ende",
-    externalLink: "Offizielle Website & Info ↗",
+    externalLink: "Offizielle Website & Info",
     venueDefault: "Wien",
     loadingEvents: "Lade heutige Veranstaltungen...",
     errorLoading: "Fehler beim Laden der Eventdaten",
@@ -152,9 +152,9 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Share My Location",
     consentDecline: "Continue Without Location",
 
-    statusLive: "● LIVE",
-    statusUpcoming: (time: string) => `🕒 TODAY (from ${time})`,
-    statusConcluded: "● ENDED TODAY",
+    statusLive: "LIVE",
+    statusUpcoming: (time: string) => (time ? `TODAY (from ${time})` : "TODAY"),
+    statusConcluded: "ENDED TODAY",
     eventsTodayNotice: "Showing events happening today in Vienna.",
 
     filterCategory: "Category",
@@ -176,7 +176,7 @@ export const translations: Record<Language, Translations> = {
     timeUnknown: "Time unknown",
     startsAt: "Starts",
     endsAt: "Ends",
-    externalLink: "Official Website & Tickets ↗",
+    externalLink: "Official Website & Tickets",
     venueDefault: "Vienna",
     loadingEvents: "Loading today's events...",
     errorLoading: "Error loading event data",
