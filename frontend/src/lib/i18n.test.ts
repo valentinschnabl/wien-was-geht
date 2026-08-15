@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { translations } from "./i18n";
+import { translations, normalizeCategory, getCategoryLabel } from "./i18n";
 
 describe("i18n Localization Dictionaries", () => {
   it("should contain complete translation entries for both German and English", () => {
@@ -25,5 +25,19 @@ describe("i18n Localization Dictionaries", () => {
   it("should format upcoming status strings correctly", () => {
     expect(translations.de.statusUpcoming("18:30")).toContain("18:30");
     expect(translations.en.statusUpcoming("18:30")).toContain("18:30");
+  });
+
+  it("should normalize and label categories correctly", () => {
+    expect(normalizeCategory("Konzert")).toBe("Music");
+    expect(normalizeCategory("Party")).toBe("Nightlife");
+    expect(normalizeCategory("Kinder")).toBe("Family");
+    expect(normalizeCategory("Sport")).toBe("Sports");
+    expect(normalizeCategory("Kulinarik")).toBe("Culinary");
+    expect(normalizeCategory("Theater")).toBe("Culture");
+
+    expect(getCategoryLabel("Music", "de")).toBe("Musik");
+    expect(getCategoryLabel("Music", "en")).toBe("Music");
+    expect(getCategoryLabel("Nightlife", "de")).toBe("Nightlife");
+    expect(getCategoryLabel("Family", "de")).toBe("Familie");
   });
 });

@@ -194,3 +194,36 @@ export const translations: Record<Language, Translations> = {
     close: "Close",
   },
 };
+
+export function normalizeCategory(cat?: string | null): string {
+  if (!cat) return "Culture";
+  const c = cat.toLowerCase().trim();
+  if (c === "music" || c === "musik" || c === "konzert") return "Music";
+  if (c === "nightlife" || c === "party" || c === "clubbing" || c === "rave") return "Nightlife";
+  if (c === "culture" || c === "kultur" || c === "theater" || c === "kunst" || c === "general") return "Culture";
+  if (c === "sports" || c === "sport" || c === "fitness") return "Sports";
+  if (c === "culinary" || c === "kulinarik" || c === "food") return "Culinary";
+  if (c === "family" || c === "familie" || c === "kinder") return "Family";
+  return "Culture";
+}
+
+export function getCategoryLabel(category?: string | null, language: Language = "de"): string {
+  const norm = normalizeCategory(category);
+  const t = translations[language];
+  switch (norm) {
+    case "Music":
+      return t.filterMusic;
+    case "Nightlife":
+      return t.filterNightlife;
+    case "Culture":
+      return t.filterCulture;
+    case "Family":
+      return t.filterFamily;
+    case "Sports":
+      return t.filterSports;
+    case "Culinary":
+      return t.filterCulinary;
+    default:
+      return t.filterCulture;
+  }
+}

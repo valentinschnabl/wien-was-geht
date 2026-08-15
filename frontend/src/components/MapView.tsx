@@ -4,8 +4,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
-import type { LatLngExpression } from "leaflet";
-import { translations, Language } from "@/lib/i18n";
+import { translations, Language, getCategoryLabel } from "@/lib/i18n";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
@@ -428,6 +427,11 @@ export default function MapView({
                     <div className="compact-popup-time-box">
                       <i className="fa-solid fa-calendar-days time-icon"></i>
                       <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
+                    </div>
+
+                    <div className="compact-popup-category-box">
+                      <i className="fa-solid fa-tag category-icon"></i>
+                      <span className="category-value">{getCategoryLabel(event.category, language)}</span>
                     </div>
 
                     {/* Truncated description preview */}

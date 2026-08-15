@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState, useMemo, useRef } from "react";
-import { translations, Language } from "@/lib/i18n";
+import { translations, Language, normalizeCategory, getCategoryLabel } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import type { EventRecord, UserLocation } from "./MapView";
 import { calculateDistanceKm } from "@/lib/distance";
@@ -262,8 +262,12 @@ export default function EventMap() {
         }
 
         // Category Filter
-        if (selectedCategory !== "all" && ev.category !== selectedCategory) {
-          return false;
+        if (selectedCategory !== "all") {
+          const normEvCat = normalizeCategory(ev.category);
+          const normSelected = normalizeCategory(selectedCategory);
+          if (normEvCat !== normSelected) {
+            return false;
+          }
         }
 
         // Search Query Filter
@@ -442,6 +446,10 @@ export default function EventMap() {
                   <p>
                     <i className="fa-solid fa-calendar-days"></i>{" "}
                     {formatEventDateRange(selectedEvent.startTime, selectedEvent.endTime, language)}
+                  </p>
+                  <p>
+                    <i className="fa-solid fa-tag"></i>{" "}
+                    <span>{getCategoryLabel(selectedEvent.category, language)}</span>
                   </p>
                 </div>
 
