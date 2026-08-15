@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -296,6 +296,134 @@ export default function MapView({
     });
   }, [hoveredEventId, selectedEventId]);
 
+  // Memoize marker elements so hover state updates in parent do not trigger MarkerClusterGroup child changes or unspiderfy
+  const markerElements = useMemo(() => {
+    return events.map((event) => {
+      if (
+        typeof event.latitude !== "number" ||
+        typeof event.longitude !== "number" ||
+        (event.latitude === 0 && event.longitude === 0)
+      ) {
+        return null;
+      }
+
+      // Truncate description snippet for mini map popup
+      const descSnippet = event.description
+        ? event.description.length > 70
+          ? event.description.slice(0, 70).trim() + "…"
+          : event.description
+        : null;
+
+      return (
+        <Marker
+          key={event.id}
+          position={[event.latitude, event.longitude]}
+          icon={getEventIcon(event.id)}
+          // @ts-expect-error custom property for cluster hover detection
+          eventId={event.id}
+          eventHandlers={{
+            add: (e) => {
+              e.target.options.eventId = event.id;
+            },
+            mouseover: (e) => {
+              e.target.getElement()?.querySelector(".event-pin")?.classList.add("event-pin-highlighted");
+              onHoverEvent?.(event.id);
+            },
+            mouseout: (e) => {
+              const pin = e.target.getElement()?.querySelector(".event-pin");
+              pin?.classList.remove("event-pin-highlighted");
+              onHoverEvent?.(null);
+            },
+            click: (e) => {
+              e.originalEvent?.stopPropagation();
+              onSelectEvent?.(event);
+            },
+          }}
+        >
+          {/* Compact Mini Map Popup with autoPan padding */}
+          <Popup
+            className="custom-compact-popup"
+            autoPan={true}
+            autoPanPadding={[50, 50]}
+            eventHandlers={{
+              add: () => onPopupStateChange?.(true),
+              remove: () => onPopupStateChange?.(false),
+            }}
+          >
+            <div className="compact-popup-content">
+              <div className="compact-popup-header">
+                <div className="compact-popup-tags">
+                  {event.temporalStatus === "live" && (
+                    <span className="badge badge-live">
+                      <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                    </span>
+                  )}
+                  {event.temporalStatus === "upcoming" && (
+                    <span className="badge badge-upcoming">
+                      <i className="fa-solid fa-clock"></i> HEUTE
+                    </span>
+                  )}
+                  {event.temporalStatus === "concluded" && (
+                    <span className="badge badge-concluded">
+                      <i className="fa-solid fa-circle badge-dot"></i>{" "}
+                      {language === "de" ? "BEENDET" : "ENDED"}
+                    </span>
+                  )}
+                  {typeof event.distanceKm === "number" && (
+                    <span className="compact-distance">
+                      <i className="fa-solid fa-location-arrow"></i>{" "}
+                      {event.distanceKm.toFixed(1)} km
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <h4 className="compact-popup-title">{event.title}</h4>
+
+              <div className="compact-popup-venue-box">
+                <i className="fa-solid fa-location-dot venue-icon"></i>
+                <span className="venue-name">{event.venueName || t.venueDefault}</span>
+              </div>
+
+              <div className="compact-popup-time-box">
+                <i className="fa-solid fa-calendar-days time-icon"></i>
+                <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
+              </div>
+
+              <div className="compact-popup-category-box">
+                <i className="fa-solid fa-tag category-icon"></i>
+                <span className="category-value">{getCategoryLabel(event.category, language)}</span>
+              </div>
+
+              {/* Truncated description preview */}
+              {descSnippet && (
+                <p className="compact-popup-snippet">{descSnippet}</p>
+              )}
+
+              <button
+                type="button"
+                className="btn-popup-details"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Close popup cleanly before opening sidebar details to prevent UI flash
+                  const closeBtn = (e.target as HTMLElement)
+                    .closest(".leaflet-popup")
+                    ?.querySelector(".leaflet-popup-close-button") as HTMLElement | null;
+                  if (closeBtn) {
+                    closeBtn.click();
+                  }
+                  onSelectEvent?.(event);
+                }}
+              >
+                {t.showDetails} &rarr;
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      );
+    });
+  }, [events, language]);
+
   return (
     <div className="map-view-wrapper">
       <MapContainer
@@ -350,132 +478,7 @@ export default function MapView({
           spiderfyDistanceMultiplier={2}
           iconCreateFunction={createClusterIcon}
         >
-          {events.map((event) => {
-            if (
-              typeof event.latitude !== "number" ||
-              typeof event.longitude !== "number" ||
-              (event.latitude === 0 && event.longitude === 0)
-            ) {
-              return null;
-            }
-
-            // Truncate description snippet for mini map popup
-            const descSnippet = event.description
-              ? event.description.length > 70
-                ? event.description.slice(0, 70).trim() + "…"
-                : event.description
-              : null;
-
-            return (
-              <Marker
-                key={event.id}
-                position={[event.latitude, event.longitude]}
-                icon={getEventIcon(event.id)}
-                // @ts-expect-error custom property for cluster hover detection
-                eventId={event.id}
-                eventHandlers={{
-                  add: (e) => {
-                    e.target.options.eventId = event.id;
-                  },
-                  mouseover: (e) => {
-                    e.target.getElement()?.querySelector(".event-pin")?.classList.add("event-pin-highlighted");
-                    onHoverEvent?.(event.id);
-                  },
-                  mouseout: (e) => {
-                    const pin = e.target.getElement()?.querySelector(".event-pin");
-                    if (event.id !== selectedEventId) {
-                      pin?.classList.remove("event-pin-highlighted");
-                    }
-                    onHoverEvent?.(null);
-                  },
-                  click: (e) => {
-                    e.originalEvent?.stopPropagation();
-                    onSelectEvent?.(event);
-                  },
-                }}
-              >
-                {/* Compact Mini Map Popup with autoPan padding */}
-                <Popup
-                  className="custom-compact-popup"
-                  autoPan={true}
-                  autoPanPadding={[50, 50]}
-                  eventHandlers={{
-                    add: () => onPopupStateChange?.(true),
-                    remove: () => onPopupStateChange?.(false),
-                  }}
-                >
-                  <div className="compact-popup-content">
-                    <div className="compact-popup-header">
-                      <div className="compact-popup-tags">
-                        {event.temporalStatus === "live" && (
-                          <span className="badge badge-live">
-                            <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
-                          </span>
-                        )}
-                        {event.temporalStatus === "upcoming" && (
-                          <span className="badge badge-upcoming">
-                            <i className="fa-solid fa-clock"></i> HEUTE
-                          </span>
-                        )}
-                        {event.temporalStatus === "concluded" && (
-                          <span className="badge badge-concluded">
-                            <i className="fa-solid fa-circle badge-dot"></i>{" "}
-                            {language === "de" ? "BEENDET" : "ENDED"}
-                          </span>
-                        )}
-                        {typeof event.distanceKm === "number" && (
-                          <span className="compact-distance">
-                            <i className="fa-solid fa-location-arrow"></i>{" "}
-                            {event.distanceKm.toFixed(1)} km
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <h4 className="compact-popup-title">{event.title}</h4>
-
-                    <div className="compact-popup-venue-box">
-                      <i className="fa-solid fa-location-dot venue-icon"></i>
-                      <span className="venue-name">{event.venueName || t.venueDefault}</span>
-                    </div>
-
-                    <div className="compact-popup-time-box">
-                      <i className="fa-solid fa-calendar-days time-icon"></i>
-                      <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
-                    </div>
-
-                    <div className="compact-popup-category-box">
-                      <i className="fa-solid fa-tag category-icon"></i>
-                      <span className="category-value">{getCategoryLabel(event.category, language)}</span>
-                    </div>
-
-                    {/* Truncated description preview */}
-                    {descSnippet && (
-                      <p className="compact-popup-snippet">{descSnippet}</p>
-                    )}
-
-                    <button
-                      type="button"
-                      className="btn-popup-details"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Close popup cleanly before opening sidebar details to prevent UI flash
-                        const closeBtn = (e.target as HTMLElement)
-                          .closest(".leaflet-popup")
-                          ?.querySelector(".leaflet-popup-close-button") as HTMLElement | null;
-                        if (closeBtn) {
-                          closeBtn.click();
-                        }
-                        onSelectEvent?.(event);
-                      }}
-                    >
-                      {t.showDetails} &rarr;
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
+          {markerElements}
         </MarkerClusterGroup>
       </MapContainer>
     </div>
