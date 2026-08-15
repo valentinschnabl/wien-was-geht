@@ -199,16 +199,71 @@ describe('IngestionService', () => {
 
       await service.run();
 
-      // Should save only 1 event due to deduplication
+      // Should save only 1 event due to deduplication, prioritizing Eventfrog (ticketing provider) over basic Stadt Wien
       expect(persistenceService.saveEvents).toHaveBeenCalledWith(
         expect.arrayContaining([
+          expect.objectContaining({ externalId: 'ef-dup' }),
+        ]),
+      );
+      // Stadt Wien duplicate should be replaced by higher priority Eventfrog
+      expect(persistenceService.saveEvents).toHaveBeenCalledWith(
+        expect.not.arrayContaining([
           expect.objectContaining({ externalId: 'sw-dup' }),
         ]),
       );
-      // Eventfrog duplicate should be filtered out
+    });
+
+    it('should prioritize richer events with photos and official APIs over scraped duplicate events', async () => {
+      mockStadtWienService.fetchEvents.mockResolvedValueOnce([]);
+      mockEventfrogService.fetchEvents.mockResolvedValueOnce([]);
+      mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
+      mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
+      mockFalterService.fetchEvents.mockResolvedValueOnce([]);
+
+      // Eventbrite event with photo, full description, direct ticket link
+      mockEventbriteService.fetchEvents.mockResolvedValueOnce([
+        {
+          externalId: 'eb-rich',
+          provider: 'EVENTBRITE',
+          title: 'Sommer Techno Party',
+          startTime: new Date('2026-08-15T22:00:00Z'),
+          venueName: 'Sass Club',
+          latitude: 48.2000,
+          longitude: 16.3700,
+          imageUrl: 'https://cdn.example.com/event.jpg',
+          description: 'A very rich and detailed event description with lots of information',
+          url: 'https://eventbrite.com/e/12345',
+        },
+      ]);
+
+      // Goodnight scraped event without photo and short description
+      mockGoodnightService.fetchEvents.mockResolvedValueOnce([
+        {
+          externalId: 'gn-scraped',
+          provider: 'GOODNIGHT',
+          title: 'Sommer Techno Party',
+          startTime: new Date('2026-08-15T22:00:00Z'),
+          venueName: 'Sass Music Club',
+          latitude: 48.2001,
+          longitude: 16.3701,
+          imageUrl: null,
+          description: 'Short',
+          url: 'https://goodnight.at/events/party',
+        },
+      ]);
+
+      await service.run();
+
+      // Should prioritize the rich Eventbrite event with photo
+      expect(persistenceService.saveEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ externalId: 'eb-rich', provider: 'EVENTBRITE' }),
+        ]),
+      );
+      // Lower quality scraped duplicate should be excluded
       expect(persistenceService.saveEvents).toHaveBeenCalledWith(
         expect.not.arrayContaining([
-          expect.objectContaining({ externalId: 'ef-dup' }),
+          expect.objectContaining({ externalId: 'gn-scraped' }),
         ]),
       );
     });

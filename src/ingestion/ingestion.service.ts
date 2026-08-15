@@ -147,7 +147,7 @@ export class IngestionService implements OnModuleInit {
       const normTitle = this.normalizeTitle(event.title);
       const startMs = new Date(event.startTime).getTime();
 
-      const isDuplicate = uniqueEvents.some((existing) => {
+      const existingIndex = uniqueEvents.findIndex((existing) => {
         const existingNormTitle = this.normalizeTitle(existing.title);
         const existingStartMs = new Date(existing.startTime).getTime();
 
@@ -176,14 +176,67 @@ export class IngestionService implements OnModuleInit {
         return titleMatches && timeMatches && venueMatches;
       });
 
-      if (!isDuplicate) {
+      if (existingIndex === -1) {
         uniqueEvents.push(event);
       } else {
-        this.logger.debug(`Deduplicated duplicate event: "${event.title}" from provider ${event.provider}`);
+        const existing = uniqueEvents[existingIndex];
+        const newScore = this.getEventQualityScore(event);
+        const existingScore = this.getEventQualityScore(existing);
+
+        // Prioritize non-scraped, richer events (with photos, official APIs, better metadata)
+        if (newScore > existingScore) {
+          this.logger.debug(
+            `Deduplication: Replaced lower quality event "${existing.title}" (${existing.provider}, score ${existingScore}) with higher quality event from ${event.provider} (score ${newScore}).`,
+          );
+          uniqueEvents[existingIndex] = event;
+        } else {
+          this.logger.debug(
+            `Deduplication: Kept existing higher/equal quality event "${existing.title}" (${existing.provider}, score ${existingScore}) over ${event.provider} (score ${newScore}).`,
+          );
+        }
       }
     }
 
     return uniqueEvents;
+  }
+
+  private getEventQualityScore(event: Prisma.EventCreateInput): number {
+    let score = 0;
+
+    // 1. Official API Providers prioritized over scraped sources
+    const providerPriority: Record<string, number> = {
+      TICKETMASTER: 50,
+      EVENTBRITE: 50,
+      EVENTFROG: 45,
+      STADT_WIEN: 40,
+      OPENWEB_NINJA: 30,
+      GOODNIGHT: 10,
+      FALTER: 10,
+    };
+
+    score += providerPriority[event.provider] ?? 20;
+
+    // 2. Has photo/image
+    if (event.imageUrl) {
+      score += 30;
+    }
+
+    // 3. Has detailed description
+    if (event.description && event.description.length > 50) {
+      score += 15;
+    }
+
+    // 4. Has accurate geo coordinates
+    if (event.latitude !== 0 && event.longitude !== 0) {
+      score += 10;
+    }
+
+    // 5. Has direct link
+    if (event.url) {
+      score += 5;
+    }
+
+    return score;
   }
 
   private normalizeTitle(title: string): string {
