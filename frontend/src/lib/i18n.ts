@@ -91,9 +91,9 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Standort teilen",
     consentDecline: "Ohne Standort fortfahren",
 
-    statusLive: "● JETZT AKTIV",
+    statusLive: "● LIVE",
     statusUpcoming: (time: string) => `🕒 HEUTE (ab ${time})`,
-    statusConcluded: "⚪ HEUTE BEENDET",
+    statusConcluded: "● HEUTE BEENDET",
     eventsTodayNotice: "Zeigt nur Events an, die am heutigen Tag stattfinden.",
 
     filterCategory: "Kategorie",
@@ -152,9 +152,9 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Share My Location",
     consentDecline: "Continue Without Location",
 
-    statusLive: "● LIVE NOW",
+    statusLive: "● LIVE",
     statusUpcoming: (time: string) => `🕒 TODAY (from ${time})`,
-    statusConcluded: "⚪ ENDED TODAY",
+    statusConcluded: "● ENDED TODAY",
     eventsTodayNotice: "Showing events happening today in Vienna.",
 
     filterCategory: "Category",

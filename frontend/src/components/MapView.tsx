@@ -400,7 +400,9 @@ export default function MapView({
                           <span className="badge badge-upcoming">HEUTE</span>
                         )}
                         {event.temporalStatus === "concluded" && (
-                          <span className="badge badge-concluded">BEENDET</span>
+                          <span className="badge badge-concluded">
+                            {language === "de" ? "● BEENDET" : "● ENDED"}
+                          </span>
                         )}
                         {typeof event.distanceKm === "number" && (
                           <span className="compact-distance">
