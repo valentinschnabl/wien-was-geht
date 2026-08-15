@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WienWasGeht — Events & Kultur in Wien",
-  description: "Dein Guide für heutige Veranstaltungen, Konzerte und Kultur-Highlights in Wien.",
+  title: "WienWasGeht — Events heute in Wien",
+  description: "Tagesaktuelle Events, Partys, Konzerte und Kultur-Highlights in Wien.",
 };
 
 export default function RootLayout({

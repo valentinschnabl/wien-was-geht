@@ -340,19 +340,16 @@ export default function EventMap() {
 
   return (
     <div className="app-container-clean">
-      {/* Rebranded Header */}
+      {/* Clean Rebranded Header */}
       <header className="app-header-clean">
         <div className="header-branding">
           <div className="city-badge-row">
-            <span className="city-badge">
-              <i className="fa-solid fa-city"></i> WienWasGeht
-            </span>
+            <h1 className="header-title">{t.appTitle}</h1>
             <span className="stats-pill">
               <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} Live &bull;{" "}
               <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} Demnächst
             </span>
           </div>
-          <h1 className="header-title">{t.appTitle}</h1>
           <p className="header-subtitle">{t.appSubtitle}</p>
         </div>
 

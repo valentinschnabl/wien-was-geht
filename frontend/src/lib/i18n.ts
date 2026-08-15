@@ -70,8 +70,8 @@ export interface Translations {
 
 export const translations: Record<Language, Translations> = {
   de: {
-    appTitle: "WienWasGeht — Events & Kultur in Wien",
-    appSubtitle: "Dein Guide für heutige Veranstaltungen, Konzerte und Kultur-Highlights in Wien.",
+    appTitle: "WienWasGeht",
+    appSubtitle: "Events & Kultur heute in Wien",
     eyebrow: "WienWasGeht",
     pwaBadge: "Datenschutzkonforme Ortung",
     mapTitle: "Karte von Wien",
@@ -132,8 +132,8 @@ export const translations: Record<Language, Translations> = {
     close: "Schließen",
   },
   en: {
-    appTitle: "WienWasGeht — Vienna Events Today",
-    appSubtitle: "Your guide for today's events, concerts, and cultural highlights in Vienna.",
+    appTitle: "WienWasGeht",
+    appSubtitle: "Today's events & culture in Vienna",
     eyebrow: "WienWasGeht",
     pwaBadge: "Privacy-Preserving Location",
     mapTitle: "Vienna Map View",
