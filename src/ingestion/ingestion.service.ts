@@ -34,14 +34,14 @@ export class IngestionService implements OnModuleInit {
     private readonly persistence: EventPersistenceService,
   ) {}
 
-  // Run initial ingestion automatically when module starts
-  async onModuleInit() {
-    this.logger.log('Executing startup ingestion run...');
-    try {
-      await this.run();
-    } catch (err) {
-      this.logger.error('Startup ingestion run failed', err);
-    }
+  // Run initial ingestion automatically in background when module starts
+  onModuleInit() {
+    this.logger.log('Scheduling background startup ingestion run...');
+    setTimeout(() => {
+      this.run().catch((err) => {
+        this.logger.error('Startup ingestion run failed', err);
+      });
+    }, 1000);
   }
 
   // Daily automated ingestion run at 4:00 AM UTC

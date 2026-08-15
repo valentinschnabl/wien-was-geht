@@ -14,13 +14,19 @@ interface RaVenue {
   };
 }
 
+interface RaImage {
+  id?: string;
+  filename?: string;
+  type?: string;
+}
+
 interface RaEvent {
   id?: string;
   title?: string;
   startTime?: string;
   endTime?: string | null;
   contentUrl?: string;
-  flyerFront?: string | null;
+  images?: RaImage[] | null;
   venue?: RaVenue | null;
 }
 
@@ -66,7 +72,11 @@ export class ResidentAdvisorService implements IEventProvider {
               startTime
               endTime
               contentUrl
-              flyerFront
+              images {
+                id
+                filename
+                type
+              }
               venue {
                 id
                 name
@@ -149,6 +159,13 @@ export class ResidentAdvisorService implements IEventProvider {
             : `https://ra.co${ev.contentUrl}`
           : 'https://ra.co/events/at/vienna';
 
+        // Extract flyer / cover image from images array
+        let imageUrl: string | null = null;
+        if (Array.isArray(ev.images) && ev.images.length > 0) {
+          const flyer = ev.images.find((img) => img.type === 'FLYERFRONT') || ev.images[0];
+          imageUrl = flyer?.filename || null;
+        }
+
         normalizedEvents.push({
           externalId: `ra-${ev.id}`,
           provider: 'RESIDENT_ADVISOR',
@@ -158,7 +175,7 @@ export class ResidentAdvisorService implements IEventProvider {
             : null,
           category: 'Nightlife',
           url: eventUrl,
-          imageUrl: ev.flyerFront || null, // High-res flyer cover image
+          imageUrl, // High-res flyer cover image
           startTime: start,
           endTime: end,
           venueName: ev.venue?.name || 'Wien',
