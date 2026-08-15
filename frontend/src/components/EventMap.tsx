@@ -126,20 +126,18 @@ export default function EventMap() {
     requestBrowserLocation();
   }, []);
 
-  // Smooth scroll sidebar to hovered event card ONLY when map popup is NOT open
+  // Smooth scroll sidebar to hovered event card
   useEffect(() => {
-    if (!isMapPopupOpen && hoveredEventId && cardRefs.current[hoveredEventId]) {
+    if (hoveredEventId && cardRefs.current[hoveredEventId]) {
       cardRefs.current[hoveredEventId]?.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });
     }
-  }, [hoveredEventId, isMapPopupOpen]);
+  }, [hoveredEventId]);
 
   const handleHoverEvent = (id: string | null) => {
-    if (!isMapPopupOpen) {
-      setHoveredEventId(id);
-    }
+    setHoveredEventId(id);
   };
 
   const handleSelectEvent = (event: EventRecord) => {

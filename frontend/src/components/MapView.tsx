@@ -379,12 +379,18 @@ export default function MapView({
                   },
                   mouseover: (e) => {
                     e.target.getElement()?.querySelector(".event-pin")?.classList.add("event-pin-highlighted");
+                    onHoverEvent?.(event.id);
                   },
                   mouseout: (e) => {
                     const pin = e.target.getElement()?.querySelector(".event-pin");
-                    if (event.id !== selectedEventId && event.id !== hoveredEventId) {
+                    if (event.id !== selectedEventId) {
                       pin?.classList.remove("event-pin-highlighted");
                     }
+                    onHoverEvent?.(null);
+                  },
+                  click: (e) => {
+                    e.originalEvent?.stopPropagation();
+                    onSelectEvent?.(event);
                   },
                 }}
               >

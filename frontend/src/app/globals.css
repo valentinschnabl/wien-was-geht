@@ -466,6 +466,8 @@ html, body {
   background: transparent;
   border: none;
   transition: transform 0.2s ease;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .event-pin {
@@ -480,6 +482,8 @@ html, body {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .event-pin-highlighted {
