@@ -354,6 +354,22 @@ export default function EventMap() {
         </div>
 
         <div className="header-actions">
+          <a
+            href="https://buymeacoffee.com/wienwasgeht"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-coffee-header"
+            title={
+              language === "de"
+                ? "WienWasGeht mit einem Kaffee unterstützen"
+                : "Support WienWasGeht with a coffee"
+            }
+          >
+            <i className="fa-solid fa-mug-hot"></i>
+            <span className="coffee-label">
+              {language === "de" ? "Kaffee spendieren" : "Buy me a coffee"}
+            </span>
+          </a>
           <LanguageSwitcher
             currentLanguage={language}
             onLanguageChange={setLanguage}
@@ -770,6 +786,16 @@ export default function EventMap() {
         </div>
 
         <div className="footer-right">
+          <a
+            href="https://buymeacoffee.com/wienwasgeht"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-coffee-link"
+          >
+            <i className="fa-solid fa-mug-hot"></i>{" "}
+            <span>{language === "de" ? "Kaffee spendieren" : "Buy me a coffee"}</span>
+          </a>
+          <span className="footer-divider">&bull;</span>
           <button
             type="button"
             className="btn-footer-link"
@@ -810,7 +836,20 @@ export default function EventMap() {
                 {activeModal === "imprint" ? t.imprintText : t.privacyText}
               </p>
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer modal-footer-flex">
+              {activeModal === "imprint" && (
+                <a
+                  href="https://buymeacoffee.com/wienwasgeht"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-coffee-modal"
+                >
+                  <i className="fa-solid fa-mug-hot"></i>{" "}
+                  {language === "de"
+                    ? "WienWasGeht unterstützen"
+                    : "Support on Buy Me a Coffee"}
+                </a>
+              )}
               <button
                 type="button"
                 className="btn btn-primary"

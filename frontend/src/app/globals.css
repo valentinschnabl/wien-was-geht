@@ -163,6 +163,36 @@ html, body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
+/* Header Coffee Button */
+.btn-coffee-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #ffdd00;
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(255, 221, 0, 0.35);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.btn-coffee-header i {
+  font-size: 0.9rem;
+  color: #a84900;
+}
+
+.btn-coffee-header:hover {
+  background: #ffea47;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 221, 0, 0.45);
+  color: #000000;
+}
+
 /* Quick Filter Segmented Control Chips & Category Bar */
 .filter-controls-stack {
   display: flex;
@@ -1275,6 +1305,60 @@ html, body {
   background: #f8f7f4;
 }
 
+.modal-footer-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Footer Coffee Link */
+.footer-coffee-link {
+  color: #b45309;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s ease;
+}
+
+.footer-coffee-link i {
+  font-size: 0.8rem;
+  color: #d97706;
+}
+
+.footer-coffee-link:hover {
+  color: #78350f;
+  text-decoration: underline;
+}
+
+/* Modal Coffee Button */
+.btn-coffee-modal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffdd00;
+  color: #1a1a1a;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(255, 221, 0, 0.25);
+  transition: all 0.15s ease;
+}
+
+.btn-coffee-modal i {
+  color: #a84900;
+}
+
+.btn-coffee-modal:hover {
+  background: #ffea47;
+  color: #000000;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   html, body {
     height: 100vh;
@@ -1384,6 +1468,24 @@ html, body {
     background: var(--accent-primary);
     color: #ffffff;
     box-shadow: 0 2px 8px rgba(91, 123, 85, 0.4);
+  }
+
+  .btn-coffee-header {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .btn-coffee-header .coffee-label {
+    display: none;
+  }
+
+  .modal-footer-flex {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .modal-footer-flex .btn {
+    width: 100%;
   }
 
   .app-footer-clean {
