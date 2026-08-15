@@ -177,12 +177,6 @@ function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord |
         duration: 0.8,
       });
       prevSelectedRef.current = selectedEvent ?? null;
-    } else if (!selectedId && prevSelectedRef.current) {
-      // Smoothly zoom out and fly back to full Vienna overview (48.2082, 16.3738) at zoom 11.5
-      map.flyTo([48.2082, 16.3738], 11.5, {
-        duration: 0.8,
-      });
-      prevSelectedRef.current = null;
     }
   }, [map, selectedId, lat, lng]);
 

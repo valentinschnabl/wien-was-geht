@@ -126,6 +126,9 @@ export default function EventMap() {
     requestBrowserLocation();
   }, []);
 
+  // Track whether event was opened from Map or List to route back appropriately
+  const [selectionSource, setSelectionSource] = useState<"map" | "list">("map");
+
   // Smooth scroll sidebar to hovered event card
   useEffect(() => {
     if (hoveredEventId && cardRefs.current[hoveredEventId]) {
@@ -140,15 +143,21 @@ export default function EventMap() {
     setHoveredEventId(id);
   };
 
-  const handleSelectEvent = (event: EventRecord) => {
+  const handleSelectEvent = (event: EventRecord, source: "map" | "list" = "map") => {
+    setSelectionSource(source);
     setSelectedEvent(event);
     setHoveredEventId(event.id); // Automatically mark the event with the RED highlighted pin
     setMobileTab("list"); // On mobile, automatically switch to detailed view panel
   };
 
-  const handleBackToList = () => {
+  const handleBackFromDetail = () => {
     setSelectedEvent(null);
     setHoveredEventId(null);
+    if (selectionSource === "map") {
+      setMobileTab("map");
+    } else {
+      setMobileTab("list");
+    }
   };
 
   const handleImageError = (id: string) => {
@@ -488,7 +497,7 @@ export default function EventMap() {
               language={language}
               onLocateClick={requestBrowserLocation}
               locationState={locationState}
-              onSelectEvent={handleSelectEvent}
+              onSelectEvent={(event) => handleSelectEvent(event, "map")}
               selectedEvent={selectedEvent}
               hoveredEventId={hoveredEventId}
               onHoverEvent={handleHoverEvent}
@@ -505,10 +514,16 @@ export default function EventMap() {
               <button
                 type="button"
                 className="btn-back-sidebar"
-                onClick={handleBackToList}
+                onClick={handleBackFromDetail}
               >
                 <i className="fa-solid fa-arrow-left"></i>{" "}
-                {language === "de" ? "Zurück zur Übersicht" : "Back to list"}
+                {selectionSource === "map"
+                  ? language === "de"
+                    ? "Zurück zur Karte"
+                    : "Back to map"
+                  : language === "de"
+                  ? "Zurück zur Liste"
+                  : "Back to list"}
               </button>
 
               {/* Event Image Banner or Clean Informative Placeholder */}
@@ -651,7 +666,7 @@ export default function EventMap() {
                       className={`event-compact-card ${isHovered ? "hovered" : ""}`}
                       onMouseEnter={() => !isMapPopupOpen && setHoveredEventId(event.id)}
                       onMouseLeave={() => !isMapPopupOpen && setHoveredEventId(null)}
-                      onClick={() => handleSelectEvent(event)}
+                      onClick={() => handleSelectEvent(event, "list")}
                     >
                       <div className="compact-card-body">
                         {/* Database Picture Thumbnail or Clean Vector Placeholder */}
