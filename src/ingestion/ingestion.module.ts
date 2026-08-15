@@ -5,6 +5,7 @@ import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
 import { FalterService } from './falter/falter.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
+import { EventbriteService } from './eventbrite/eventbrite.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { IngestionService } from './ingestion.service';
@@ -20,6 +21,7 @@ import { IngestionController } from './ingestion.controller';
     EventfrogService,
     FalterService,
     TicketmasterService,
+    EventbriteService,
     EventPersistenceService,
     IngestionService,
   ],
@@ -29,6 +31,7 @@ import { IngestionController } from './ingestion.controller';
     EventfrogService,
     FalterService,
     TicketmasterService,
+    EventbriteService,
     IngestionService,
   ],
 })
