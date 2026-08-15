@@ -7,6 +7,7 @@ import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
+import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
@@ -29,6 +30,7 @@ export class IngestionService implements OnModuleInit {
     private readonly eventbriteProvider: EventbriteService,
     private readonly goodnightProvider: GoodnightService,
     private readonly eventsAtProvider: EventsAtService,
+    private readonly residentAdvisorProvider: ResidentAdvisorService,
     private readonly persistence: EventPersistenceService,
   ) {}
 
@@ -110,6 +112,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Events.at ingestion failed', error);
     }
 
+    let residentAdvisorEvents: Prisma.EventCreateInput[] = [];
+    try {
+      residentAdvisorEvents = await this.residentAdvisorProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Resident Advisor ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -118,6 +127,7 @@ export class IngestionService implements OnModuleInit {
       ...eventbriteEvents,
       ...goodnightEvents,
       ...eventsAtEvents,
+      ...residentAdvisorEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -204,6 +214,7 @@ export class IngestionService implements OnModuleInit {
     const providerPriority: Record<string, number> = {
       TICKETMASTER: 50,
       EVENTBRITE: 50,
+      RESIDENT_ADVISOR: 48,
       EVENTFROG: 45,
       STADT_WIEN: 40,
       OPENWEB_NINJA: 30,

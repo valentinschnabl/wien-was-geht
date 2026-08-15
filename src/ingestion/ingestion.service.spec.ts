@@ -7,6 +7,7 @@ import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
+import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
@@ -18,6 +19,7 @@ describe('IngestionService', () => {
   let eventbriteService: EventbriteService;
   let goodnightService: GoodnightService;
   let eventsAtService: EventsAtService;
+  let residentAdvisorService: ResidentAdvisorService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -118,8 +120,22 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockResidentAdvisorService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'ra-1',
+        provider: 'RESIDENT_ADVISOR',
+        title: 'Event 8',
+        startTime: new Date('2026-08-15T23:30:00Z'),
+        venueName: 'Venue 8',
+        latitude: 48.2800,
+        longitude: 16.4800,
+      },
+    ]),
+  };
+
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(7),
+    saveEvents: jest.fn().mockResolvedValue(8),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -134,6 +150,7 @@ describe('IngestionService', () => {
         { provide: EventbriteService, useValue: mockEventbriteService },
         { provide: GoodnightService, useValue: mockGoodnightService },
         { provide: EventsAtService, useValue: mockEventsAtService },
+        { provide: ResidentAdvisorService, useValue: mockResidentAdvisorService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -146,6 +163,7 @@ describe('IngestionService', () => {
     eventbriteService = module.get<EventbriteService>(EventbriteService);
     goodnightService = module.get<GoodnightService>(GoodnightService);
     eventsAtService = module.get<EventsAtService>(EventsAtService);
+    residentAdvisorService = module.get<ResidentAdvisorService>(ResidentAdvisorService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -162,8 +180,8 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(7);
-      expect(summary.persisted).toBe(7);
+      expect(summary.fetched).toBe(8);
+      expect(summary.persisted).toBe(8);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
@@ -174,6 +192,7 @@ describe('IngestionService', () => {
       expect(eventbriteService.fetchEvents).toHaveBeenCalled();
       expect(goodnightService.fetchEvents).toHaveBeenCalled();
       expect(eventsAtService.fetchEvents).toHaveBeenCalled();
+      expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
 
@@ -206,6 +225,7 @@ describe('IngestionService', () => {
       mockEventbriteService.fetchEvents.mockResolvedValueOnce([]);
       mockGoodnightService.fetchEvents.mockResolvedValueOnce([]);
       mockEventsAtService.fetchEvents.mockResolvedValueOnce([]);
+      mockResidentAdvisorService.fetchEvents.mockResolvedValueOnce([]);
 
       await service.run();
 
@@ -229,6 +249,7 @@ describe('IngestionService', () => {
       mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
       mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
       mockEventsAtService.fetchEvents.mockResolvedValueOnce([]);
+      mockResidentAdvisorService.fetchEvents.mockResolvedValueOnce([]);
 
       // Eventbrite event with photo, full description, direct ticket link
       mockEventbriteService.fetchEvents.mockResolvedValueOnce([
