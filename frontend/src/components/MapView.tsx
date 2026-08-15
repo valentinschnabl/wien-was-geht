@@ -197,23 +197,15 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [11, 11],
 });
 
-// Standard Event Marker Icon
-const eventIcon = L.divIcon({
-  className: "custom-event-marker",
-  html: `<div class="event-pin"><span class="pin-inner"></span></div>`,
-  iconSize: [24, 30],
-  iconAnchor: [12, 30],
-  popupAnchor: [0, -28],
-});
-
-// Highlighted Hover Event Marker Icon
-const highlightedEventIcon = L.divIcon({
-  className: "custom-event-marker highlighted",
-  html: `<div class="event-pin event-pin-highlighted"><span class="pin-inner"></span></div>`,
-  iconSize: [32, 40],
-  iconAnchor: [16, 40],
-  popupAnchor: [0, -38],
-});
+// Memoized static Event Marker Icon generator to prevent React reconciliation from breaking open spiderfied clusters
+const getEventIcon = (eventId: string) =>
+  L.divIcon({
+    className: "custom-event-marker",
+    html: `<div class="event-pin" data-pin-id="${eventId}"><span class="pin-inner"></span></div>`,
+    iconSize: [24, 30],
+    iconAnchor: [12, 30],
+    popupAnchor: [0, -28],
+  });
 
 // Standard Floating Leaflet Locate Control Button
 function LocateControl({
@@ -277,9 +269,11 @@ export default function MapView({
 
   const selectedEventId = selectedEvent?.id ?? null;
 
-  // Efficient DOM class toggle on cluster badges for both hovered and selected events
+  // Efficient DOM class toggle on pins and cluster badges without re-rendering Marker components
   useEffect(() => {
     const activeId = hoveredEventId || selectedEventId;
+
+    // 1. Highlight cluster badges containing the active event
     const badges = document.querySelectorAll(".custom-cluster-badge");
     badges.forEach((badge) => {
       const ids = badge.getAttribute("data-event-ids")?.split(",") ?? [];
@@ -287,6 +281,17 @@ export default function MapView({
         badge.classList.add("cluster-highlighted");
       } else {
         badge.classList.remove("cluster-highlighted");
+      }
+    });
+
+    // 2. Highlight standalone or spiderfied pins without resetting Leaflet marker instances
+    const pins = document.querySelectorAll(".event-pin");
+    pins.forEach((pin) => {
+      const pinId = pin.getAttribute("data-pin-id");
+      if (activeId && pinId === activeId) {
+        pin.classList.add("event-pin-highlighted");
+      } else {
+        pin.classList.remove("event-pin-highlighted");
       }
     });
   }, [hoveredEventId, selectedEventId]);
@@ -334,13 +339,15 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* Dynamic Marker Clustering Group that updates on category/time filter changes */}
+        {/* Dynamic Marker Clustering Group that updates on category/time filter changes and stably spiderfies identical venues */}
         <MarkerClusterGroup
           key={`cluster-group-${events.map((e) => e.id).join('-').slice(0, 200)}`}
           chunkedLoading
           maxClusterRadius={40}
           spiderfyOnMaxZoom={true}
           showCoverageOnHover={false}
+          zoomToBoundsOnClick={true}
+          spiderfyDistanceMultiplier={2}
           iconCreateFunction={createClusterIcon}
         >
           {events.map((event) => {
@@ -351,9 +358,6 @@ export default function MapView({
             ) {
               return null;
             }
-
-            const isHighlighted =
-              event.id === hoveredEventId || event.id === selectedEvent?.id;
 
             // Truncate description snippet for mini map popup
             const descSnippet = event.description
@@ -366,16 +370,22 @@ export default function MapView({
               <Marker
                 key={event.id}
                 position={[event.latitude, event.longitude]}
-                icon={isHighlighted ? highlightedEventIcon : eventIcon}
-                zIndexOffset={isHighlighted ? 1000 : 0}
+                icon={getEventIcon(event.id)}
                 // @ts-expect-error custom property for cluster hover detection
                 eventId={event.id}
                 eventHandlers={{
                   add: (e) => {
                     e.target.options.eventId = event.id;
                   },
-                  mouseover: () => onHoverEvent?.(event.id),
-                  mouseout: () => onHoverEvent?.(null),
+                  mouseover: (e) => {
+                    e.target.getElement()?.querySelector(".event-pin")?.classList.add("event-pin-highlighted");
+                  },
+                  mouseout: (e) => {
+                    const pin = e.target.getElement()?.querySelector(".event-pin");
+                    if (event.id !== selectedEventId && event.id !== hoveredEventId) {
+                      pin?.classList.remove("event-pin-highlighted");
+                    }
+                  },
                 }}
               >
                 {/* Compact Mini Map Popup with autoPan padding */}
