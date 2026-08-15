@@ -6,6 +6,7 @@ import { EventfrogService } from './eventfrog/eventfrog.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
+import { EventsAtService } from './events-at/events-at.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { IngestionService } from './ingestion.service';
@@ -22,6 +23,7 @@ import { IngestionController } from './ingestion.controller';
     TicketmasterService,
     EventbriteService,
     GoodnightService,
+    EventsAtService,
     EventPersistenceService,
     IngestionService,
   ],
@@ -32,6 +34,7 @@ import { IngestionController } from './ingestion.controller';
     TicketmasterService,
     EventbriteService,
     GoodnightService,
+    EventsAtService,
     IngestionService,
   ],
 })

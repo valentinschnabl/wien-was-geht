@@ -6,6 +6,7 @@ import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
+import { EventsAtService } from './events-at/events-at.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
@@ -27,6 +28,7 @@ export class IngestionService implements OnModuleInit {
     private readonly ticketmasterProvider: TicketmasterService,
     private readonly eventbriteProvider: EventbriteService,
     private readonly goodnightProvider: GoodnightService,
+    private readonly eventsAtProvider: EventsAtService,
     private readonly persistence: EventPersistenceService,
   ) {}
 
@@ -101,6 +103,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Goodnight.at ingestion failed', error);
     }
 
+    let eventsAtEvents: Prisma.EventCreateInput[] = [];
+    try {
+      eventsAtEvents = await this.eventsAtProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Events.at ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -108,6 +117,7 @@ export class IngestionService implements OnModuleInit {
       ...ticketmasterEvents,
       ...eventbriteEvents,
       ...goodnightEvents,
+      ...eventsAtEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -198,6 +208,7 @@ export class IngestionService implements OnModuleInit {
       STADT_WIEN: 40,
       OPENWEB_NINJA: 30,
       GOODNIGHT: 10,
+      EVENTS_AT: 10,
     };
 
     score += providerPriority[event.provider] ?? 20;
