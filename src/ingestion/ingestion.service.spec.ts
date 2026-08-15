@@ -4,6 +4,7 @@ import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
 import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { FalterService } from './falter/falter.service';
+import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
@@ -12,6 +13,7 @@ describe('IngestionService', () => {
   let eventfrogService: EventfrogService;
   let ninjaService: OpenwebNinjaService;
   let falterService: FalterService;
+  let ticketmasterService: TicketmasterService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -20,7 +22,7 @@ describe('IngestionService', () => {
         externalId: 'sw-1',
         provider: 'stadt-wien',
         title: 'Event 1',
-        startTime: new Date('2026-08-09T12:00:00Z'),
+        startTime: new Date('2026-08-15T12:00:00Z'),
         venueName: 'Venue 1',
         latitude: 48.2082,
         longitude: 16.3738,
@@ -34,7 +36,7 @@ describe('IngestionService', () => {
         externalId: 'ef-1',
         provider: 'eventfrog',
         title: 'Event 2',
-        startTime: new Date('2026-08-09T15:00:00Z'),
+        startTime: new Date('2026-08-15T15:00:00Z'),
         venueName: 'Venue 2',
         latitude: 48.2200,
         longitude: 16.4000,
@@ -48,7 +50,7 @@ describe('IngestionService', () => {
         externalId: 'nj-1',
         provider: 'OPENWEB_NINJA',
         title: 'Event 3',
-        startTime: new Date('2026-08-09T18:00:00Z'),
+        startTime: new Date('2026-08-15T18:00:00Z'),
         venueName: 'Venue 3',
         latitude: 48.2300,
         longitude: 16.4200,
@@ -56,22 +58,26 @@ describe('IngestionService', () => {
     ]),
   };
 
-  const mockFalterService = {
+  const mockTicketmasterService = {
     fetchEvents: jest.fn().mockResolvedValue([
       {
-        externalId: 'fl-1',
-        provider: 'FALTER',
+        externalId: 'tm-1',
+        provider: 'TICKETMASTER',
         title: 'Event 4',
-        startTime: new Date('2026-08-09T22:00:00Z'),
+        startTime: new Date('2026-08-15T20:00:00Z'),
         venueName: 'Venue 4',
-        latitude: 48.2500,
-        longitude: 16.4600,
+        latitude: 48.2400,
+        longitude: 16.4400,
       },
     ]),
   };
 
+  const mockFalterService = {
+    fetchEvents: jest.fn().mockResolvedValue([]),
+  };
+
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(3),
+    saveEvents: jest.fn().mockResolvedValue(4),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -83,6 +89,7 @@ describe('IngestionService', () => {
         { provide: EventfrogService, useValue: mockEventfrogService },
         { provide: OpenwebNinjaService, useValue: mockNinjaService },
         { provide: FalterService, useValue: mockFalterService },
+        { provide: TicketmasterService, useValue: mockTicketmasterService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -92,6 +99,7 @@ describe('IngestionService', () => {
     eventfrogService = module.get<EventfrogService>(EventfrogService);
     ninjaService = module.get<OpenwebNinjaService>(OpenwebNinjaService);
     falterService = module.get<FalterService>(FalterService);
+    ticketmasterService = module.get<TicketmasterService>(TicketmasterService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -108,14 +116,15 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(3);
-      expect(summary.persisted).toBe(3);
+      expect(summary.fetched).toBe(4);
+      expect(summary.persisted).toBe(4);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
       expect(ninjaService.fetchEvents).toHaveBeenCalled();
+      expect(ticketmasterService.fetchEvents).toHaveBeenCalled();
       expect(falterService.fetchEvents).not.toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
@@ -127,7 +136,7 @@ describe('IngestionService', () => {
           externalId: 'sw-dup',
           provider: 'STADT_WIEN',
           title: 'Wien Konzert',
-          startTime: new Date('2026-08-09T20:00:00Z'),
+          startTime: new Date('2026-08-15T20:00:00Z'),
           venueName: 'Stadthalle',
           latitude: 48.2019,
           longitude: 16.3376,
@@ -138,13 +147,14 @@ describe('IngestionService', () => {
           externalId: 'ef-dup',
           provider: 'EVENTFROG',
           title: 'Wien-Konzert!', // Slight difference
-          startTime: new Date('2026-08-09T20:15:00Z'), // 15 mins diff
+          startTime: new Date('2026-08-15T20:15:00Z'), // 15 mins diff
           venueName: 'Wiener Stadthalle', // Slight difference
           latitude: 48.2020,
           longitude: 16.3378, // Tiny coordinate diff
         },
       ]);
       mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
+      mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
       mockFalterService.fetchEvents.mockResolvedValueOnce([]);
 
       await service.run();
