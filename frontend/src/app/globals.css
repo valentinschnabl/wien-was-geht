@@ -1316,6 +1316,11 @@ html, body {
     gap: 6px;
   }
 
+  /* No popup balloons popping out of markers on mobile */
+  .leaflet-popup {
+    display: none !important;
+  }
+
   .panel-map {
     display: none;
   }

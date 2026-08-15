@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L, { type LatLngExpression } from "leaflet";
@@ -262,6 +262,16 @@ export default function MapView({
   const t = translations[language];
 
   const selectedEventId = selectedEvent?.id ?? null;
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const updateMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    updateMobile();
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
+  }, []);
 
   // Efficient DOM class toggle on pins and cluster badges without re-rendering Marker components
   useEffect(() => {
@@ -361,89 +371,91 @@ export default function MapView({
             },
           }}
         >
-          {/* Compact Mini Map Popup with autoPan padding */}
-          <Popup
-            className="custom-compact-popup"
-            autoPan={true}
-            autoPanPadding={[50, 50]}
-            eventHandlers={{
-              add: () => onPopupStateChange?.(true),
-              remove: () => onPopupStateChange?.(false),
-            }}
-          >
-            <div className="compact-popup-content">
-              <div className="compact-popup-header">
-                <div className="compact-popup-tags">
-                  {event.temporalStatus === "live" && (
-                    <span className="badge badge-live">
-                      <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
-                    </span>
-                  )}
-                  {event.temporalStatus === "upcoming" && (
-                    <span className="badge badge-upcoming">
-                      <i className="fa-solid fa-clock"></i> HEUTE
-                    </span>
-                  )}
-                  {event.temporalStatus === "concluded" && (
-                    <span className="badge badge-concluded">
-                      <i className="fa-solid fa-circle badge-dot"></i>{" "}
-                      {language === "de" ? "BEENDET" : "ENDED"}
-                    </span>
-                  )}
-                  {typeof event.distanceKm === "number" && (
-                    <span className="compact-distance">
-                      <i className="fa-solid fa-location-arrow"></i>{" "}
-                      {event.distanceKm.toFixed(1)} km
-                    </span>
-                  )}
+          {/* On mobile: no popup balloon popping out of the marker pin. On desktop: render compact preview popup */}
+          {!isMobile && (
+            <Popup
+              className="custom-compact-popup"
+              autoPan={true}
+              autoPanPadding={[50, 50]}
+              eventHandlers={{
+                add: () => onPopupStateChange?.(true),
+                remove: () => onPopupStateChange?.(false),
+              }}
+            >
+              <div className="compact-popup-content">
+                <div className="compact-popup-header">
+                  <div className="compact-popup-tags">
+                    {event.temporalStatus === "live" && (
+                      <span className="badge badge-live">
+                        <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                      </span>
+                    )}
+                    {event.temporalStatus === "upcoming" && (
+                      <span className="badge badge-upcoming">
+                        <i className="fa-solid fa-clock"></i> HEUTE
+                      </span>
+                    )}
+                    {event.temporalStatus === "concluded" && (
+                      <span className="badge badge-concluded">
+                        <i className="fa-solid fa-circle badge-dot"></i>{" "}
+                        {language === "de" ? "BEENDET" : "ENDED"}
+                      </span>
+                    )}
+                    {typeof event.distanceKm === "number" && (
+                      <span className="compact-distance">
+                        <i className="fa-solid fa-location-arrow"></i>{" "}
+                        {event.distanceKm.toFixed(1)} km
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                <h4 className="compact-popup-title">{event.title}</h4>
+
+                <div className="compact-popup-venue-box">
+                  <i className="fa-solid fa-location-dot venue-icon"></i>
+                  <span className="venue-name">{event.venueName || t.venueDefault}</span>
+                </div>
+
+                <div className="compact-popup-time-box">
+                  <i className="fa-solid fa-calendar-days time-icon"></i>
+                  <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
+                </div>
+
+                <div className="compact-popup-category-box">
+                  <i className="fa-solid fa-tag category-icon"></i>
+                  <span className="category-value">{getCategoryLabel(event.category, language)}</span>
+                </div>
+
+                {/* Truncated description preview */}
+                {descSnippet && (
+                  <p className="compact-popup-snippet">{descSnippet}</p>
+                )}
+
+                <button
+                  type="button"
+                  className="btn-popup-details"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Close popup cleanly before opening sidebar details to prevent UI flash
+                    const closeBtn = (e.target as HTMLElement)
+                      .closest(".leaflet-popup")
+                      ?.querySelector(".leaflet-popup-close-button") as HTMLElement | null;
+                    if (closeBtn) {
+                      closeBtn.click();
+                    }
+                    onSelectEvent?.(event);
+                  }}
+                >
+                  {t.showDetails} &rarr;
+                </button>
               </div>
-
-              <h4 className="compact-popup-title">{event.title}</h4>
-
-              <div className="compact-popup-venue-box">
-                <i className="fa-solid fa-location-dot venue-icon"></i>
-                <span className="venue-name">{event.venueName || t.venueDefault}</span>
-              </div>
-
-              <div className="compact-popup-time-box">
-                <i className="fa-solid fa-calendar-days time-icon"></i>
-                <span className="time-value">{formatEventDateRange(event.startTime, event.endTime, language)}</span>
-              </div>
-
-              <div className="compact-popup-category-box">
-                <i className="fa-solid fa-tag category-icon"></i>
-                <span className="category-value">{getCategoryLabel(event.category, language)}</span>
-              </div>
-
-              {/* Truncated description preview */}
-              {descSnippet && (
-                <p className="compact-popup-snippet">{descSnippet}</p>
-              )}
-
-              <button
-                type="button"
-                className="btn-popup-details"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Close popup cleanly before opening sidebar details to prevent UI flash
-                  const closeBtn = (e.target as HTMLElement)
-                    .closest(".leaflet-popup")
-                    ?.querySelector(".leaflet-popup-close-button") as HTMLElement | null;
-                  if (closeBtn) {
-                    closeBtn.click();
-                  }
-                  onSelectEvent?.(event);
-                }}
-              >
-                {t.showDetails} &rarr;
-              </button>
-            </div>
-          </Popup>
+            </Popup>
+          )}
         </Marker>
       );
     });
-  }, [events, language]);
+  }, [events, language, isMobile]);
 
   return (
     <div className="map-view-wrapper">
