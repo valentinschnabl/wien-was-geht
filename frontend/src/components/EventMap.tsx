@@ -94,6 +94,7 @@ export default function EventMap() {
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [includeConcluded, setIncludeConcluded] = useState(false);
   const [quickFilter, setQuickFilter] = useState<"all" | "live">("all");
 
@@ -257,6 +258,11 @@ export default function EventMap() {
 
         // Quick Filter Chip Filtering
         if (quickFilter === "live" && ev.temporalStatus !== "live") {
+          return false;
+        }
+
+        // Category Filter
+        if (selectedCategory !== "all" && ev.category !== selectedCategory) {
           return false;
         }
 
@@ -484,22 +490,76 @@ export default function EventMap() {
                 />
               </div>
 
-              {/* Quick Filter Segmented Control Chips */}
-              <div className="quick-filter-chips">
-                <button
-                  type="button"
-                  className={`chip-btn ${quickFilter === "all" ? "active" : ""}`}
-                  onClick={() => setQuickFilter("all")}
-                >
-                  Alle
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${quickFilter === "live" ? "active" : ""}`}
-                  onClick={() => setQuickFilter("live")}
-                >
-                  <i className="fa-solid fa-bolt"></i> Live
-                </button>
+              {/* Quick Filter Segmented Control Chips & Category Bar */}
+              <div className="filter-controls-stack">
+                <div className="quick-filter-chips">
+                  <button
+                    type="button"
+                    className={`chip-btn ${quickFilter === "all" ? "active" : ""}`}
+                    onClick={() => setQuickFilter("all")}
+                  >
+                    Alle
+                  </button>
+                  <button
+                    type="button"
+                    className={`chip-btn ${quickFilter === "live" ? "active" : ""}`}
+                    onClick={() => setQuickFilter("live")}
+                  >
+                    <i className="fa-solid fa-bolt"></i> Live
+                  </button>
+                </div>
+
+                <div className="category-chips-scroll">
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "all" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("all")}
+                  >
+                    <i className="fa-solid fa-layer-group"></i> {t.filterAllCategories}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Culture" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Culture")}
+                  >
+                    <i className="fa-solid fa-masks-theater"></i> {t.filterCulture}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Nightlife" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Nightlife")}
+                  >
+                    <i className="fa-solid fa-moon"></i> {t.filterNightlife}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Music" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Music")}
+                  >
+                    <i className="fa-solid fa-music"></i> {t.filterMusic}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Family" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Family")}
+                  >
+                    <i className="fa-solid fa-children"></i> {t.filterFamily}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Sports" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Sports")}
+                  >
+                    <i className="fa-solid fa-person-running"></i> {t.filterSports}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cat-chip ${selectedCategory === "Culinary" ? "active" : ""}`}
+                    onClick={() => setSelectedCategory("Culinary")}
+                  >
+                    <i className="fa-solid fa-utensils"></i> {t.filterCulinary}
+                  </button>
+                </div>
               </div>
 
               <div className="event-list">

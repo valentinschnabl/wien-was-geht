@@ -8,6 +8,7 @@ import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
+import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
 describe('IngestionService', () => {
@@ -20,6 +21,7 @@ describe('IngestionService', () => {
   let goodnightService: GoodnightService;
   let eventsAtService: EventsAtService;
   let residentAdvisorService: ResidentAdvisorService;
+  let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
 
   const mockStadtWienService = {
@@ -134,6 +136,10 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockAiCategorizerService = {
+    categorizeEvents: jest.fn().mockImplementation((events) => Promise.resolve(events)),
+  };
+
   const mockPersistenceService = {
     saveEvents: jest.fn().mockResolvedValue(8),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
@@ -151,6 +157,7 @@ describe('IngestionService', () => {
         { provide: GoodnightService, useValue: mockGoodnightService },
         { provide: EventsAtService, useValue: mockEventsAtService },
         { provide: ResidentAdvisorService, useValue: mockResidentAdvisorService },
+        { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
     }).compile();
@@ -164,6 +171,7 @@ describe('IngestionService', () => {
     goodnightService = module.get<GoodnightService>(GoodnightService);
     eventsAtService = module.get<EventsAtService>(EventsAtService);
     residentAdvisorService = module.get<ResidentAdvisorService>(ResidentAdvisorService);
+    aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
 
@@ -193,6 +201,7 @@ describe('IngestionService', () => {
       expect(goodnightService.fetchEvents).toHaveBeenCalled();
       expect(eventsAtService.fetchEvents).toHaveBeenCalled();
       expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
+      expect(aiCategorizerService.categorizeEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
 

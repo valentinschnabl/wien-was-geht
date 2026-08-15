@@ -38,6 +38,7 @@ export interface Translations {
   filterSports: string;
   filterCulinary: string;
   filterNightlife: string;
+  filterFamily: string;
   toggleConcluded: string;
   toggleConcludedHint: string;
   searchPlaceholder: string;
@@ -97,12 +98,13 @@ export const translations: Record<Language, Translations> = {
     eventsTodayNotice: "Zeigt nur Events an, die am heutigen Tag stattfinden.",
 
     filterCategory: "Kategorie",
-    filterAllCategories: "Alle Kategorien",
-    filterMusic: "Musik & Konzerte",
-    filterCulture: "Kunst & Kultur",
-    filterSports: "Sport & Aktiv",
+    filterAllCategories: "Alle",
+    filterMusic: "Musik",
+    filterCulture: "Kultur",
+    filterSports: "Sport",
     filterCulinary: "Kulinarik",
-    filterNightlife: "Nachtleben & Party",
+    filterNightlife: "Nightlife",
+    filterFamily: "Familie",
     toggleConcluded: "Bereits beendete Events von heute anzeigen",
     toggleConcludedHint: "Zeigt auch Events an, die am heutigen Tag bereits geendet haben (FR-303).",
     searchPlaceholder: "Veranstaltung oder Ort suchen...",
@@ -158,12 +160,13 @@ export const translations: Record<Language, Translations> = {
     eventsTodayNotice: "Showing events happening today in Vienna.",
 
     filterCategory: "Category",
-    filterAllCategories: "All Categories",
-    filterMusic: "Music & Concerts",
-    filterCulture: "Art & Culture",
-    filterSports: "Sports & Fitness",
+    filterAllCategories: "All",
+    filterMusic: "Music",
+    filterCulture: "Culture",
+    filterSports: "Sports",
     filterCulinary: "Culinary",
-    filterNightlife: "Nightlife & Party",
+    filterNightlife: "Nightlife",
+    filterFamily: "Family",
     toggleConcluded: "Show concluded events from today",
     toggleConcludedHint: "Includes events scheduled today that have already ended (FR-303).",
     searchPlaceholder: "Search event or venue name...",

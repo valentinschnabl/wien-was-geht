@@ -8,6 +8,7 @@ import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
+import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
@@ -31,6 +32,7 @@ export class IngestionService implements OnModuleInit {
     private readonly goodnightProvider: GoodnightService,
     private readonly eventsAtProvider: EventsAtService,
     private readonly residentAdvisorProvider: ResidentAdvisorService,
+    private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
 
@@ -131,7 +133,12 @@ export class IngestionService implements OnModuleInit {
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
-    const persisted = await this.persistence.saveEvents(deduplicatedEvents);
+    // AI Categorization step: Classify events with Gemini 2.5 Flash
+    const categorizedEvents = await this.aiCategorizer.categorizeEvents(
+      deduplicatedEvents,
+    );
+
+    const persisted = await this.persistence.saveEvents(categorizedEvents);
 
     this.logger.log(
       `Ingestion complete. Combined total fetched: ${combinedEvents.length}, ` +
