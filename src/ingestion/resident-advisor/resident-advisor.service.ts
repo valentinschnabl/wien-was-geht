@@ -206,7 +206,7 @@ export class ResidentAdvisorService implements IEventProvider {
       const response = await firstValueFrom(
         this.httpService.get<any>('https://nominatim.openstreetmap.org/search', {
           headers: {
-            'User-Agent': 'WienWasGehtEventsApp/1.0 (valentin.cello@gmail.com)',
+            'User-Agent': 'WienWasGehtEventsApp/1.0 (simplyycoding@gmail.com)',
           },
           params: {
             q: query,

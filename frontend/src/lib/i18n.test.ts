@@ -11,10 +11,8 @@ describe("i18n Localization Dictionaries", () => {
   });
 
   it("should contain correct Impressum legal owner and contact details", () => {
-    expect(translations.de.imprintText).toContain("Dipl.-Ing. Valentin Schnabl");
-    expect(translations.de.imprintText).toContain("valentin.cello@gmail.com");
-    expect(translations.en.imprintText).toContain("Dipl.-Ing. Valentin Schnabl");
-    expect(translations.en.imprintText).toContain("valentin.cello@gmail.com");
+    expect(translations.de.imprintText).toContain("simplyycoding@gmail.com");
+    expect(translations.en.imprintText).toContain("simplyycoding@gmail.com");
   });
 
   it("should correctly format distance string in German and English", () => {
