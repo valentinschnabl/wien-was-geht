@@ -261,11 +261,11 @@ export default function EventMap() {
           : new Date(start.getTime() + 3 * 60 * 60 * 1000);
 
         const isEventToday = start <= todayEnd && end >= todayStart;
-        const isEventTomorrow = (start >= tomorrowStart && start <= tomorrowEnd) || (start <= tomorrowEnd && end >= tomorrowStart && start > todayEnd);
+        const isEventTomorrow = start <= tomorrowEnd && end >= tomorrowStart;
 
         // Classify temporal status
         let temporalStatus: "live" | "upcoming" | "tomorrow" | "concluded" = "upcoming";
-        if (isEventTomorrow) {
+        if (quickFilter === "tomorrow" || (!isEventToday && isEventTomorrow)) {
           temporalStatus = "tomorrow";
         } else if (end < now) {
           temporalStatus = "concluded";
@@ -357,7 +357,7 @@ export default function EventMap() {
       const end = ev.endTime ? new Date(ev.endTime) : new Date(start.getTime() + 3 * 3600000);
 
       const isToday = start <= todayEnd && end >= todayStart;
-      const isTomorrow = (start >= tomorrowStart && start <= tomorrowEnd) || (start <= tomorrowEnd && end >= tomorrowStart && start > todayEnd);
+      const isTomorrow = start <= tomorrowEnd && end >= tomorrowStart;
 
       if (isToday) {
         todayTotal++;
