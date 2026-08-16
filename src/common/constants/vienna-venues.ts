@@ -105,7 +105,9 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'az w': { lat: 48.2038, lng: 16.3588 },
 
   // Recurring Parks & Public Spaces
-  'reithofferpark': { lat: 48.1965, lng: 16.3342 },
+  'reithofferpark': { lat: 48.1957, lng: 16.3282 },
+  'reiterhoffpark': { lat: 48.1957, lng: 16.3282 },
+  'reithofferplatz': { lat: 48.1957, lng: 16.3282 },
   'schrödingerplatz': { lat: 48.2385, lng: 16.4295 },
   'schroedingerplatz': { lat: 48.2385, lng: 16.4295 },
   'nordwestbahnhof': { lat: 48.2312, lng: 16.3752 },
