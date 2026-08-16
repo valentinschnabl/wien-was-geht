@@ -6,6 +6,7 @@ export interface EventFilters {
   provider?: string;
   category?: string;
   today?: boolean;
+  date?: string;
 }
 
 @Injectable()
@@ -32,15 +33,45 @@ export class EventsService {
       where.category = filters.category;
     }
 
-    if (filters.today) {
-      const now = new Date();
-      const todayStart = new Date(now);
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
 
+    const tomorrowStart = new Date(now);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    tomorrowStart.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
+    if (filters.date === 'tomorrow') {
+      where.AND = [
+        { startTime: { lte: tomorrowEnd } },
+        {
+          OR: [
+            { endTime: { gte: tomorrowStart } },
+            { endTime: null, startTime: { gte: tomorrowStart } },
+          ],
+        },
+      ];
+    } else if (filters.date === 'today' || filters.today) {
       where.AND = [
         { startTime: { lte: todayEnd } },
+        {
+          OR: [
+            { endTime: { gte: todayStart } },
+            { endTime: null, startTime: { gte: todayStart } },
+          ],
+        },
+      ];
+    } else if (filters.date === 'all') {
+      // No date bounds
+    } else {
+      // Default: 48h active window (Today & Tomorrow)
+      where.AND = [
+        { startTime: { lte: tomorrowEnd } },
         {
           OR: [
             { endTime: { gte: todayStart } },

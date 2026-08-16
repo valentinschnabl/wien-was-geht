@@ -12,6 +12,7 @@ export class EventsController {
     @Query('provider') provider?: string,
     @Query('category') category?: string,
     @Query('today') today?: string,
+    @Query('date') date?: string,
   ) {
     const parsedLimit = this.parsePositiveInt(limit, 500, 2000);
     const parsedOffset = this.parseNonNegativeInt(offset, 0);
@@ -21,6 +22,7 @@ export class EventsController {
       provider,
       category,
       today: isToday,
+      date,
     });
   }
 

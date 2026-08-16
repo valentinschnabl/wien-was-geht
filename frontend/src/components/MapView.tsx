@@ -21,7 +21,7 @@ export interface EventRecord {
   imageUrl?: string | null;
   category?: string | null;
   distanceKm?: number | null;
-  temporalStatus?: "live" | "upcoming" | "concluded";
+  temporalStatus?: "live" | "upcoming" | "tomorrow" | "concluded";
 }
 
 export interface UserLocation {
@@ -421,6 +421,11 @@ export default function MapView({
                     {event.temporalStatus === "live" && (
                       <span className="badge badge-live">
                         <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                      </span>
+                    )}
+                    {event.temporalStatus === "tomorrow" && (
+                      <span className="badge badge-upcoming">
+                        <i className="fa-solid fa-calendar-day"></i> {t.statusTomorrow}
                       </span>
                     )}
                     {event.temporalStatus === "upcoming" && (

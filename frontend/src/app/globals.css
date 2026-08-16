@@ -340,6 +340,26 @@ html, body {
   color: #ffffff !important;
 }
 
+.cat-chip-tomorrow {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.cat-chip-tomorrow i {
+  color: #2563eb;
+}
+
+.cat-chip-tomorrow.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35) !important;
+}
+
+.cat-chip-tomorrow.active i {
+  color: #ffffff !important;
+}
+
 /* Sidebar Search Bar */
 .sidebar-search-container {
   position: relative;

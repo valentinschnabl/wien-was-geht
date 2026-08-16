@@ -96,7 +96,7 @@ export default function EventMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [includeConcluded, setIncludeConcluded] = useState(false);
-  const [quickFilter, setQuickFilter] = useState<"all" | "live">("all");
+  const [quickFilter, setQuickFilter] = useState<"all" | "live" | "tomorrow">("all");
 
   // Mobile Tab state (Map vs List View for Mobile UX)
   const [mobileTab, setMobileTab] = useState<"map" | "list">("map");
@@ -188,7 +188,7 @@ export default function EventMap() {
     );
   };
 
-  // Fetch events from NestJS API
+  // Fetch events from NestJS API (Loads active events for today and tomorrow)
   useEffect(() => {
     const rawApiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
     const apiBase = rawApiBase.replace(/\/+$/, "");
@@ -196,7 +196,7 @@ export default function EventMap() {
     const loadEvents = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiBase}/api/v1/events?today=true&limit=1000`);
+        const response = await fetch(`${apiBase}/api/v1/events?limit=1000`);
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
         }
@@ -213,14 +213,20 @@ export default function EventMap() {
     void loadEvents();
   }, []);
 
-
-  // Filter events: SCOPED TO TODAY
+  // Filter events: SCOPED TO TODAY OR TOMORROW
   const filteredEvents = useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(now);
     todayEnd.setHours(23, 59, 59, 999);
+
+    const tomorrowStart = new Date(now);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    tomorrowStart.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
 
     // Reference location: User coordinates or fallback to Vienna City Center (48.2082, 16.3738)
     const referenceLocation = userLocation ?? { lat: 48.2082, lng: 16.3738 };
@@ -254,9 +260,14 @@ export default function EventMap() {
           ? new Date(new Date(start).setHours(23, 59, 59, 999))
           : new Date(start.getTime() + 3 * 60 * 60 * 1000);
 
+        const isEventToday = start <= todayEnd && end >= todayStart;
+        const isEventTomorrow = (start >= tomorrowStart && start <= tomorrowEnd) || (start <= tomorrowEnd && end >= tomorrowStart && start > todayEnd);
+
         // Classify temporal status
-        let temporalStatus: "live" | "upcoming" | "concluded" = "upcoming";
-        if (end < now) {
+        let temporalStatus: "live" | "upcoming" | "tomorrow" | "concluded" = "upcoming";
+        if (isEventTomorrow) {
+          temporalStatus = "tomorrow";
+        } else if (end < now) {
           temporalStatus = "concluded";
         } else if (start <= now && end >= now) {
           temporalStatus = "live";
@@ -264,21 +275,22 @@ export default function EventMap() {
           temporalStatus = "upcoming";
         }
 
-        return { ...ev, distanceKm: dist, temporalStatus, startDate: start, endDate: end };
+        return { ...ev, distanceKm: dist, temporalStatus, startDate: start, endDate: end, isEventToday, isEventTomorrow };
       })
       .filter((ev) => {
-        // ONLY events happening TODAY
-        const activeToday = ev.startDate <= todayEnd && ev.endDate >= todayStart;
-        if (!activeToday) return false;
+        // Date / Quick Filter Chip Filtering
+        if (quickFilter === "tomorrow") {
+          if (!ev.isEventTomorrow) return false;
+        } else if (quickFilter === "live") {
+          if (!ev.isEventToday || ev.temporalStatus !== "live") return false;
+        } else {
+          // Default view: Today's events
+          if (!ev.isEventToday) return false;
 
-        // FR-303 Toggle: Exclude concluded events today if toggle is false
-        if (!includeConcluded && ev.temporalStatus === "concluded") {
-          return false;
-        }
-
-        // Quick Filter Chip Filtering
-        if (quickFilter === "live" && ev.temporalStatus !== "live") {
-          return false;
+          // FR-303 Toggle: Exclude concluded events today if toggle is false
+          if (!includeConcluded && ev.temporalStatus === "concluded") {
+            return false;
+          }
         }
 
         // Category Filter
@@ -312,8 +324,12 @@ export default function EventMap() {
   }, [events, userLocation, includeConcluded, searchQuery, quickFilter, selectedCategory]);
 
   // Compute category event counts for badges
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {
+  const stats = useMemo(() => {
+    let todayTotal = 0;
+    let tomorrowTotal = 0;
+    let liveTotal = 0;
+
+    const categoryCounts: Record<string, number> = {
       all: 0,
       Culture: 0,
       Nightlife: 0,
@@ -323,33 +339,49 @@ export default function EventMap() {
       Culinary: 0,
     };
 
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const tomorrowStart = new Date(now);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    tomorrowStart.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
     events.forEach((ev) => {
-      counts.all++;
-      const norm = normalizeCategory(ev.category);
-      if (counts[norm] !== undefined) {
-        counts[norm]++;
+      const start = ev.startTime ? new Date(ev.startTime) : new Date();
+      const end = ev.endTime ? new Date(ev.endTime) : new Date(start.getTime() + 3 * 3600000);
+
+      const isToday = start <= todayEnd && end >= todayStart;
+      const isTomorrow = (start >= tomorrowStart && start <= tomorrowEnd) || (start <= tomorrowEnd && end >= tomorrowStart && start > todayEnd);
+
+      if (isToday) {
+        todayTotal++;
+        if (start <= now && end >= now) {
+          liveTotal++;
+        }
+      }
+      if (isTomorrow) {
+        tomorrowTotal++;
+      }
+
+      // Count categories scoped to the current day view (tomorrow vs today)
+      const inScope = quickFilter === "tomorrow" ? isTomorrow : isToday;
+      if (inScope) {
+        categoryCounts.all++;
+        const norm = normalizeCategory(ev.category);
+        if (categoryCounts[norm] !== undefined) {
+          categoryCounts[norm]++;
+        }
       }
     });
 
-    return counts;
-  }, [events]);
-
-  // Compute total live & upcoming counts for today's filtered events
-  const eventStats = useMemo(() => {
-    let liveCount = 0;
-    let upcomingCount = 0;
-
-    filteredEvents.forEach((ev) => {
-      if (ev.temporalStatus === "live") {
-        liveCount++;
-      } else if (ev.temporalStatus === "upcoming") {
-        upcomingCount++;
-      }
-    });
-
-    return { liveCount, upcomingCount };
-  }, [filteredEvents]);
-
+    return { todayTotal, tomorrowTotal, liveTotal, categoryCounts };
+  }, [events, quickFilter]);
 
   return (
     <div className="app-container-clean">
@@ -359,11 +391,25 @@ export default function EventMap() {
           <div className="city-badge-row">
             <h1 className="header-title">{t.appTitle}</h1>
             <span className="stats-pill">
-              <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} {t.statsNow} &bull;{" "}
-              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} {t.statsLater}
+              {quickFilter === "tomorrow" ? (
+                <>
+                  <i className="fa-solid fa-calendar-day"></i> {stats.tomorrowTotal} {t.statsTomorrow}
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-bolt"></i> {stats.liveTotal} {t.statsNow} &bull;{" "}
+                  <i className="fa-solid fa-clock"></i> {Math.max(0, stats.todayTotal - stats.liveTotal)} {t.statsLater}
+                </>
+              )}
             </span>
           </div>
-          <p className="header-subtitle">{t.appSubtitle}</p>
+          <p className="header-subtitle">
+            {quickFilter === "tomorrow"
+              ? language === "de"
+                ? "Events & Kultur morgen in Wien"
+                : "Tomorrow's events & culture in Vienna"
+              : t.appSubtitle}
+          </p>
         </div>
 
         <div className="header-actions">
@@ -400,7 +446,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-layer-group"></i>
-            <span>{t.filterAllCategories} ({categoryCounts.all})</span>
+            <span>{t.filterAllCategories} ({stats.todayTotal})</span>
           </button>
 
           <button
@@ -412,7 +458,19 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-bolt"></i>
-            <span>{t.statusLive} ({eventStats.liveCount})</span>
+            <span>{t.statusLive} ({stats.liveTotal})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip cat-chip-tomorrow ${quickFilter === "tomorrow" ? "active" : ""}`}
+            onClick={() => {
+              setQuickFilter(quickFilter === "tomorrow" ? "all" : "tomorrow");
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-calendar-day"></i>
+            <span>{t.statusTomorrow} ({stats.tomorrowTotal})</span>
           </button>
 
           <button
@@ -424,7 +482,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-masks-theater"></i>
-            <span>{t.filterCulture} ({categoryCounts.Culture})</span>
+            <span>{t.filterCulture} ({stats.categoryCounts.Culture})</span>
           </button>
 
           <button
@@ -436,7 +494,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-moon"></i>
-            <span>{t.filterNightlife} ({categoryCounts.Nightlife})</span>
+            <span>{t.filterNightlife} ({stats.categoryCounts.Nightlife})</span>
           </button>
 
           <button
@@ -448,7 +506,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-music"></i>
-            <span>{t.filterMusic} ({categoryCounts.Music})</span>
+            <span>{t.filterMusic} ({stats.categoryCounts.Music})</span>
           </button>
 
           <button
@@ -460,7 +518,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-children"></i>
-            <span>{t.filterFamily} ({categoryCounts.Family})</span>
+            <span>{t.filterFamily} ({stats.categoryCounts.Family})</span>
           </button>
 
           <button
@@ -472,7 +530,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-futbol"></i>
-            <span>{t.filterSports} ({categoryCounts.Sports})</span>
+            <span>{t.filterSports} ({stats.categoryCounts.Sports})</span>
           </button>
 
           <button
@@ -484,7 +542,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-utensils"></i>
-            <span>{t.filterCulinary} ({categoryCounts.Culinary})</span>
+            <span>{t.filterCulinary} ({stats.categoryCounts.Culinary})</span>
           </button>
         </div>
       </div>
@@ -579,6 +637,11 @@ export default function EventMap() {
                       <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
                     </span>
                   )}
+                  {selectedEvent.temporalStatus === "tomorrow" && (
+                    <span className="badge badge-upcoming">
+                      <i className="fa-solid fa-calendar-day"></i> {t.statusTomorrow}
+                    </span>
+                  )}
                   {selectedEvent.temporalStatus === "upcoming" && (
                     <span className="badge badge-upcoming">
                       <i className="fa-solid fa-clock"></i> {t.statusUpcoming("")}
@@ -657,7 +720,9 @@ export default function EventMap() {
           >
             <div className="panel-header list-panel-header">
                 <div className="list-title-row">
-                  <h2 className="list-title">{t.eventsTitle}</h2>
+                  <h2 className="list-title">
+                    {quickFilter === "tomorrow" ? t.eventsTomorrowTitle : t.eventsTitle}
+                  </h2>
                   <span className="stats-pill">
                     <i className="fa-solid fa-calendar-day"></i> {filteredEvents.length} Events
                   </span>
@@ -725,6 +790,12 @@ export default function EventMap() {
                             {event.temporalStatus === "live" && (
                               <span className="badge badge-live">
                                 <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
+                              </span>
+                            )}
+                            {event.temporalStatus === "tomorrow" && (
+                              <span className="badge badge-upcoming">
+                                <i className="fa-solid fa-calendar-day"></i>{" "}
+                                {t.statusTomorrowUpcoming(startTimeStr)}
                               </span>
                             )}
                             {event.temporalStatus === "upcoming" && (

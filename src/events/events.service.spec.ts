@@ -108,6 +108,16 @@ describe('EventsService', () => {
         }),
       );
     });
+
+    it('should apply tomorrow date filter if supplied', async () => {
+      await service.findAll(10, 0, { date: 'tomorrow' });
+
+      expect(prisma.event.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ AND: expect.any(Array) }),
+        }),
+      );
+    });
   });
 
   describe('findOne', () => {

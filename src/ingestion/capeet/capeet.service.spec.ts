@@ -57,8 +57,8 @@ describe('CapeetService', () => {
 
     const events = await service.fetchEvents(targetDate);
 
-    // Should include Arena-Beisl and METAStadt, but NOT Graz, NOT cancelled, NOT 15.08 / 17.08
-    expect(events.length).toBe(2);
+    // Should include Arena-Beisl (16.08), METAStadt (16.08), and Chelsea (17.08), but NOT Graz (16.08), NOT cancelled, NOT past 15.08
+    expect(events.length).toBe(3);
 
     const arenaGig = events.find((e) => e.title.includes('MUTILATED JUDGE'));
     expect(arenaGig).toBeDefined();
@@ -74,6 +74,11 @@ describe('CapeetService', () => {
     expect(metastadtGig?.url).toBe('https://facebook.com/event/123');
     expect(metastadtGig?.latitude).toBeCloseTo(48.2172, 3);
     expect(metastadtGig?.longitude).toBeCloseTo(16.4678, 3);
+
+    const chelseaGig = events.find((e) => e.title.includes('FUTURE BAND'));
+    expect(chelseaGig).toBeDefined();
+    expect(chelseaGig?.venueName).toBe('Chelsea, Wien');
+    expect(chelseaGig?.latitude).toBeCloseTo(48.2155, 3);
   });
 
   it('should gracefully handle HTTP errors and return empty list', async () => {

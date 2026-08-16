@@ -27,14 +27,18 @@ export interface Translations {
   // Time & Status Badges
   statusLive: string;
   statusUpcoming: (time: string) => string;
+  statusTomorrowUpcoming: (time: string) => string;
+  statusTomorrow: string;
   statusConcluded: string;
   statsNow: string;
   statsLater: string;
+  statsTomorrow: string;
   eventsTodayNotice: string;
 
   // Filters
   filterCategory: string;
   filterAllCategories: string;
+  filterTomorrow: string;
   filterMusic: string;
   filterCulture: string;
   filterSports: string;
@@ -47,7 +51,9 @@ export interface Translations {
 
   // Events list
   eventsTitle: string;
+  eventsTomorrowTitle: string;
   eventsCount: string;
+  eventsTomorrowCount: string;
   noEvents: string;
   distanceAway: (km: number) => string;
   showDetails: string;
@@ -96,13 +102,17 @@ export const translations: Record<Language, Translations> = {
 
     statusLive: "JETZT",
     statusUpcoming: (time: string) => (time ? `HEUTE (ab ${time})` : "HEUTE"),
+    statusTomorrowUpcoming: (time: string) => (time ? `MORGEN (ab ${time})` : "MORGEN"),
+    statusTomorrow: "MORGEN",
     statusConcluded: "HEUTE BEENDET",
     statsNow: "Jetzt",
     statsLater: "Später",
-    eventsTodayNotice: "Zeigt nur Events an, die am heutigen Tag stattfinden.",
+    statsTomorrow: "Morgen",
+    eventsTodayNotice: "Zeigt Events an, die in Wien stattfinden.",
 
     filterCategory: "Kategorie",
     filterAllCategories: "Alle",
+    filterTomorrow: "Morgen",
     filterMusic: "Musik",
     filterCulture: "Kultur",
     filterSports: "Sport",
@@ -114,8 +124,10 @@ export const translations: Record<Language, Translations> = {
     searchPlaceholder: "Veranstaltung oder Ort suchen...",
 
     eventsTitle: "Veranstaltungen Heute",
+    eventsTomorrowTitle: "Veranstaltungen Morgen",
     eventsCount: "Events heute in Wien",
-    noEvents: "Keine Veranstaltungen für die gewählten Filter am heutigen Tag.",
+    eventsTomorrowCount: "Events morgen in Wien",
+    noEvents: "Keine Veranstaltungen für die gewählten Filter gefunden.",
     distanceAway: (km: number) => `${km.toFixed(1)} km entfernt`,
     showDetails: "Details anzeigen",
     timeUnknown: "Zeit unbekannt",
@@ -123,7 +135,7 @@ export const translations: Record<Language, Translations> = {
     endsAt: "Ende",
     externalLink: "Offizielle Website & Info",
     venueDefault: "Wien",
-    loadingEvents: "Lade heutige Veranstaltungen...",
+    loadingEvents: "Lade Veranstaltungen...",
     errorLoading: "Fehler beim Laden der Eventdaten",
 
     imprint: "Impressum",
@@ -160,13 +172,17 @@ export const translations: Record<Language, Translations> = {
 
     statusLive: "NOW",
     statusUpcoming: (time: string) => (time ? `TODAY (from ${time})` : "TODAY"),
+    statusTomorrowUpcoming: (time: string) => (time ? `TOMORROW (from ${time})` : "TOMORROW"),
+    statusTomorrow: "TOMORROW",
     statusConcluded: "ENDED TODAY",
     statsNow: "Now",
     statsLater: "Later",
-    eventsTodayNotice: "Showing events happening today in Vienna.",
+    statsTomorrow: "Tomorrow",
+    eventsTodayNotice: "Showing events happening in Vienna.",
 
     filterCategory: "Category",
     filterAllCategories: "All",
+    filterTomorrow: "Tomorrow",
     filterMusic: "Music",
     filterCulture: "Culture",
     filterSports: "Sports",
@@ -178,8 +194,10 @@ export const translations: Record<Language, Translations> = {
     searchPlaceholder: "Search event or venue name...",
 
     eventsTitle: "Events Today",
+    eventsTomorrowTitle: "Events Tomorrow",
     eventsCount: "events today in Vienna",
-    noEvents: "No events found matching your criteria for today.",
+    eventsTomorrowCount: "events tomorrow in Vienna",
+    noEvents: "No events found matching your criteria.",
     distanceAway: (km: number) => `${km.toFixed(1)} km away`,
     showDetails: "View Details",
     timeUnknown: "Time unknown",
@@ -187,7 +205,7 @@ export const translations: Record<Language, Translations> = {
     endsAt: "Ends",
     externalLink: "Official Website & Tickets",
     venueDefault: "Vienna",
-    loadingEvents: "Loading today's events...",
+    loadingEvents: "Loading events...",
     errorLoading: "Error loading event data",
 
     imprint: "Imprint",

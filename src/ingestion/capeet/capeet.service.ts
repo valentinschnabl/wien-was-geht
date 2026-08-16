@@ -14,9 +14,12 @@ export class CapeetService {
   async fetchEvents(targetDate: Date = new Date()): Promise<Prisma.EventCreateInput[]> {
     this.logger.log(`Fetching Vienna underground and indie concert listings from Capeet...`);
 
-    const dayStr = String(targetDate.getDate()).padStart(2, '0');
-    const monthStr = String(targetDate.getMonth() + 1).padStart(2, '0');
-    const datePrefix = `${dayStr}.${monthStr}.`; // e.g. "16.08."
+    const today = new Date(targetDate);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayPrefix = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.`;
+    const tomorrowPrefix = `${String(tomorrow.getDate()).padStart(2, '0')}.${String(tomorrow.getMonth() + 1).padStart(2, '0')}.`;
 
     try {
       const response = await firstValueFrom(
@@ -62,8 +65,13 @@ export class CapeetService {
         const [, day, month, bandsHtml, venueRaw, trailingHtml] = match;
         const entryDatePrefix = `${day}.${month}.`;
 
-        // Check if event is on the requested target date
-        if (entryDatePrefix !== datePrefix) {
+        // Check if event is on today or tomorrow
+        let eventDate: Date | null = null;
+        if (entryDatePrefix === todayPrefix) {
+          eventDate = new Date(today);
+        } else if (entryDatePrefix === tomorrowPrefix) {
+          eventDate = new Date(tomorrow);
+        } else {
           continue;
         }
 
@@ -87,7 +95,7 @@ export class CapeetService {
 
         // Extract custom start time if listed (e.g. [17:00!])
         const timeMatch = trimmed.match(/\[(\d{1,2}:\d{2})!?\]/);
-        const startTime = new Date(targetDate);
+        const startTime = new Date(eventDate);
         if (timeMatch) {
           const [hours, minutes] = timeMatch[1].split(':').map(Number);
           startTime.setHours(hours, minutes, 0, 0);
@@ -115,7 +123,7 @@ export class CapeetService {
           }
         }
 
-        const externalId = `capeet-${targetDate.getFullYear()}${month}${day}-${this.slugify(title)}-${this.slugify(venueClean)}`;
+        const externalId = `capeet-${eventDate.getFullYear()}${month}${day}-${this.slugify(title)}-${this.slugify(venueClean)}`;
 
         normalizedEvents.push({
           externalId,
@@ -134,7 +142,7 @@ export class CapeetService {
       }
 
       this.logger.log(
-        `Extracted ${normalizedEvents.length} live concert events from Capeet for ${datePrefix}.`,
+        `Extracted ${normalizedEvents.length} live concert events from Capeet for ${todayPrefix} and ${tomorrowPrefix}.`,
       );
       return normalizedEvents;
     } catch (error) {
