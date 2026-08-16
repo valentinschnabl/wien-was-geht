@@ -9,6 +9,7 @@ import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { CapeetService } from './capeet/capeet.service';
+import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -23,6 +24,7 @@ describe('IngestionService', () => {
   let eventsAtService: EventsAtService;
   let residentAdvisorService: ResidentAdvisorService;
   let capeetService: CapeetService;
+  let ohSchonHellService: OhSchonHellService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
 
@@ -152,12 +154,26 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockOhSchonHellService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'osh-1',
+        provider: 'OH_SCHON_HELL',
+        title: 'Event 10',
+        startTime: new Date('2026-08-15T22:00:00Z'),
+        venueName: 'SASS Music Club',
+        latitude: 48.2009,
+        longitude: 16.3692,
+      },
+    ]),
+  };
+
   const mockAiCategorizerService = {
     categorizeEvents: jest.fn().mockImplementation((events) => Promise.resolve(events)),
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(9),
+    saveEvents: jest.fn().mockResolvedValue(10),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -174,6 +190,7 @@ describe('IngestionService', () => {
         { provide: EventsAtService, useValue: mockEventsAtService },
         { provide: ResidentAdvisorService, useValue: mockResidentAdvisorService },
         { provide: CapeetService, useValue: mockCapeetService },
+        { provide: OhSchonHellService, useValue: mockOhSchonHellService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -189,6 +206,7 @@ describe('IngestionService', () => {
     eventsAtService = module.get<EventsAtService>(EventsAtService);
     residentAdvisorService = module.get<ResidentAdvisorService>(ResidentAdvisorService);
     capeetService = module.get<CapeetService>(CapeetService);
+    ohSchonHellService = module.get<OhSchonHellService>(OhSchonHellService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
@@ -206,8 +224,8 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(9);
-      expect(summary.persisted).toBe(9);
+      expect(summary.fetched).toBe(10);
+      expect(summary.persisted).toBe(10);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(48);
@@ -220,6 +238,7 @@ describe('IngestionService', () => {
       expect(eventsAtService.fetchEvents).toHaveBeenCalled();
       expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
       expect(capeetService.fetchEvents).toHaveBeenCalled();
+      expect(ohSchonHellService.fetchEvents).toHaveBeenCalled();
       expect(aiCategorizerService.categorizeEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });

@@ -9,6 +9,7 @@ import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { CapeetService } from './capeet/capeet.service';
+import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -34,6 +35,7 @@ export class IngestionService implements OnModuleInit {
     private readonly eventsAtProvider: EventsAtService,
     private readonly residentAdvisorProvider: ResidentAdvisorService,
     private readonly capeetProvider: CapeetService,
+    private readonly ohSchonHellProvider: OhSchonHellService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -130,6 +132,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Capeet ingestion failed', error);
     }
 
+    let ohSchonHellEvents: Prisma.EventCreateInput[] = [];
+    try {
+      ohSchonHellEvents = await this.ohSchonHellProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('ohschonhell.at ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -140,6 +149,7 @@ export class IngestionService implements OnModuleInit {
       ...eventsAtEvents,
       ...residentAdvisorEvents,
       ...capeetEvents,
+      ...ohSchonHellEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
