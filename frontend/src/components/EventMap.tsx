@@ -526,9 +526,9 @@ export default function EventMap() {
           )}
         </section>
 
-        {/* Sidebar Panel: Renders Event List OR Selected Event Detail Page */}
+        {/* Sidebar Panel: Renders Event List AND Selected Event Detail View with display toggling to preserve exact scroll position */}
         <aside className="clean-panel panel-list">
-          {selectedEvent ? (
+          {selectedEvent && (
             /* DETAILED EVENT PAGE ON THE RIGHT SIDEBAR */
             <div className="sidebar-detail-view">
               <button
@@ -637,10 +637,20 @@ export default function EventMap() {
                 )}
               </div>
             </div>
-          ) : (
-            /* COMPACT EVENT LIST VIEW */
-            <>
-              <div className="panel-header list-panel-header">
+          )}
+
+          {/* COMPACT EVENT LIST VIEW (kept mounted with display: none when detail is open to preserve scroll position) */}
+          <div
+            className="sidebar-list-container"
+            style={{
+              display: selectedEvent ? "none" : "flex",
+              flexDirection: "column",
+              height: "100%",
+              minHeight: 0,
+              flex: 1,
+            }}
+          >
+            <div className="panel-header list-panel-header">
                 <div className="list-title-row">
                   <h2 className="list-title">{t.eventsTitle}</h2>
                   <span className="stats-pill">
@@ -792,8 +802,7 @@ export default function EventMap() {
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </div>
         </aside>
       </div>
 

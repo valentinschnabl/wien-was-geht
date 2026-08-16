@@ -395,7 +395,10 @@ export default function MapView({
             },
             click: (e) => {
               e.originalEvent?.stopPropagation();
-              onSelectEvent?.(event);
+              onHoverEvent?.(event.id);
+              if (isMobile) {
+                onSelectEvent?.(event);
+              }
             },
           }}
         >
