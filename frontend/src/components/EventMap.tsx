@@ -371,16 +371,23 @@ export default function EventMap() {
             currentLanguage={language}
             onLanguageChange={setLanguage}
           />
-          <button
-            type="button"
-            className="btn-info-header"
-            onClick={() => setActiveModal("imprint")}
-            title={language === "de" ? "Impressum & Datenschutz" : "Imprint & Privacy"}
-            aria-label={t.imprint}
+          <a
+            href="https://buymeacoffee.com/wienwasgeht"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-beer-header"
+            title={
+              language === "de"
+                ? "WienWasGeht unterstützen (Bier ausgeben) 🍺"
+                : "Support WienWasGeht (Buy a beer) 🍺"
+            }
+            aria-label="Bier spendieren / Buy Me a Coffee"
           >
-            <i className="fa-solid fa-circle-info"></i>
-            <span className="btn-info-label">{t.imprint}</span>
-          </button>
+            <i className="fa-solid fa-beer-mug-empty"></i>
+            <span className="btn-beer-header-label">
+              {language === "de" ? "Bier ausgeben 🍺" : "Buy a beer 🍺"}
+            </span>
+          </a>
         </div>
       </header>
       {/* Global Category & Live Filter Bar (Always accessible on both Map & List views on Mobile & Desktop) */}

@@ -171,29 +171,35 @@ html, body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Header Info/Impressum Button */
-.btn-info-header {
-  background: #f2f1ec;
-  border: 1px solid var(--panel-border);
-  color: #434d43;
-  padding: 6px 11px;
+/* Header Beer Button */
+.btn-beer-header {
+  background: #ffdd00;
+  border: 1px solid #e6c700;
+  color: #1a1a1a;
+  padding: 6px 12px;
   height: 34px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255, 221, 0, 0.3);
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
-.btn-info-header:hover {
-  background: var(--accent-primary-light);
-  color: var(--accent-primary);
-  border-color: rgba(46, 111, 64, 0.3);
+.btn-beer-header i {
+  color: #8c4200;
+  font-size: 0.9rem;
+}
+
+.btn-beer-header:hover {
+  background: #ffea47;
   transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(255, 221, 0, 0.45);
 }
 
 /* Quick Filter Segmented Control Chips & Category Bar */
@@ -1529,12 +1535,16 @@ html, body {
     font-size: 0.76rem;
   }
 
-  .btn-info-header {
+  .btn-beer-header {
     height: 29px;
     padding: 3px 8px;
     font-size: 0.74rem;
     gap: 4px;
     border-radius: 999px;
+  }
+
+  .btn-beer-header i {
+    font-size: 0.8rem;
   }
 
   .app-container-clean {
@@ -1636,10 +1646,10 @@ html, body {
 
   .mobile-floating-switcher {
     position: fixed;
-    bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+    bottom: calc(44px + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    z-index: 999;
     display: flex;
     background: #1d271d;
     border-radius: 999px;
@@ -1716,9 +1726,24 @@ html, body {
     display: none !important;
   }
 
-  /* On mobile smartphones, footer links are inside header [ℹ️] and list bottom */
+  /* Permanent footer on mobile with safe-area spacing */
   .app-footer-clean {
-    display: none !important;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    background: var(--panel-bg);
+    border-top: 1px solid var(--panel-border);
+    font-size: 0.74rem;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 }
 
