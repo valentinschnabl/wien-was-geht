@@ -1,0 +1,145 @@
+/**
+ * Centralized, fast in-memory coordinate lookup for prominent Vienna concert halls,
+ * cultural centers, indie venues, clubs, and open-air locations.
+ * Memory footprint: ~5 KB. Resolves coordinates in 0 ms without external network overhead.
+ */
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export const VIENNA_VENUES: Record<string, Coordinates> = {
+  // Underground, Indie & Live Music Venues
+  'arena': { lat: 48.1883, lng: 16.4136 },
+  'arena wien': { lat: 48.1883, lng: 16.4136 },
+  'arena-beisl': { lat: 48.1883, lng: 16.4136 },
+  'arena open air': { lat: 48.1883, lng: 16.4136 },
+  'flex': { lat: 48.2185, lng: 16.3705 },
+  'flex cafe': { lat: 48.2185, lng: 16.3705 },
+  'wuk': { lat: 48.2229, lng: 16.3508 },
+  'wuk hof': { lat: 48.2229, lng: 16.3508 },
+  'wuk halle': { lat: 48.2229, lng: 16.3508 },
+  'chelsea': { lat: 48.2155, lng: 16.3425 },
+  'b72': { lat: 48.2175, lng: 16.3455 },
+  'kramladen': { lat: 48.2188, lng: 16.3468 },
+  'rhiz': { lat: 48.2162, lng: 16.3435 },
+  'loop': { lat: 48.2182, lng: 16.3462 },
+  'viper room': { lat: 48.1963, lng: 16.3985 },
+  'venster': { lat: 48.2212, lng: 16.3485 },
+  'venster99': { lat: 48.2212, lng: 16.3485 },
+  'the loft': { lat: 48.2133, lng: 16.3401 },
+  'loft': { lat: 48.2133, lng: 16.3401 },
+  'cafe carina': { lat: 48.2144, lng: 16.3412 },
+  'café carina': { lat: 48.2144, lng: 16.3412 },
+  'escape': { lat: 48.2092, lng: 16.3495 },
+  'escape metalcorner': { lat: 48.2092, lng: 16.3495 },
+  'metastadt': { lat: 48.2172, lng: 16.4678 },
+  'kaorle': { lat: 48.1798, lng: 16.3685 },
+  'kaorle owa': { lat: 48.1798, lng: 16.3685 },
+  'schlor': { lat: 48.1652, lng: 16.4102 },
+  'schlor wien': { lat: 48.1652, lng: 16.4102 },
+  'sissysound': { lat: 48.2045, lng: 16.3521 },
+  'bootleg': { lat: 48.2192, lng: 16.3472 },
+  'the chamber': { lat: 48.2062, lng: 16.3612 },
+  'lucia': { lat: 48.2148, lng: 16.3418 },
+  'club lucia': { lat: 48.2148, lng: 16.3418 },
+  'szene wien': { lat: 48.1782, lng: 16.4172 },
+  'szene': { lat: 48.1782, lng: 16.4172 },
+  'badeschiff': { lat: 48.2118, lng: 16.3816 },
+  'couch potato': { lat: 48.2403, lng: 16.3852 },
+  
+  // Electronic, Club & Nightlife Venues
+  'fluc': { lat: 48.2173, lng: 16.3905 },
+  'fluc wanne': { lat: 48.2173, lng: 16.3905 },
+  'das werk': { lat: 48.2346, lng: 16.3582 },
+  'werk': { lat: 48.2346, lng: 16.3582 },
+  'grelle forelle': { lat: 48.2355, lng: 16.3575 },
+  'pratersauna': { lat: 48.2132, lng: 16.4024 },
+  'prst': { lat: 48.2195, lng: 16.3945 },
+  'praterstrasse': { lat: 48.2195, lng: 16.3945 },
+  'sass': { lat: 48.2007, lng: 16.3688 },
+  'sass music club': { lat: 48.2007, lng: 16.3688 },
+  'volksgarten': { lat: 48.2065, lng: 16.3615 },
+  'volksgarten pavillon': { lat: 48.2065, lng: 16.3615 },
+  'o der klub': { lat: 48.2025, lng: 16.3685 },
+  'celeste': { lat: 48.1965, lng: 16.3602 },
+  'donau techno': { lat: 48.2012, lng: 16.3545 },
+  'camera club': { lat: 48.1982, lng: 16.3524 },
+  'club u': { lat: 48.2005, lng: 16.3695 },
+  'ponyhof': { lat: 48.1988, lng: 16.3512 },
+  'babylon': { lat: 48.2152, lng: 16.3421 },
+
+  // Large Concert Halls & Arenas
+  'gasometer': { lat: 48.1852, lng: 16.4208 },
+  'planet.tt': { lat: 48.1852, lng: 16.4208 },
+  'stadthalle': { lat: 48.2019, lng: 16.3376 },
+  'wiener stadthalle': { lat: 48.2019, lng: 16.3376 },
+  'stadthalle d': { lat: 48.2019, lng: 16.3376 },
+  'stadthalle f': { lat: 48.2019, lng: 16.3376 },
+  'ernst happel stadion': { lat: 48.2072, lng: 16.4211 },
+  'happel stadion': { lat: 48.2072, lng: 16.4211 },
+
+  // Classical, Theatres & Culture
+  'porgy & bess': { lat: 48.2052, lng: 16.3742 },
+  'porgy and bess': { lat: 48.2052, lng: 16.3742 },
+  'konzerthaus': { lat: 48.2008, lng: 16.3772 },
+  'wiener konzerthaus': { lat: 48.2008, lng: 16.3772 },
+  'musikverein': { lat: 48.2012, lng: 16.3725 },
+  'goldener saal': { lat: 48.2012, lng: 16.3725 },
+  'staatsoper': { lat: 48.2030, lng: 16.3691 },
+  'wiener staatsoper': { lat: 48.2030, lng: 16.3691 },
+  'volksoper': { lat: 48.2248, lng: 16.3502 },
+  'volkstheater': { lat: 48.2051, lng: 16.3567 },
+  'burgtheater': { lat: 48.2103, lng: 16.3614 },
+  'akademietheater': { lat: 48.2001, lng: 16.3765 },
+  'theater an der wien': { lat: 48.1995, lng: 16.3642 },
+  'museumsquartier': { lat: 48.2035, lng: 16.3582 },
+  'mq': { lat: 48.2035, lng: 16.3582 },
+  'halle e': { lat: 48.2035, lng: 16.3582 },
+  'halle g': { lat: 48.2035, lng: 16.3582 },
+  'mumok': { lat: 48.2032, lng: 16.3585 },
+  'leopold museum': { lat: 48.2028, lng: 16.3592 },
+  'belvedere': { lat: 48.1915, lng: 16.3808 },
+  'albertina': { lat: 48.2045, lng: 16.3678 },
+  'architekturzentrum wien': { lat: 48.2038, lng: 16.3588 },
+  'az w': { lat: 48.2038, lng: 16.3588 },
+
+  // Recurring Parks & Public Spaces
+  'reithofferpark': { lat: 48.1965, lng: 16.3342 },
+  'schrödingerplatz': { lat: 48.2385, lng: 16.4295 },
+  'schroedingerplatz': { lat: 48.2385, lng: 16.4295 },
+  'nordwestbahnhof': { lat: 48.2312, lng: 16.3752 },
+  'donauinsel': { lat: 48.2266, lng: 16.4122 },
+  'rathausplatz': { lat: 48.2108, lng: 16.3575 },
+  'karlsplatz': { lat: 48.2002, lng: 16.3702 },
+  'sigmund-freud-park': { lat: 48.2155, lng: 16.3595 },
+  'augarten': { lat: 48.2255, lng: 16.3782 },
+};
+
+/**
+ * Fast string normalization for fuzzy venue matching
+ */
+export function resolveViennaVenueCoordinates(venueNameOrAddress?: string | null): Coordinates | null {
+  if (!venueNameOrAddress) return null;
+
+  const normalized = venueNameOrAddress
+    .toLowerCase()
+    .replace(/[,\.\-\/\\()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 1. Direct key match
+  if (VIENNA_VENUES[normalized]) {
+    return VIENNA_VENUES[normalized];
+  }
+
+  // 2. Substring matching for famous venues (e.g. "Arena (Open Air), Wien" -> "arena")
+  for (const [venueKey, coords] of Object.entries(VIENNA_VENUES)) {
+    // Check if the venue key is contained as a whole word or significant part
+    if (normalized.includes(venueKey)) {
+      return coords;
+    }
+  }
+
+  return null;
+}

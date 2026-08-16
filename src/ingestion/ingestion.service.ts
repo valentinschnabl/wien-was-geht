@@ -8,6 +8,7 @@ import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
+import { CapeetService } from './capeet/capeet.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -32,6 +33,7 @@ export class IngestionService implements OnModuleInit {
     private readonly goodnightProvider: GoodnightService,
     private readonly eventsAtProvider: EventsAtService,
     private readonly residentAdvisorProvider: ResidentAdvisorService,
+    private readonly capeetProvider: CapeetService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -121,6 +123,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Resident Advisor ingestion failed', error);
     }
 
+    let capeetEvents: Prisma.EventCreateInput[] = [];
+    try {
+      capeetEvents = await this.capeetProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Capeet ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -130,6 +139,7 @@ export class IngestionService implements OnModuleInit {
       ...goodnightEvents,
       ...eventsAtEvents,
       ...residentAdvisorEvents,
+      ...capeetEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -225,6 +235,7 @@ export class IngestionService implements OnModuleInit {
       EVENTFROG: 45,
       STADT_WIEN: 40,
       OPENWEB_NINJA: 30,
+      CAPEET: 35,
       GOODNIGHT: 10,
       EVENTS_AT: 10,
     };

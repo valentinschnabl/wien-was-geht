@@ -8,6 +8,7 @@ import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
 import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
+import { CapeetService } from './capeet/capeet.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -27,6 +28,7 @@ import { IngestionController } from './ingestion.controller';
     GoodnightService,
     EventsAtService,
     ResidentAdvisorService,
+    CapeetService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -40,6 +42,7 @@ import { IngestionController } from './ingestion.controller';
     GoodnightService,
     EventsAtService,
     ResidentAdvisorService,
+    CapeetService,
     AiCategorizerService,
     IngestionService,
   ],
