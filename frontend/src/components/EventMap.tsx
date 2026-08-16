@@ -384,9 +384,6 @@ export default function EventMap() {
             aria-label="Bier spendieren / Buy Me a Coffee"
           >
             <i className="fa-solid fa-beer-mug-empty"></i>
-            <span className="btn-beer-header-label">
-              {language === "de" ? "Bier ausgeben 🍺" : "Buy a beer 🍺"}
-            </span>
           </a>
         </div>
       </header>
