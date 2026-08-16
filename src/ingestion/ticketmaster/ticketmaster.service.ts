@@ -77,8 +77,12 @@ export class TicketmasterService implements IEventProvider {
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
     const apiKey =
       process.env.TICKETMASTER_Consumer_Key ||
-      process.env.TICKETMASTER_API_KEY ||
-      'TICKETMASTER_REDACTED_KEY';
+      process.env.TICKETMASTER_API_KEY;
+
+    if (!apiKey) {
+      this.logger.warn('TICKETMASTER_API_KEY is not defined. Skipping Ticketmaster ingestion.');
+      return [];
+    }
 
     try {
       this.logger.log('Fetching events from Ticketmaster API for Austria...');

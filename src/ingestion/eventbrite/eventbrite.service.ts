@@ -64,8 +64,7 @@ export class EventbriteService implements IEventProvider {
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
     const token =
       process.env.EVENTBRITE_API_KEY ||
-      process.env.EVENTBRITE_TOKEN ||
-      'EVENTBRITE_REDACTED_KEY';
+      process.env.EVENTBRITE_TOKEN;
 
     if (!token) {
       this.logger.warn('EVENTBRITE_API_KEY is not defined. Skipping Eventbrite ingestion.');
