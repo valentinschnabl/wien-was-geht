@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
@@ -21,7 +20,6 @@ import { IngestionController } from './ingestion.controller';
   controllers: [IngestionController],
   providers: [
     PrismaService,
-    OpenwebNinjaService,
     StadtWienService,
     EventfrogService,
     TicketmasterService,
@@ -36,7 +34,6 @@ import { IngestionController } from './ingestion.controller';
     IngestionService,
   ],
   exports: [
-    OpenwebNinjaService,
     StadtWienService,
     EventfrogService,
     TicketmasterService,

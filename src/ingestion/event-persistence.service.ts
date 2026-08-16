@@ -39,9 +39,20 @@ export class EventPersistenceService {
 
     const deleted = await this.prisma.event.deleteMany({
       where: {
-        startTime: {
-          lt: cutoff,
-        },
+        OR: [
+          {
+            endTime: {
+              not: null,
+              lt: cutoff,
+            },
+          },
+          {
+            endTime: null,
+            startTime: {
+              lt: cutoff,
+            },
+          },
+        ],
       },
     });
 

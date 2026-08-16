@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
-import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
@@ -28,7 +27,6 @@ export class IngestionService implements OnModuleInit {
   constructor(
     private readonly stadtWienProvider: StadtWienService,
     private readonly eventfrogProvider: EventfrogService,
-    private readonly ninjaProvider: OpenwebNinjaService,
     private readonly ticketmasterProvider: TicketmasterService,
     private readonly eventbriteProvider: EventbriteService,
     private readonly goodnightProvider: GoodnightService,
@@ -83,13 +81,6 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Eventfrog ingestion failed', error);
     }
 
-    let ninjaEvents: Prisma.EventCreateInput[] = [];
-    try {
-      ninjaEvents = await this.ninjaProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('OpenWeb Ninja ingestion failed', error);
-    }
-
     let ticketmasterEvents: Prisma.EventCreateInput[] = [];
     try {
       ticketmasterEvents = await this.ticketmasterProvider.fetchEvents();
@@ -142,7 +133,6 @@ export class IngestionService implements OnModuleInit {
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
-      ...ninjaEvents,
       ...ticketmasterEvents,
       ...eventbriteEvents,
       ...goodnightEvents,

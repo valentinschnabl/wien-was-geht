@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IngestionService } from './ingestion.service';
 import { StadtWienService } from './stadt-wien/stadt-wien.service';
 import { EventfrogService } from './eventfrog/eventfrog.service';
-import { OpenwebNinjaService } from './openweb-ninja/openweb-ninja.service';
 import { TicketmasterService } from './ticketmaster/ticketmaster.service';
 import { EventbriteService } from './eventbrite/eventbrite.service';
 import { GoodnightService } from './goodnight/goodnight.service';
@@ -17,7 +16,6 @@ describe('IngestionService', () => {
   let service: IngestionService;
   let stadtWienService: StadtWienService;
   let eventfrogService: EventfrogService;
-  let ninjaService: OpenwebNinjaService;
   let ticketmasterService: TicketmasterService;
   let eventbriteService: EventbriteService;
   let goodnightService: GoodnightService;
@@ -52,20 +50,6 @@ describe('IngestionService', () => {
         venueName: 'Venue 2',
         latitude: 48.2200,
         longitude: 16.4000,
-      },
-    ]),
-  };
-
-  const mockNinjaService = {
-    fetchEvents: jest.fn().mockResolvedValue([
-      {
-        externalId: 'nj-1',
-        provider: 'OPENWEB_NINJA',
-        title: 'Event 3',
-        startTime: new Date('2026-08-15T18:00:00Z'),
-        venueName: 'Venue 3',
-        latitude: 48.2300,
-        longitude: 16.4200,
       },
     ]),
   };
@@ -173,7 +157,7 @@ describe('IngestionService', () => {
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(10),
+    saveEvents: jest.fn().mockResolvedValue(9),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -183,7 +167,6 @@ describe('IngestionService', () => {
         IngestionService,
         { provide: StadtWienService, useValue: mockStadtWienService },
         { provide: EventfrogService, useValue: mockEventfrogService },
-        { provide: OpenwebNinjaService, useValue: mockNinjaService },
         { provide: TicketmasterService, useValue: mockTicketmasterService },
         { provide: EventbriteService, useValue: mockEventbriteService },
         { provide: GoodnightService, useValue: mockGoodnightService },
@@ -199,7 +182,6 @@ describe('IngestionService', () => {
     service = module.get<IngestionService>(IngestionService);
     stadtWienService = module.get<StadtWienService>(StadtWienService);
     eventfrogService = module.get<EventfrogService>(EventfrogService);
-    ninjaService = module.get<OpenwebNinjaService>(OpenwebNinjaService);
     ticketmasterService = module.get<TicketmasterService>(TicketmasterService);
     eventbriteService = module.get<EventbriteService>(EventbriteService);
     goodnightService = module.get<GoodnightService>(GoodnightService);
@@ -224,14 +206,13 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(10);
-      expect(summary.persisted).toBe(10);
+      expect(summary.fetched).toBe(9);
+      expect(summary.persisted).toBe(9);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(48);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
-      expect(ninjaService.fetchEvents).toHaveBeenCalled();
       expect(ticketmasterService.fetchEvents).toHaveBeenCalled();
       expect(eventbriteService.fetchEvents).toHaveBeenCalled();
       expect(goodnightService.fetchEvents).toHaveBeenCalled();
@@ -267,7 +248,6 @@ describe('IngestionService', () => {
           longitude: 16.3378, // Tiny coordinate diff
         },
       ]);
-      mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
       mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
       mockEventbriteService.fetchEvents.mockResolvedValueOnce([]);
       mockGoodnightService.fetchEvents.mockResolvedValueOnce([]);
@@ -293,7 +273,6 @@ describe('IngestionService', () => {
     it('should prioritize richer events with photos and official APIs over scraped duplicate events', async () => {
       mockStadtWienService.fetchEvents.mockResolvedValueOnce([]);
       mockEventfrogService.fetchEvents.mockResolvedValueOnce([]);
-      mockNinjaService.fetchEvents.mockResolvedValueOnce([]);
       mockTicketmasterService.fetchEvents.mockResolvedValueOnce([]);
       mockEventsAtService.fetchEvents.mockResolvedValueOnce([]);
       mockResidentAdvisorService.fetchEvents.mockResolvedValueOnce([]);

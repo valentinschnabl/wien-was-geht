@@ -73,33 +73,73 @@ export class EventbriteService implements IEventProvider {
     }
 
     try {
-      this.logger.log('Fetching events from Eventbrite API for Vienna...');
+      this.logger.log('Fetching events from Eventbrite API for Vienna (Today & Tomorrow)...');
 
-      const response = await firstValueFrom(
-        this.httpService.post<EventbriteDestinationSearchResponse>(
-          this.searchUrl,
-          {
-            event_search: {
-              dates: 'current_future',
-              point_radius: {
-                latitude: 48.2082,
-                longitude: 16.3738,
-                radius: '35km',
+      const [todayRes, tomorrowRes] = await Promise.all([
+        firstValueFrom(
+          this.httpService.post<EventbriteDestinationSearchResponse>(
+            this.searchUrl,
+            {
+              event_search: {
+                dates: 'today',
+                point_radius: {
+                  latitude: 48.2082,
+                  longitude: 16.3738,
+                  radius: '35km',
+                },
+                page_size: 100,
               },
-              page_size: 100,
             },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             },
-          },
-        ),
-      );
+          ),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch today events from Eventbrite', err);
+          return { data: { events: { results: [] } } };
+        }),
+        firstValueFrom(
+          this.httpService.post<EventbriteDestinationSearchResponse>(
+            this.searchUrl,
+            {
+              event_search: {
+                dates: 'tomorrow',
+                point_radius: {
+                  latitude: 48.2082,
+                  longitude: 16.3738,
+                  radius: '35km',
+                },
+                page_size: 100,
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          ),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch tomorrow events from Eventbrite', err);
+          return { data: { events: { results: [] } } };
+        }),
+      ]);
 
-      const rawEvents = response.data?.events?.results ?? [];
-      this.logger.log(`Fetched ${rawEvents.length} raw events from Eventbrite around Vienna.`);
+      const todayResults = todayRes.data?.events?.results ?? [];
+      const tomorrowResults = tomorrowRes.data?.events?.results ?? [];
+
+      const eventMap = new Map<string, EventbriteDestinationEvent>();
+      [...todayResults, ...tomorrowResults].forEach((ev) => {
+        if (ev.id && !eventMap.has(ev.id)) {
+          eventMap.set(ev.id, ev);
+        }
+      });
+
+      const rawEvents = Array.from(eventMap.values());
+      this.logger.log(`Fetched ${rawEvents.length} distinct events (today + tomorrow) from Eventbrite around Vienna.`);
 
       if (rawEvents.length === 0) {
         return [];
