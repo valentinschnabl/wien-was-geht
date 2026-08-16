@@ -1618,12 +1618,12 @@ html, body {
     overscroll-behavior-y: contain;
     touch-action: pan-y;
     padding-right: 4px;
-    padding-bottom: 90px;
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
   }
 
   .mobile-floating-switcher {
     position: fixed;
-    bottom: max(44px, calc(env(safe-area-inset-bottom) + 32px));
+    bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
@@ -1668,44 +1668,18 @@ html, body {
     display: none !important;
   }
 
+  /* On mobile smartphones, footer links are inside header [ℹ️] and list bottom */
   .app-footer-clean {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    padding: 5px 8px;
-    font-size: 0.72rem;
-    overflow: hidden;
-  }
-
-  .app-footer-clean .footer-left {
-    display: none;
-  }
-
-  .app-footer-clean .footer-right {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    flex-wrap: nowrap;
-  }
-
-  .btn-footer-link {
-    font-size: 0.72rem;
-    padding: 2px 2px;
-    white-space: nowrap;
-  }
-
-  .footer-beer-link {
-    font-size: 0.72rem;
-    gap: 4px;
-    white-space: nowrap;
+    display: none !important;
   }
 }
 
 @media (min-width: 769px) {
   .mobile-floating-switcher {
-    display: none;
+    display: none !important;
+  }
+
+  .app-footer-clean {
+    display: flex;
   }
 }

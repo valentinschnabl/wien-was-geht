@@ -797,23 +797,25 @@ export default function EventMap() {
         </aside>
       </div>
 
-      {/* Floating View Switcher Bar for Mobile Smartphones (< 768px) */}
-      <div className="mobile-floating-switcher">
-        <button
-          type="button"
-          className={`mobile-switch-btn ${mobileTab === "map" ? "active" : ""}`}
-          onClick={() => setMobileTab("map")}
-        >
-          <i className="fa-solid fa-map-location-dot"></i> Karte
-        </button>
-        <button
-          type="button"
-          className={`mobile-switch-btn ${mobileTab === "list" ? "active" : ""}`}
-          onClick={() => setMobileTab("list")}
-        >
-          <i className="fa-solid fa-list"></i> Liste ({filteredEvents.length})
-        </button>
-      </div>
+      {/* Floating View Switcher Bar for Mobile (< 768px) — Only visible on Map/List overview */}
+      {!selectedEvent && (
+        <div className="mobile-floating-switcher">
+          <button
+            type="button"
+            className={`mobile-switch-btn ${mobileTab === "map" ? "active" : ""}`}
+            onClick={() => setMobileTab("map")}
+          >
+            <i className="fa-solid fa-map-location-dot"></i> Karte
+          </button>
+          <button
+            type="button"
+            className={`mobile-switch-btn ${mobileTab === "list" ? "active" : ""}`}
+            onClick={() => setMobileTab("list")}
+          >
+            <i className="fa-solid fa-list"></i> Liste ({filteredEvents.length})
+          </button>
+        </div>
+      )}
 
       {/* Sleek Minimalist Footer Bar */}
       <footer className="app-footer-clean">
