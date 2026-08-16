@@ -171,33 +171,7 @@ html, body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Header Beer Button */
-.btn-beer-header {
-  background: #ffdd00;
-  border: 1px solid #e6c700;
-  color: #1a1a1a;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(255, 221, 0, 0.3);
-  transition: all 0.15s ease;
-}
 
-.btn-beer-header i {
-  color: #8c4200;
-  font-size: 1.05rem;
-}
-
-.btn-beer-header:hover {
-  background: #ffea47;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(255, 221, 0, 0.45);
-}
 
 /* Quick Filter Segmented Control Chips & Category Bar */
 .filter-controls-stack {
@@ -1532,15 +1506,7 @@ html, body {
     font-size: 0.76rem;
   }
 
-  .btn-beer-header {
-    width: 29px;
-    height: 29px;
-    border-radius: 8px;
-  }
 
-  .btn-beer-header i {
-    font-size: 0.95rem;
-  }
 
   .app-container-clean {
     gap: 6px;

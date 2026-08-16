@@ -371,20 +371,6 @@ export default function EventMap() {
             currentLanguage={language}
             onLanguageChange={setLanguage}
           />
-          <a
-            href="https://buymeacoffee.com/wienwasgeht"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-beer-header"
-            title={
-              language === "de"
-                ? "WienWasGeht unterstützen (Bier ausgeben) 🍺"
-                : "Support WienWasGeht (Buy a beer) 🍺"
-            }
-            aria-label="Bier spendieren / Buy Me a Coffee"
-          >
-            <i className="fa-solid fa-beer-mug-empty"></i>
-          </a>
         </div>
       </header>
       {/* Global Category & Live Filter Bar (Always accessible on both Map & List views on Mobile & Desktop) */}
