@@ -126,8 +126,15 @@ function MapController({ center }: { center: LatLngExpression }) {
 
   useEffect(() => {
     if (!initialCenteredRef.current) {
-      initialCenteredRef.current = true;
-      map.flyTo(center, 12, { duration: 1 });
+      try {
+        const size = map.getSize();
+        if (size && size.x > 0 && size.y > 0) {
+          initialCenteredRef.current = true;
+          map.flyTo(center, 12, { duration: 1 });
+        }
+      } catch {
+        // Guard against zero-dimension Leaflet calculation
+      }
     }
   }, [map, center]);
   return null;
@@ -138,14 +145,16 @@ function MapResizeController() {
   const map = useMap();
 
   useEffect(() => {
-    map.invalidateSize();
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
-
     const handleResize = () => {
-      map.invalidateSize();
+      try {
+        map.invalidateSize();
+      } catch {
+        // Guard against invisible container
+      }
     };
+
+    handleResize();
+    const timer = setTimeout(handleResize, 150);
 
     window.addEventListener("resize", handleResize);
     return () => {
@@ -181,12 +190,20 @@ function EventFlyToController({
       lat !== 0 &&
       lng !== 0
     ) {
-      const currentZoom = map.getZoom();
-      const targetZoom = Math.min(Math.max(currentZoom, 14.5), 15);
-      map.flyTo([lat, lng], targetZoom, {
-        duration: 0.6,
-      });
-      prevSelectedRef.current = selectedEvent ?? null;
+      try {
+        const size = map.getSize();
+        if (!size || size.x === 0 || size.y === 0) {
+          return;
+        }
+        const currentZoom = map.getZoom();
+        const targetZoom = Math.min(Math.max(currentZoom, 14.5), 15);
+        map.flyTo([lat, lng], targetZoom, {
+          duration: 0.6,
+        });
+        prevSelectedRef.current = selectedEvent ?? null;
+      } catch (err) {
+        console.warn("Leaflet flyTo suppressed on non-visible container", err);
+      }
     }
   }, [map, selectedId, lat, lng, selectionSource]);
 

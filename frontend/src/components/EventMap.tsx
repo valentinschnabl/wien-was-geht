@@ -144,6 +144,10 @@ export default function EventMap() {
   };
 
   const handleSelectEvent = (event: EventRecord, source: "map" | "list" = "map") => {
+    // Dismiss mobile keyboard if searching
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setSelectionSource(source);
     setSelectedEvent(event);
     setHoveredEventId(event.id); // Automatically mark the event with the RED highlighted pin
@@ -745,7 +749,7 @@ export default function EventMap() {
                               className="btn-card-details"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleSelectEvent(event);
+                                handleSelectEvent(event, "list");
                               }}
                             >
                               {t.showDetails} &rarr;
