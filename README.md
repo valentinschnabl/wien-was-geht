@@ -1,158 +1,193 @@
-# Wien Heute — Vienna Event Mapping Application
+# WienWasGeht — Real-Time Spatial Event Discovery for Vienna
 
-A Progressive Web App (PWA) designed to aggregate, visualize, and discover current events in Vienna, Austria, via an interactive geographical map.
+A privacy-focused, full-stack web application designed to aggregate, normalize, enrich, and map live events happening across Vienna, Austria on any given day.
+
+Live Demo: [wienwasgeht.at](https://wienwasgeht.at)
 
 ---
 
-## 🚀 Quick Start with Docker Compose
+## Overview
 
-Run the complete multi-container stack (PostgreSQL + PostGIS, NestJS API, Next.js Frontend) with a single command:
+Finding out what is happening in Vienna today usually requires checking half a dozen fragmented platforms: club listings on Resident Advisor, municipal cultural calendars, theater feeds, editorial guides, and ticketing portals.
+
+WienWasGeht solves this by running an automated ingestion engine that pulls from 7 data sources every morning, normalizes heterogeneous schemas, classifies categories using Gemini 2.5 Flash, and serves the results on a fast, responsive map interface with zero client-side tracking.
+
+---
+
+## System Architecture
+
+```
+[ Data Sources ]
+  - City of Vienna Open Data (data.wien.gv.at)
+  - Resident Advisor (GraphQL API)
+  - Goodnight.at (Scraped editorial feed)
+  - events.at (Aggregated portal feed)
+  - Ticketmaster Discovery API
+  - Eventbrite API
+  - Eventfrog Public API
+          │
+          ▼
+[ Ingestion & Normalization Layer (NestJS 11) ]
+  - Schema mapping to unified Event model
+  - Automated 24h retention & expired event pruning
+  - Gemini 2.5 Flash batch classification (with heuristic fallback)
+          │
+          ▼
+[ Persistence Layer ]
+  - PostgreSQL + PostGIS spatial indexing
+  - Prisma ORM with atomic batch upserts
+          │
+          ▼
+[ REST API & Cache ]
+  - GET /api/v1/events?today=true
+  - Fast response time (< 50ms for today's payload)
+          │
+          ▼
+[ Frontend PWA (Next.js 16 / React 19) ]
+  - Interactive Leaflet map with marker clustering
+  - Co-located venue pin micro-offsetting algorithm
+  - Pure client-side proximity calculations (Haversine formula)
+  - Bilingual localization (German & English)
+```
+
+---
+
+## Key Engineering Highlights
+
+### 1. Multi-Source Ingestion & Deduplication
+- Pulls from REST APIs, GraphQL endpoints, and structured HTML parsers.
+- Composite unique constraints (`externalId` + `provider`) prevent duplicate entries across repeated cron runs.
+- Daily automated retention cron prunes expired events to keep database queries lightweight and sub-50ms.
+
+### 2. LLM Categorization with Deterministic Fallbacks
+- Uses Google Gemini 2.5 Flash in structured batches to categorize unstructured titles and descriptions into canonical categories (`Music`, `Culture`, `Nightlife`, `Culinary`, `Sports`, `Family`).
+- Automatically falls back to a fast, localized keyword heuristic when no API key is configured or on rate limits.
+
+### 3. Geometric Micro-Offsetting for Co-Located Events
+- Venues with multiple simultaneous events (e.g. festivals, multi-hall clubs) typically collapse onto identical GPS coordinates.
+- An angle-distributed micro-offsetting algorithm projects co-located pins into an equidistant 15m radius around the venue center, allowing individual pins to be clicked directly without clumsy spiderfy lines.
+
+### 4. Privacy-First Proximity Awareness
+- Complies strictly with GDPR / Austrian data privacy standards.
+- User GPS coordinates are processed exclusively in the browser using the Haversine distance formula and are never transmitted to or logged on any server.
+
+### 5. iOS Safari & Mobile PWA Engineering
+- Implemented with dynamic viewport units (`100dvh`) and container constraints to eliminate the classic iOS Safari toolbar overflow bug.
+- Inertial touch scrolling (`-webkit-overflow-scrolling: touch`) and safe-area insets guarantee seamless mobile performance.
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, Vanilla CSS Design System, Leaflet, Vitest |
+| Backend | NestJS 11, TypeScript, RxJS, Jest |
+| Database | PostgreSQL + PostGIS, Prisma ORM 6 |
+| AI / Enrichment | Google Gemini 2.5 Flash API |
+| Infrastructure | Docker, Docker Compose, Vercel |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+
+- PostgreSQL 15+ (or Docker)
+
+### Option A: Running with Docker Compose (Recommended)
+
+Start the full stack (PostgreSQL + PostGIS, NestJS API, Next.js Frontend) in one command:
 
 ```bash
 docker compose up --build
 ```
 
-- **Frontend Application**: `http://localhost:3001`
-- **Backend API**: `http://localhost:3000`
-- **PostgreSQL / PostGIS Database**: `localhost:5432`
+- Frontend: `http://localhost:3001`
+- Backend API: `http://localhost:3000`
+- Database: `localhost:5432`
 
 ---
 
-## 🛠️ Step-by-Step Manual Setup
+### Option B: Manual Local Setup
 
-### 1. Repository Setup & Dependencies
+1. **Clone the repository and install dependencies:**
+   ```bash
+   git clone https://github.com/valentinschnabl/vienna-event-map.git
+   cd vienna-event-map
+   npm install
+   cd frontend && npm install && cd ..
+   ```
 
-First, navigate to the main project folder:
+2. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
+   cp frontend/.env.example frontend/.env.local
+   ```
 
-```bash
-cd "vienna-event-api"
-```
+3. **Initialize the database:**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-Install backend dependencies:
+4. **Start the backend (Port 3000):**
+   ```bash
+   npm run start:dev
+   ```
 
-```bash
-npm install
-```
-
-Install frontend dependencies:
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
----
-
-### 2. Database Setup & Prisma Client
-
-Ensure your `.env` file in `vienna-event-api/.env` contains your PostgreSQL / Supabase connection string (`DATABASE_URL`).
-
-Generate the Prisma client and sync the schema:
-
-```bash
-npx prisma generate
-npx prisma db push
-```
+5. **Start the frontend (Port 3001):**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
 
 ---
 
-### 3. Running the Backend API (NestJS)
+## API Reference
 
-The NestJS backend runs on **port 3000** by default (`http://localhost:3000`).
+### `GET /api/v1/events`
+Returns paginated events with optional filtering.
 
-#### Development Mode (with auto-reload):
-```bash
-# Run from vienna-event-api root folder
-npm run start:dev
-```
+**Query Parameters:**
+- `today` (boolean) — Scopes results to events active today.
+- `category` (string) — Filter by normalized category (`Music`, `Culture`, `Nightlife`, `Sports`, `Culinary`, `Family`).
+- `provider` (string) — Filter by source provider (`stadt_wien`, `resident_advisor`, `goodnight`, `events_at`, `ticketmaster`, `eventbrite`, `eventfrog`).
+- `limit` (number, default: 500) — Max records to return.
+- `offset` (number, default: 0) — Pagination offset.
 
-#### Production Mode:
-```bash
-# Build NestJS backend
-npm run build
+### `GET /api/v1/events/:id`
+Returns full metadata for a single event record.
 
-# Start production server
-node dist/src/main.js
-```
-
-> **API Endpoints:**
-> - **Events API**: `GET http://localhost:3000/api/v1/events`
-> - **Single Event**: `GET http://localhost:3000/api/v1/events/:id`
-> - **Trigger Ingestion**: `POST http://localhost:3000/api/v1/ingest/trigger`
+### `POST /api/v1/ingest/trigger`
+Manually triggers an immediate ingestion and enrichment cycle across all active data providers.
 
 ---
 
-### 4. Running the Frontend PWA (Next.js)
+## Testing
 
-The Next.js frontend runs on **port 3001** (`http://localhost:3001`).
+The project maintains comprehensive test suites for both backend and frontend:
 
-#### Development Mode:
 ```bash
-cd frontend
-npm run dev
-```
-
-#### Production Mode:
-```bash
-cd frontend
-npm run build
-npm run start -- -p 3001
-```
-
----
-
-### 5. Running Unit & Integration Tests
-
-The project includes **27 passing unit and integration tests** across the backend and frontend.
-
-#### Run Backend Unit Tests (NestJS / Jest):
-```bash
-# Run from vienna-event-api root folder
+# Run backend test suite (NestJS / Jest) — 49 tests
 npm run test
-```
-*Executes 21 unit tests covering controllers, services, database persistence, and ingestion pipelines.*
 
-#### Run Frontend Unit Tests (Next.js / Vitest):
-```bash
-# Run from frontend folder
-cd frontend
-npm run test
-```
-*Executes 6 unit tests covering Haversine distance calculations and bilingual i18n dictionaries.*
+# Run frontend test suite (Next.js / Vitest) — 15 tests
+cd frontend && npm run test
 
-#### Run All Tests in One Command:
-```bash
-# Run from vienna-event-api root folder
-npm run test; cd frontend; npm run test; cd ..
+# Run full project test suite
+npm run test && cd frontend && npm run test && cd ..
 ```
+
+Test coverage includes:
+- Ingestion providers & error resilience (handling timeouts, malformed HTML, offline APIs)
+- AI categorizer & keyword heuristic fallback paths
+- Spatial micro-offset math and Haversine distance computations
+- Temporal event status classification (Live / Upcoming / Concluded)
+- Bilingual i18n dictionary completeness
 
 ---
 
-## 🏗️ Tech Stack
+## License
 
-- **Frontend**: Next.js 16 (React 19), Vanilla CSS Clean White Mode Theme, Leaflet, `react-leaflet-cluster` (FR-203 Marker Clustering), Vitest.
-- **Backend**: NestJS 11 (REST API), TypeScript, Jest.
-- **Database**: PostgreSQL + PostGIS, Prisma ORM 6, Supabase.
-- **Localization**: Bilingual German (`de`) & English (`en`) runtime language switcher.
-- **Privacy**: Client-side geolocation processing only (NFR-401).
-
----
-
-## 📜 Available NPM Scripts
-
-### Backend (`vienna-event-api`)
-| Script | Command | Description |
-|---|---|---|
-| `npm run start:dev` | `nest start --watch` | Starts NestJS API in development mode |
-| `npm run build` | `nest build` | Compiles NestJS TypeScript code to `dist/` |
-| `npm run start:prod` | `node dist/main` | Runs compiled NestJS backend |
-| `npm run test` | `jest` | Runs 21 backend unit test suites |
-
-### Frontend (`vienna-event-api/frontend`)
-| Script | Command | Description |
-|---|---|---|
-| `npm run dev` | `next dev` | Starts Next.js frontend server |
-| `npm run build` | `next build` | Builds optimized production Next.js PWA |
-| `npm run start` | `next start` | Runs compiled Next.js frontend production build |
-| `npm run test` | `vitest run` | Runs 6 frontend unit test suites |
+MIT License. Developed for the Vienna community.
