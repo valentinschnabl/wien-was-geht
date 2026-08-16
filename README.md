@@ -99,8 +99,8 @@ WienWasGeht solves this by running an automated ingestion engine that pulls from
 
 1. **Clone the repository and install dependencies:**
    ```bash
-   git clone https://github.com/valentinschnabl/vienna-event-map.git
-   cd vienna-event-map
+   git clone https://github.com/valentinschnabl/wien-was-geht.git
+   cd wien-was-geht
    npm install
    cd frontend && npm install && cd ..
    ```
