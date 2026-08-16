@@ -9,6 +9,7 @@ import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
+import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -23,6 +24,7 @@ describe('IngestionService', () => {
   let residentAdvisorService: ResidentAdvisorService;
   let capeetService: CapeetService;
   let ohSchonHellService: OhSchonHellService;
+  let eintrittFreiService: EintrittFreiService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
 
@@ -90,8 +92,8 @@ describe('IngestionService', () => {
         title: 'Event 6',
         startTime: new Date('2026-08-15T22:00:00Z'),
         venueName: 'Venue 6',
-        latitude: 48.2600,
-        longitude: 16.4600,
+        latitude: 48.2000,
+        longitude: 16.3600,
       },
     ]),
   };
@@ -102,10 +104,10 @@ describe('IngestionService', () => {
         externalId: 'ea-1',
         provider: 'EVENTS_AT',
         title: 'Event 7',
-        startTime: new Date('2026-08-15T23:00:00Z'),
+        startTime: new Date('2026-08-15T19:00:00Z'),
         venueName: 'Venue 7',
-        latitude: 48.2700,
-        longitude: 16.4700,
+        latitude: 48.2100,
+        longitude: 16.3700,
       },
     ]),
   };
@@ -116,10 +118,10 @@ describe('IngestionService', () => {
         externalId: 'ra-1',
         provider: 'RESIDENT_ADVISOR',
         title: 'Event 8',
-        startTime: new Date('2026-08-15T23:30:00Z'),
+        startTime: new Date('2026-08-15T23:00:00Z'),
         venueName: 'Venue 8',
-        latitude: 48.2800,
-        longitude: 16.4800,
+        latitude: 48.2150,
+        longitude: 16.3800,
       },
     ]),
   };
@@ -152,12 +154,26 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockEintrittFreiService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'efrei-1',
+        provider: 'EINTRITT_FREI',
+        title: 'Event 11',
+        startTime: new Date('2026-08-15T19:30:00Z'),
+        venueName: 'Donaupark',
+        latitude: 48.2415,
+        longitude: 16.4172,
+      },
+    ]),
+  };
+
   const mockAiCategorizerService = {
     categorizeEvents: jest.fn().mockImplementation((events) => Promise.resolve(events)),
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(9),
+    saveEvents: jest.fn().mockResolvedValue(10),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -174,6 +190,7 @@ describe('IngestionService', () => {
         { provide: ResidentAdvisorService, useValue: mockResidentAdvisorService },
         { provide: CapeetService, useValue: mockCapeetService },
         { provide: OhSchonHellService, useValue: mockOhSchonHellService },
+        { provide: EintrittFreiService, useValue: mockEintrittFreiService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -189,6 +206,7 @@ describe('IngestionService', () => {
     residentAdvisorService = module.get<ResidentAdvisorService>(ResidentAdvisorService);
     capeetService = module.get<CapeetService>(CapeetService);
     ohSchonHellService = module.get<OhSchonHellService>(OhSchonHellService);
+    eintrittFreiService = module.get<EintrittFreiService>(EintrittFreiService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
@@ -206,8 +224,8 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(9);
-      expect(summary.persisted).toBe(9);
+      expect(summary.fetched).toBe(10);
+      expect(summary.persisted).toBe(10);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(48);
@@ -220,6 +238,7 @@ describe('IngestionService', () => {
       expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
       expect(capeetService.fetchEvents).toHaveBeenCalled();
       expect(ohSchonHellService.fetchEvents).toHaveBeenCalled();
+      expect(eintrittFreiService.fetchEvents).toHaveBeenCalled();
       expect(aiCategorizerService.categorizeEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });

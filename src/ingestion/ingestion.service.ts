@@ -9,6 +9,7 @@ import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
+import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -34,6 +35,7 @@ export class IngestionService implements OnModuleInit {
     private readonly residentAdvisorProvider: ResidentAdvisorService,
     private readonly capeetProvider: CapeetService,
     private readonly ohSchonHellProvider: OhSchonHellService,
+    private readonly eintrittFreiProvider: EintrittFreiService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -130,6 +132,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('ohschonhell.at ingestion failed', error);
     }
 
+    let eintrittFreiEvents: Prisma.EventCreateInput[] = [];
+    try {
+      eintrittFreiEvents = await this.eintrittFreiProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('eintrittfrei.at ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -140,6 +149,7 @@ export class IngestionService implements OnModuleInit {
       ...residentAdvisorEvents,
       ...capeetEvents,
       ...ohSchonHellEvents,
+      ...eintrittFreiEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 

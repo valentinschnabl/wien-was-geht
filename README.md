@@ -21,6 +21,7 @@ WienWasGeht solves this by running an automated ingestion engine that pulls from
   - City of Vienna Open Data (data.wien.gv.at)
   - ohschonhell.at (Vienna electronic & club culture)
   - Capeet (Underground concert & indie gig feed)
+  - eintrittfrei.at (Curated free Vienna culture & open airs)
   - Resident Advisor (GraphQL API)
   - Eventbrite API
   - Eventfrog Public API

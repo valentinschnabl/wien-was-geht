@@ -9,6 +9,7 @@ import { EventsAtService } from './events-at/events-at.service';
 import { ResidentAdvisorService } from './resident-advisor/resident-advisor.service';
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
+import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -29,6 +30,7 @@ import { IngestionController } from './ingestion.controller';
     ResidentAdvisorService,
     CapeetService,
     OhSchonHellService,
+    EintrittFreiService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -43,6 +45,7 @@ import { IngestionController } from './ingestion.controller';
     ResidentAdvisorService,
     CapeetService,
     OhSchonHellService,
+    EintrittFreiService,
     AiCategorizerService,
     IngestionService,
   ],

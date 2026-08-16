@@ -108,6 +108,10 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'reithofferpark': { lat: 48.1957, lng: 16.3282 },
   'reiterhoffpark': { lat: 48.1957, lng: 16.3282 },
   'reithofferplatz': { lat: 48.1957, lng: 16.3282 },
+  'donaupark': { lat: 48.2415, lng: 16.4172 },
+  'bühne im donaupark': { lat: 48.2415, lng: 16.4172 },
+  'otto wagner areal': { lat: 48.2095, lng: 16.2792 },
+  'baumgartner höhe': { lat: 48.2095, lng: 16.2792 },
   'schrödingerplatz': { lat: 48.2385, lng: 16.4295 },
   'schroedingerplatz': { lat: 48.2385, lng: 16.4295 },
   'nordwestbahnhof': { lat: 48.2312, lng: 16.3752 },
@@ -116,6 +120,8 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'karlsplatz': { lat: 48.2002, lng: 16.3702 },
   'sigmund-freud-park': { lat: 48.2155, lng: 16.3595 },
   'augarten': { lat: 48.2255, lng: 16.3782 },
+  'hyblerpark': { lat: 48.1755, lng: 16.4182 },
+  'wilhelmsdorfer park': { lat: 48.1812, lng: 16.3365 },
 };
 
 /**
