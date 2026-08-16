@@ -22,7 +22,7 @@ export interface IngestionResult {
 @Injectable()
 export class IngestionService implements OnModuleInit {
   private readonly logger = new Logger(IngestionService.name);
-  private readonly retentionWindowHours = 24;
+  private readonly retentionWindowHours = 48;
 
   constructor(
     private readonly stadtWienProvider: StadtWienService,

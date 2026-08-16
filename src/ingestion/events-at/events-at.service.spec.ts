@@ -125,8 +125,8 @@ describe('EventsAtService', () => {
 
       const events = await service.fetchEvents();
 
-      // Only today's event should be included
-      expect(events).toHaveLength(1);
+      // Today's and Tomorrow's events should be included
+      expect(events).toHaveLength(2);
       const ev = events[0];
       expect(ev.title).toBe('Wiener Festwochen Premiere');
       expect(ev.provider).toBe('EVENTS_AT');
@@ -136,6 +136,10 @@ describe('EventsAtService', () => {
       expect(ev.url).toBe('https://events.at/event/festwochen-premiere');
       // Verify zero image storage policy
       expect(ev.imageUrl).toBeNull();
+
+      const ev2 = events[1];
+      expect(ev2.title).toBe('Morgen Konzert');
+      expect(ev2.provider).toBe('EVENTS_AT');
     });
 
     it('should filter out events outside Vienna 35km boundary', async () => {

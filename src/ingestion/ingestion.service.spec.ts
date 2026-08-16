@@ -210,7 +210,7 @@ describe('IngestionService', () => {
       expect(summary.persisted).toBe(9);
       expect(summary.pruned).toBe(3);
 
-      expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(24);
+      expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(48);
       expect(stadtWienService.fetchEvents).toHaveBeenCalled();
       expect(eventfrogService.fetchEvents).toHaveBeenCalled();
       expect(ninjaService.fetchEvents).toHaveBeenCalled();

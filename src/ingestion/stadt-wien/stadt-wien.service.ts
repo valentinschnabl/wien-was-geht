@@ -66,37 +66,79 @@ export class StadtWienService implements IEventProvider {
   constructor(private readonly httpService: HttpService) {}
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post<StadtWienApiResponse>(
-          this.endpoint,
-          {
-            id: 'search_template_specific',
-            params: {
-              event_time: { today: true },
-              query_string: '',
-              filters: [],
-              from: 0,
-              size: 1000, // should be plenty for most cases, but can be adjusted if needed
-              sort_by: 'daoh_edit.logic.sets.dates.from',
-              sort_order: 'asc',
-            },
-          },
-          {
-            headers: {
-              Accept: 'application/json',
-              Authorization: 'ApiKey',
-              'Content-Type': 'application/json',
-              Origin: 'https://www.wien.gv.at',
-              Referer: 'https://www.wien.gv.at/',
-            },
-          },
-        ),
-      );
+    const headers = {
+      Accept: 'application/json',
+      Authorization: 'ApiKey',
+      'Content-Type': 'application/json',
+      Origin: 'https://www.wien.gv.at',
+      Referer: 'https://www.wien.gv.at/',
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    };
 
-      const rawEvents = response.data?.hits?.hits ?? [];
-      this.logger.debug(
-        `Extracted ${rawEvents.length} events from Stadt Wien.`,
+    try {
+      this.logger.log('Fetching Stadt Wien events for today and tomorrow...');
+
+      const [todayResponse, tomorrowResponse] = await Promise.all([
+        firstValueFrom(
+          this.httpService.post<StadtWienApiResponse>(
+            this.endpoint,
+            {
+              id: 'search_template_specific',
+              params: {
+                event_time: { today: true },
+                query_string: '',
+                filters: [],
+                from: 0,
+                size: 1000,
+                sort_by: 'daoh_edit.logic.sets.dates.from',
+                sort_order: 'asc',
+              },
+            },
+            { headers },
+          ),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch today events from Stadt Wien', err);
+          return { data: { hits: { hits: [] } } };
+        }),
+        firstValueFrom(
+          this.httpService.post<StadtWienApiResponse>(
+            this.endpoint,
+            {
+              id: 'search_template_specific',
+              params: {
+                event_time: { tomorrow: true },
+                query_string: '',
+                filters: [],
+                from: 0,
+                size: 1000,
+                sort_by: 'daoh_edit.logic.sets.dates.from',
+                sort_order: 'asc',
+              },
+            },
+            { headers },
+          ),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch tomorrow events from Stadt Wien', err);
+          return { data: { hits: { hits: [] } } };
+        }),
+      ]);
+
+      const todayHits = todayResponse.data?.hits?.hits ?? [];
+      const tomorrowHits = tomorrowResponse.data?.hits?.hits ?? [];
+
+      // Merge and deduplicate by _id
+      const hitMap = new Map<string, StadtWienRawEvent>();
+      [...todayHits, ...tomorrowHits].forEach((hit) => {
+        const id = hit._id || hit._source?.title || '';
+        if (id && !hitMap.has(id)) {
+          hitMap.set(id, hit);
+        }
+      });
+
+      const rawEvents = Array.from(hitMap.values());
+      this.logger.log(
+        `Extracted ${rawEvents.length} distinct events (today + tomorrow) from Stadt Wien.`,
       );
 
       return this.normalizeData(rawEvents);
@@ -109,7 +151,12 @@ export class StadtWienService implements IEventProvider {
   private normalizeData(
     rawEvents: StadtWienRawEvent[],
   ): Prisma.EventCreateInput[] {
-    const todayIsoString = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const todayIsoString = now.toISOString().split('T')[0];
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowIsoString = tomorrow.toISOString().split('T')[0];
+
     const events: Prisma.EventCreateInput[] = [];
 
     for (const event of rawEvents) {
@@ -139,7 +186,7 @@ export class StadtWienService implements IEventProvider {
           endTime = new Date(`${range.to}T23:59:59+02:00`);
         }
       } else {
-        // Einzelveranstaltungen: Spezifischen Zeitblock für heute suchen
+        // Einzelveranstaltungen: Spezifischen Zeitblock für heute oder morgen suchen
         const rawDates = set.dates ?? [];
         const flatDates = rawDates.flat(2);
 
@@ -148,12 +195,23 @@ export class StadtWienService implements IEventProvider {
             continue;
           }
 
-          if (date.from.startsWith(todayIsoString)) {
+          if (
+            date.from.startsWith(todayIsoString) ||
+            date.from.startsWith(tomorrowIsoString)
+          ) {
             startTime = new Date(date.from);
             if (date.to) {
               endTime = new Date(date.to);
             }
             break;
+          }
+        }
+
+        // Fallback wenn vorhanden
+        if (!startTime && flatDates.length > 0 && flatDates[0].from) {
+          startTime = new Date(flatDates[0].from);
+          if (flatDates[0].to) {
+            endTime = new Date(flatDates[0].to);
           }
         }
       }

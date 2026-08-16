@@ -99,21 +99,22 @@ export class EventfrogService implements IEventProvider {
         return [];
       }
 
-      // Filter to only events active today
+      // Filter to events active today or tomorrow (48h window)
       const now = new Date();
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
+      const tomorrowEnd = new Date(now);
+      tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+      tomorrowEnd.setHours(23, 59, 59, 999);
 
       const activeRawEvents = rawEvents.filter((event) => {
         if (!event.begin) return false;
         const start = new Date(event.begin);
         const end = event.end ? new Date(event.end) : start;
-        return start <= todayEnd && end >= todayStart;
+        return start <= tomorrowEnd && end >= todayStart;
       });
 
-      this.logger.log(`Filtered to ${activeRawEvents.length} active events for today.`);
+      this.logger.log(`Filtered to ${activeRawEvents.length} active events for today and tomorrow.`);
 
       if (activeRawEvents.length === 0) {
         return [];

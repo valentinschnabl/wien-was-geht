@@ -105,24 +105,25 @@ export class EventbriteService implements IEventProvider {
         return [];
       }
 
-      // Filter to events active today
+      // Filter to events active today or tomorrow (48h window)
       const now = new Date();
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
+      const tomorrowEnd = new Date(now);
+      tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+      tomorrowEnd.setHours(23, 59, 59, 999);
 
-      const activeTodayEvents = rawEvents.filter((event) => {
+      const activeEvents = rawEvents.filter((event) => {
         const { start, end } = this.parseDates(event);
-        return start <= todayEnd && end >= todayStart;
+        return start <= tomorrowEnd && end >= todayStart;
       });
 
-      this.logger.log(`Filtered to ${activeTodayEvents.length} Eventbrite events active today.`);
+      this.logger.log(`Filtered to ${activeEvents.length} Eventbrite events active for today and tomorrow.`);
 
-      // Pre-fetch and resolve venues for today's active events
+      // Pre-fetch and resolve venues for active events
       const uniqueVenueIds = Array.from(
         new Set(
-          activeTodayEvents
+          activeEvents
             .map((e) => e.primary_venue_id)
             .filter((id): id is string => Boolean(id)),
         ),
@@ -130,7 +131,7 @@ export class EventbriteService implements IEventProvider {
 
       await this.resolveVenues(uniqueVenueIds, token);
 
-      return this.normalizeData(activeTodayEvents);
+      return this.normalizeData(activeEvents);
     } catch (error) {
       this.logger.error('Failed to fetch events from Eventbrite API', error);
       return [];

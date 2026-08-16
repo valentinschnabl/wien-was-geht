@@ -52,28 +52,64 @@ export class GoodnightService implements IEventProvider {
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
     try {
-      const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
-      this.logger.log(`Fetching curated events from Goodnight.at for ${todayStr}...`);
+      const now = new Date();
+      const todayStr = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toLocaleDateString('sv-SE');
 
-      const response = await firstValueFrom(
-        this.httpService.get<GoodnightApiResponse>(this.endpoint, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            Accept: 'application/json',
-          },
-          params: {
-            date: todayStr,
-          },
+      this.logger.log(`Fetching curated events from Goodnight.at for ${todayStr} and ${tomorrowStr}...`);
+
+      const [resToday, resTomorrow] = await Promise.all([
+        firstValueFrom(
+          this.httpService.get<GoodnightApiResponse>(this.endpoint, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              Accept: 'application/json',
+            },
+            params: {
+              date: todayStr,
+            },
+          }),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch today events from Goodnight.at', err);
+          return { data: { data: [] } };
         }),
-      );
+        firstValueFrom(
+          this.httpService.get<GoodnightApiResponse>(this.endpoint, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              Accept: 'application/json',
+            },
+            params: {
+              date: tomorrowStr,
+            },
+          }),
+        ).catch((err) => {
+          this.logger.warn('Failed to fetch tomorrow events from Goodnight.at', err);
+          return { data: { data: [] } };
+        }),
+      ]);
 
-      const days = response.data?.data ?? [];
-      if (days.length === 0) {
-        return [];
+      const days = [
+        ...(resToday.data?.data ?? []),
+        ...(resTomorrow.data?.data ?? []),
+      ];
+
+      // Flatten events and deduplicate by id
+      const eventMap = new Map<number | string, GoodnightEvent>();
+      for (const day of days) {
+        for (const event of day.events ?? []) {
+          if (event.id && !eventMap.has(event.id)) {
+            eventMap.set(event.id, event);
+          }
+        }
       }
 
-      const rawEvents = days[0].events ?? [];
-      this.logger.log(`Fetched ${rawEvents.length} raw curated events from Goodnight.at.`);
+      const rawEvents = Array.from(eventMap.values());
+      this.logger.log(`Fetched ${rawEvents.length} raw curated events (today + tomorrow) from Goodnight.at.`);
 
       const normalizedEvents: Prisma.EventCreateInput[] = [];
 

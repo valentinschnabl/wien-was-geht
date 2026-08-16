@@ -60,8 +60,9 @@ export class ResidentAdvisorService implements IEventProvider {
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
 
     const query = `
       query GET_EVENT_LISTINGS($filters: FilterInputDtoInput, $pageSize: Int, $page: Int) {
@@ -100,10 +101,10 @@ export class ResidentAdvisorService implements IEventProvider {
         areas: { eq: this.viennaAreaId },
         listingDate: {
           gte: todayStart.toISOString(),
-          lte: todayEnd.toISOString(),
+          lte: tomorrowEnd.toISOString(),
         },
       },
-      pageSize: 50,
+      pageSize: 100,
       page: 1,
     };
 

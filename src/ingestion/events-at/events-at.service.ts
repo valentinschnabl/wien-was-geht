@@ -48,51 +48,76 @@ export class EventsAtService implements IEventProvider {
   constructor(private readonly httpService: HttpService) {}
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
-    const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
-    this.logger.log(`Fetching events from events.at for ${todayStr}...`);
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toLocaleDateString('sv-SE');
+
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
+    this.logger.log(`Fetching events from events.at for ${todayStr} and ${tomorrowStr}...`);
 
     try {
-      // 1. Fetch calendar page for Vienna
-      const response = await firstValueFrom(
-        this.httpService.get<string>(this.calendarUrl, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          },
-          params: {
-            'state[]': 'Wien',
-            date: todayStr,
-          },
-        }),
-      );
+      // 1. Fetch calendar pages for Vienna (Today & Tomorrow)
+      const [todayCalRes, tomorrowCalRes] = await Promise.all([
+        firstValueFrom(
+          this.httpService.get<string>(this.calendarUrl, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            },
+            params: {
+              'state[]': 'Wien',
+              date: todayStr,
+            },
+          }),
+        ).catch(() => ({ data: '' })),
+        firstValueFrom(
+          this.httpService.get<string>(this.calendarUrl, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            },
+            params: {
+              'state[]': 'Wien',
+              date: tomorrowStr,
+            },
+          }),
+        ).catch(() => ({ data: '' })),
+      ]);
 
-      const $ = cheerio.load(response.data);
       const eventLinks: string[] = [];
 
-      // Extract unique event detail links
-      $('a[href*="/event/"]').each((_, el) => {
-        const href = $(el).attr('href');
-        if (
-          href &&
-          !href.includes('/event-empfehlungen') &&
-          !href.includes('/calendar') &&
-          !href.endsWith('/event')
-        ) {
-          const fullUrl = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
-          if (!eventLinks.includes(fullUrl)) {
-            eventLinks.push(fullUrl);
+      const extractLinks = (html: string) => {
+        if (!html) return;
+        const $ = cheerio.load(html);
+        $('a[href*="/event/"]').each((_, el) => {
+          const href = $(el).attr('href');
+          if (
+            href &&
+            !href.includes('/event-empfehlungen') &&
+            !href.includes('/calendar') &&
+            !href.endsWith('/event')
+          ) {
+            const fullUrl = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+            if (!eventLinks.includes(fullUrl)) {
+              eventLinks.push(fullUrl);
+            }
           }
-        }
-      });
+        });
+      };
 
-      this.logger.log(`Found ${eventLinks.length} potential event links on events.at.`);
+      extractLinks(todayCalRes.data);
+      extractLinks(tomorrowCalRes.data);
 
-      const now = new Date();
-      const todayStart = new Date(now);
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
+      this.logger.log(`Found ${eventLinks.length} potential event links (today + tomorrow) on events.at.`);
 
       const normalizedEvents: Prisma.EventCreateInput[] = [];
 
@@ -111,36 +136,32 @@ export class EventsAtService implements IEventProvider {
             }),
           );
 
-          const $d = cheerio.load(detailRes.data);
-          let eventData: SchemaOrgEvent | null = null;
+          const $$ = cheerio.load(detailRes.data);
+          let eventData: any = null;
 
-          // Parse JSON-LD metadata
-          $d('script[type="application/ld+json"]').each((_, scriptEl) => {
-            const rawJson = $d(scriptEl).html();
-            if (rawJson) {
-              try {
-                const parsed = JSON.parse(rawJson);
-                if (parsed['@type'] === 'Event') {
-                  eventData = parsed;
-                } else if (Array.isArray(parsed)) {
-                  const ev = parsed.find((item) => item['@type'] === 'Event');
-                  if (ev) eventData = ev;
-                }
-              } catch (e) {
-                // Ignore parse errors in scripts
+          $$('script[type="application/ld+json"]').each((_, el) => {
+            try {
+              const parsed = JSON.parse($$(el).html() || '{}');
+              if (parsed['@type'] === 'Event') {
+                eventData = parsed;
+              } else if (Array.isArray(parsed)) {
+                const found = parsed.find((item: any) => item['@type'] === 'Event');
+                if (found) eventData = found;
               }
+            } catch {
+              // Ignore malformed JSON-LD scripts
             }
           });
 
-          if (!eventData || !eventData.startDate || !eventData.name) {
+          if (!eventData || !eventData.name || !eventData.startDate) {
             continue;
           }
 
-          const startDate = new Date(eventData.startDate);
-          const endDate = eventData.endDate ? new Date(eventData.endDate) : startDate;
+          const start = new Date(eventData.startDate);
+          const end = eventData.endDate ? new Date(eventData.endDate) : start;
 
-          // Strict date filter: Must occur today
-          if (startDate > todayEnd || endDate < todayStart) {
+          // Verify event is active within the 48h window (today & tomorrow)
+          if (start > tomorrowEnd || end < todayStart) {
             continue;
           }
 
@@ -179,8 +200,8 @@ export class EventsAtService implements IEventProvider {
             category: 'Culture',
             url,
             imageUrl: null, // Strictly no pictures stored
-            startTime: startDate,
-            endTime: endDate,
+            startTime: start,
+            endTime: end,
             venueName,
             latitude: lat,
             longitude: lng,
@@ -190,7 +211,7 @@ export class EventsAtService implements IEventProvider {
         }
       }
 
-      this.logger.log(`Extracted ${normalizedEvents.length} active events for today from events.at.`);
+      this.logger.log(`Extracted ${normalizedEvents.length} active events (today + tomorrow) from events.at.`);
       return normalizedEvents;
     } catch (error) {
       this.logger.error('Failed to fetch events from events.at', error);

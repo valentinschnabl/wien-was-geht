@@ -105,21 +105,22 @@ export class TicketmasterService implements IEventProvider {
       const viennaEvents = rawEvents.filter((event) => this.isInViennaRegion(event));
       this.logger.log(`Filtered to ${viennaEvents.length} events in Vienna region.`);
 
-      // Filter to events active today
+      // Filter to events active today or tomorrow (48h window)
       const now = new Date();
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
+      const tomorrowEnd = new Date(now);
+      tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+      tomorrowEnd.setHours(23, 59, 59, 999);
 
-      const activeTodayEvents = viennaEvents.filter((event) => {
+      const activeEvents = viennaEvents.filter((event) => {
         const { start, end } = this.parseEventDates(event);
-        return start <= todayEnd && end >= todayStart;
+        return start <= tomorrowEnd && end >= todayStart;
       });
 
-      this.logger.log(`Filtered to ${activeTodayEvents.length} Ticketmaster events active today.`);
+      this.logger.log(`Filtered to ${activeEvents.length} Ticketmaster events active for today and tomorrow.`);
 
-      return this.normalizeData(activeTodayEvents);
+      return this.normalizeData(activeEvents);
     } catch (error) {
       this.logger.error('Failed to fetch events from Ticketmaster API', error);
       return [];
