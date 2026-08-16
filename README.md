@@ -19,6 +19,7 @@ WienWasGeht solves this by running an automated ingestion engine that pulls from
 ```
 [ Data Sources ]
   - City of Vienna Open Data (data.wien.gv.at)
+  - Kultursommer Wien (Official festival API)
   - ohschonhell.at (Vienna electronic & club culture)
   - Capeet (Underground concert & indie gig feed)
   - eintrittfrei.at (Curated free Vienna culture & open airs)

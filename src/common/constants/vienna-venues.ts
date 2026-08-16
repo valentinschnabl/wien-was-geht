@@ -122,6 +122,13 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'augarten': { lat: 48.2255, lng: 16.3782 },
   'hyblerpark': { lat: 48.1755, lng: 16.4182 },
   'wilhelmsdorfer park': { lat: 48.1812, lng: 16.3365 },
+  'waldmüllerpark': { lat: 48.1798, lng: 16.3685 },
+  'waldmuellerpark': { lat: 48.1798, lng: 16.3685 },
+  'kongreßpark': { lat: 48.2148, lng: 16.3115 },
+  'kongresspark': { lat: 48.2148, lng: 16.3115 },
+  'fußballverein 1210 wien': { lat: 48.2785, lng: 16.4025 },
+  'fussballverein 1210 wien': { lat: 48.2785, lng: 16.4025 },
+  '1210 wien': { lat: 48.2785, lng: 16.4025 },
 };
 
 /**

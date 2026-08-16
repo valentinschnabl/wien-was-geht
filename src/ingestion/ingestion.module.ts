@@ -10,6 +10,7 @@ import { ResidentAdvisorService } from './resident-advisor/resident-advisor.serv
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
+import { KultursommerService } from './kultursommer/kultursommer.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -31,6 +32,7 @@ import { IngestionController } from './ingestion.controller';
     CapeetService,
     OhSchonHellService,
     EintrittFreiService,
+    KultursommerService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -46,6 +48,7 @@ import { IngestionController } from './ingestion.controller';
     CapeetService,
     OhSchonHellService,
     EintrittFreiService,
+    KultursommerService,
     AiCategorizerService,
     IngestionService,
   ],

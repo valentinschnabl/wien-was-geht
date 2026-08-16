@@ -10,6 +10,7 @@ import { ResidentAdvisorService } from './resident-advisor/resident-advisor.serv
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
+import { KultursommerService } from './kultursommer/kultursommer.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -36,6 +37,7 @@ export class IngestionService implements OnModuleInit {
     private readonly capeetProvider: CapeetService,
     private readonly ohSchonHellProvider: OhSchonHellService,
     private readonly eintrittFreiProvider: EintrittFreiService,
+    private readonly kultursommerProvider: KultursommerService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -139,6 +141,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('eintrittfrei.at ingestion failed', error);
     }
 
+    let kultursommerEvents: Prisma.EventCreateInput[] = [];
+    try {
+      kultursommerEvents = await this.kultursommerProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Kultursommer Wien ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -150,6 +159,7 @@ export class IngestionService implements OnModuleInit {
       ...capeetEvents,
       ...ohSchonHellEvents,
       ...eintrittFreiEvents,
+      ...kultursommerEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 

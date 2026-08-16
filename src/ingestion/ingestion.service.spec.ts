@@ -10,6 +10,7 @@ import { ResidentAdvisorService } from './resident-advisor/resident-advisor.serv
 import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
+import { KultursommerService } from './kultursommer/kultursommer.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -25,6 +26,7 @@ describe('IngestionService', () => {
   let capeetService: CapeetService;
   let ohSchonHellService: OhSchonHellService;
   let eintrittFreiService: EintrittFreiService;
+  let kultursommerService: KultursommerService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
 
@@ -168,12 +170,26 @@ describe('IngestionService', () => {
     ]),
   };
 
+  const mockKultursommerService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'ks-1',
+        provider: 'KULTURSOMMER',
+        title: 'Event 12',
+        startTime: new Date('2026-08-15T18:30:00Z'),
+        venueName: 'Reithofferpark, 15. Bezirk',
+        latitude: 48.1957,
+        longitude: 16.3282,
+      },
+    ]),
+  };
+
   const mockAiCategorizerService = {
     categorizeEvents: jest.fn().mockImplementation((events) => Promise.resolve(events)),
   };
 
   const mockPersistenceService = {
-    saveEvents: jest.fn().mockResolvedValue(10),
+    saveEvents: jest.fn().mockResolvedValue(11),
     pruneExpiredEvents: jest.fn().mockResolvedValue(3),
   };
 
@@ -191,6 +207,7 @@ describe('IngestionService', () => {
         { provide: CapeetService, useValue: mockCapeetService },
         { provide: OhSchonHellService, useValue: mockOhSchonHellService },
         { provide: EintrittFreiService, useValue: mockEintrittFreiService },
+        { provide: KultursommerService, useValue: mockKultursommerService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -224,8 +241,8 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(10);
-      expect(summary.persisted).toBe(10);
+      expect(summary.fetched).toBe(11);
+      expect(summary.persisted).toBe(11);
       expect(summary.pruned).toBe(3);
 
       expect(persistenceService.pruneExpiredEvents).toHaveBeenCalledWith(48);
@@ -239,6 +256,7 @@ describe('IngestionService', () => {
       expect(capeetService.fetchEvents).toHaveBeenCalled();
       expect(ohSchonHellService.fetchEvents).toHaveBeenCalled();
       expect(eintrittFreiService.fetchEvents).toHaveBeenCalled();
+      expect(mockKultursommerService.fetchEvents).toHaveBeenCalled();
       expect(aiCategorizerService.categorizeEvents).toHaveBeenCalled();
       expect(persistenceService.saveEvents).toHaveBeenCalled();
     });
