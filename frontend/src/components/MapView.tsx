@@ -37,6 +37,7 @@ interface MapViewProps {
   locationState: "idle" | "locating" | "active" | "denied";
   onSelectEvent?: (event: EventRecord) => void;
   selectedEvent?: EventRecord | null;
+  selectionSource?: "map" | "list";
   hoveredEventId?: string | null;
   onHoverEvent?: (id: string | null) => void;
   onPopupStateChange?: (isOpen: boolean) => void;
@@ -132,7 +133,7 @@ function MapController({ center }: { center: LatLngExpression }) {
   return null;
 }
 
-// Invalidates Leaflet map container bounds whenever visibility changes (e.g. mobile tab switch)
+// Automatically resizes and re-renders Leaflet viewport when switching mobile tabs or adjusting container
 function MapResizeController() {
   const map = useMap();
 
@@ -156,8 +157,14 @@ function MapResizeController() {
   return null;
 }
 
-// Pans and zooms smoothly when an event is selected from the sidebar or reset back to overview
-function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord | null }) {
+// Pans and zooms smoothly when an event is selected from the sidebar list
+function EventFlyToController({
+  selectedEvent,
+  selectionSource,
+}: {
+  selectedEvent?: EventRecord | null;
+  selectionSource?: "map" | "list";
+}) {
   const map = useMap();
   const prevSelectedRef = useRef<EventRecord | null>(null);
 
@@ -166,19 +173,22 @@ function EventFlyToController({ selectedEvent }: { selectedEvent?: EventRecord |
   const lng = selectedEvent?.longitude;
 
   useEffect(() => {
+    // Only trigger flyTo when explicitly selected from sidebar list
     if (
+      selectionSource === "list" &&
       typeof lat === "number" &&
       typeof lng === "number" &&
       lat !== 0 &&
       lng !== 0
     ) {
-      // Zoom to street-level (16.5) so clustered markers automatically uncluster
-      map.flyTo([lat, lng], 16.5, {
-        duration: 0.8,
+      const currentZoom = map.getZoom();
+      const targetZoom = Math.min(Math.max(currentZoom, 14.5), 15);
+      map.flyTo([lat, lng], targetZoom, {
+        duration: 0.6,
       });
       prevSelectedRef.current = selectedEvent ?? null;
     }
-  }, [map, selectedId, lat, lng]);
+  }, [map, selectedId, lat, lng, selectionSource]);
 
   return null;
 }
@@ -255,6 +265,7 @@ export default function MapView({
   locationState,
   onSelectEvent,
   selectedEvent,
+  selectionSource,
   hoveredEventId,
   onHoverEvent,
   onPopupStateChange,
@@ -376,7 +387,9 @@ export default function MapView({
             <Popup
               className="custom-compact-popup"
               autoPan={true}
-              autoPanPadding={[50, 50]}
+              autoPanPaddingTopLeft={[40, 80]}
+              autoPanPaddingBottomRight={[40, 40]}
+              keepInView={true}
               eventHandlers={{
                 add: () => onPopupStateChange?.(true),
                 remove: () => onPopupStateChange?.(false),
@@ -480,7 +493,10 @@ export default function MapView({
         />
 
         {/* Controller to fly and zoom to selected event */}
-        <EventFlyToController selectedEvent={selectedEvent} />
+        <EventFlyToController
+          selectedEvent={selectedEvent}
+          selectionSource={selectionSource}
+        />
 
         {userLocation && (
           <MapController center={[userLocation.lat, userLocation.lng]} />

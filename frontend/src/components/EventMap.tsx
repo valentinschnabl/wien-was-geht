@@ -514,6 +514,7 @@ export default function EventMap() {
               locationState={locationState}
               onSelectEvent={(event) => handleSelectEvent(event, "map")}
               selectedEvent={selectedEvent}
+              selectionSource={selectionSource}
               hoveredEventId={hoveredEventId}
               onHoverEvent={handleHoverEvent}
               onPopupStateChange={(isOpen) => setIsMapPopupOpen(isOpen)}
