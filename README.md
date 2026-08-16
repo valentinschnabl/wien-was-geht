@@ -85,7 +85,7 @@ WienWasGeht solves this by running an automated ingestion engine that pulls from
 | Backend | NestJS 11, TypeScript, RxJS, Jest |
 | Database | PostgreSQL + PostGIS, Prisma ORM 6 |
 | AI / Enrichment | Google Gemini 2.5 Flash API |
-| Infrastructure | Docker, Docker Compose, Vercel |
+| Hosting & Deployment | Vercel, Supabase / PostgreSQL |
 
 ---
 
@@ -93,23 +93,9 @@ WienWasGeht solves this by running an automated ingestion engine that pulls from
 
 ### Prerequisites
 - Node.js 20+
-- PostgreSQL 15+ (or Docker)
+- PostgreSQL 15+ (Local or Supabase)
 
-### Option A: Running with Docker Compose (Recommended)
-
-Start the full stack (PostgreSQL + PostGIS, NestJS API, Next.js Frontend) in one command:
-
-```bash
-docker compose up --build
-```
-
-- Frontend: `http://localhost:3001`
-- Backend API: `http://localhost:3000`
-- Database: `localhost:5432`
-
----
-
-### Option B: Manual Local Setup
+### Setup & Installation
 
 1. **Clone the repository and install dependencies:**
    ```bash
@@ -124,6 +110,7 @@ docker compose up --build
    cp .env.example .env
    cp frontend/.env.example frontend/.env.local
    ```
+   *Edit `.env` to supply your `DATABASE_URL` (e.g. your local PostgreSQL or cloud database).*
 
 3. **Initialize the database:**
    ```bash
@@ -131,16 +118,18 @@ docker compose up --build
    npx prisma db push
    ```
 
-4. **Start the backend (Port 3000):**
+4. **Start the backend API (Port 3000):**
    ```bash
    npm run start:dev
    ```
 
-5. **Start the frontend (Port 3001):**
+5. **Start the frontend application (Port 3001):**
    ```bash
    cd frontend
    npm run dev
    ```
+
+Open `http://localhost:3001` in your browser.
 
 ---
 
