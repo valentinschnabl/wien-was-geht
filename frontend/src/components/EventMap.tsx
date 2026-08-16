@@ -375,10 +375,11 @@ export default function EventMap() {
             type="button"
             className="btn-info-header"
             onClick={() => setActiveModal("imprint")}
-            title={language === "de" ? "Impressum, Datenschutz & Info" : "Imprint, Privacy & Info"}
-            aria-label="Impressum, Datenschutz & Info"
+            title={language === "de" ? "Impressum & Datenschutz" : "Imprint & Privacy"}
+            aria-label={t.imprint}
           >
             <i className="fa-solid fa-circle-info"></i>
+            <span className="btn-info-label">{t.imprint}</span>
           </button>
         </div>
       </header>
