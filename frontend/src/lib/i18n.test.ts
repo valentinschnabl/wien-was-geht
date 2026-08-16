@@ -8,6 +8,10 @@ describe("i18n Localization Dictionaries", () => {
 
     expect(translations.de.appTitle).toContain("WienWasGeht");
     expect(translations.en.appTitle).toContain("WienWasGeht");
+    expect(translations.de.statusLive).toBe("JETZT");
+    expect(translations.en.statusLive).toBe("NOW");
+    expect(translations.de.statsNow).toBe("Jetzt");
+    expect(translations.en.statsNow).toBe("Now");
   });
 
   it("should contain correct Impressum legal owner and contact details", () => {

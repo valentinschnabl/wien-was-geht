@@ -28,6 +28,8 @@ export interface Translations {
   statusLive: string;
   statusUpcoming: (time: string) => string;
   statusConcluded: string;
+  statsNow: string;
+  statsLater: string;
   eventsTodayNotice: string;
 
   // Filters
@@ -92,9 +94,11 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Standort teilen",
     consentDecline: "Ohne Standort fortfahren",
 
-    statusLive: "LIVE",
+    statusLive: "JETZT",
     statusUpcoming: (time: string) => (time ? `HEUTE (ab ${time})` : "HEUTE"),
     statusConcluded: "HEUTE BEENDET",
+    statsNow: "Jetzt",
+    statsLater: "Später",
     eventsTodayNotice: "Zeigt nur Events an, die am heutigen Tag stattfinden.",
 
     filterCategory: "Kategorie",
@@ -105,7 +109,7 @@ export const translations: Record<Language, Translations> = {
     filterCulinary: "Kulinarik",
     filterNightlife: "Nightlife",
     filterFamily: "Familie",
-    toggleConcluded: "Bereits beendete Events von heute anzeigen",
+    toggleConcluded: "Vergangene Events einblenden",
     toggleConcludedHint: "Zeigt auch Events an, die am heutigen Tag bereits geendet haben (FR-303).",
     searchPlaceholder: "Veranstaltung oder Ort suchen...",
 
@@ -154,9 +158,11 @@ export const translations: Record<Language, Translations> = {
     consentAllow: "Share My Location",
     consentDecline: "Continue Without Location",
 
-    statusLive: "LIVE",
+    statusLive: "NOW",
     statusUpcoming: (time: string) => (time ? `TODAY (from ${time})` : "TODAY"),
     statusConcluded: "ENDED TODAY",
+    statsNow: "Now",
+    statsLater: "Later",
     eventsTodayNotice: "Showing events happening today in Vienna.",
 
     filterCategory: "Category",
@@ -167,7 +173,7 @@ export const translations: Record<Language, Translations> = {
     filterCulinary: "Culinary",
     filterNightlife: "Nightlife",
     filterFamily: "Family",
-    toggleConcluded: "Show concluded events from today",
+    toggleConcluded: "Show past events from today",
     toggleConcludedHint: "Includes events scheduled today that have already ended (FR-303).",
     searchPlaceholder: "Search event or venue name...",
 

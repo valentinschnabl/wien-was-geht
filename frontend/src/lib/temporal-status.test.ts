@@ -8,7 +8,16 @@ export function computeTemporalStatus(
   if (!startStr) return "upcoming";
 
   const start = new Date(startStr);
-  const end = endStr ? new Date(endStr) : start;
+  const isAllDay =
+    start.getHours() === 0 &&
+    start.getMinutes() === 0 &&
+    (!endStr || (new Date(endStr).getHours() === 23 && new Date(endStr).getMinutes() === 59));
+
+  const end = endStr
+    ? new Date(endStr)
+    : isAllDay
+    ? new Date(new Date(start).setHours(23, 59, 59, 999))
+    : new Date(start.getTime() + 3 * 60 * 60 * 1000);
 
   if (end < now) {
     return "concluded";

@@ -239,7 +239,16 @@ export default function EventMap() {
         }
 
         const start = ev.startTime ? new Date(ev.startTime) : new Date();
-        const end = ev.endTime ? new Date(ev.endTime) : start;
+        const isAllDay =
+          start.getHours() === 0 &&
+          start.getMinutes() === 0 &&
+          (!ev.endTime || (new Date(ev.endTime).getHours() === 23 && new Date(ev.endTime).getMinutes() === 59));
+
+        const end = ev.endTime
+          ? new Date(ev.endTime)
+          : isAllDay
+          ? new Date(new Date(start).setHours(23, 59, 59, 999))
+          : new Date(start.getTime() + 3 * 60 * 60 * 1000);
 
         // Classify temporal status
         let temporalStatus: "live" | "upcoming" | "concluded" = "upcoming";
@@ -346,8 +355,8 @@ export default function EventMap() {
           <div className="city-badge-row">
             <h1 className="header-title">{t.appTitle}</h1>
             <span className="stats-pill">
-              <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} Live &bull;{" "}
-              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} Demnächst
+              <i className="fa-solid fa-bolt"></i> {eventStats.liveCount} {t.statsNow} &bull;{" "}
+              <i className="fa-solid fa-clock"></i> {eventStats.upcomingCount} {t.statsLater}
             </span>
           </div>
           <p className="header-subtitle">{t.appSubtitle}</p>
@@ -358,6 +367,15 @@ export default function EventMap() {
             currentLanguage={language}
             onLanguageChange={setLanguage}
           />
+          <button
+            type="button"
+            className="btn-info-header"
+            onClick={() => setActiveModal("imprint")}
+            title={language === "de" ? "Impressum, Datenschutz & Info" : "Imprint, Privacy & Info"}
+            aria-label="Impressum, Datenschutz & Info"
+          >
+            <i className="fa-solid fa-circle-info"></i>
+          </button>
         </div>
       </header>
       {/* Global Category & Live Filter Bar (Always accessible on both Map & List views on Mobile & Desktop) */}
@@ -385,7 +403,7 @@ export default function EventMap() {
             }}
           >
             <i className="fa-solid fa-bolt"></i>
-            <span>LIVE ({eventStats.liveCount})</span>
+            <span>{t.statusLive} ({eventStats.liveCount})</span>
           </button>
 
           <button
@@ -617,12 +635,12 @@ export default function EventMap() {
           ) : (
             /* COMPACT EVENT LIST VIEW */
             <>
-              <div className="panel-header">
-                <div>
-                  <p className="panel-eyebrow">{t.eventsTitle}</p>
-                  <h2>
-                    {filteredEvents.length} {t.eventsCount}
-                  </h2>
+              <div className="panel-header list-panel-header">
+                <div className="list-title-row">
+                  <h2 className="list-title">{t.eventsTitle}</h2>
+                  <span className="stats-pill">
+                    <i className="fa-solid fa-calendar-day"></i> {filteredEvents.length} Events
+                  </span>
                 </div>
               </div>
 
@@ -737,6 +755,37 @@ export default function EventMap() {
                     </article>
                   );
                 })}
+
+                {/* Slim Mobile-Friendly List End Links */}
+                <div className="list-bottom-info">
+                  <div className="list-info-links">
+                    <a
+                      href="https://buymeacoffee.com/wienwasgeht"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="footer-beer-btn"
+                    >
+                      <i className="fa-solid fa-beer-mug-empty"></i>{" "}
+                      <span>{language === "de" ? "Bier ausgeben" : "Buy a beer"}</span>
+                    </a>
+                    <span className="footer-divider">&bull;</span>
+                    <button
+                      type="button"
+                      className="btn-footer-link"
+                      onClick={() => setActiveModal("imprint")}
+                    >
+                      {t.imprint}
+                    </button>
+                    <span className="footer-divider">&bull;</span>
+                    <button
+                      type="button"
+                      className="btn-footer-link"
+                      onClick={() => setActiveModal("privacy")}
+                    >
+                      {t.privacyPolicy}
+                    </button>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -761,12 +810,12 @@ export default function EventMap() {
         </button>
       </div>
 
-      {/* Sleek Municipal Footer Bar */}
+      {/* Sleek Minimalist Footer Bar */}
       <footer className="app-footer-clean">
         <div className="footer-left">
           <span>WienWasGeht &bull; &copy; 2026</span>
-          <span className="footer-divider">&bull;</span>
-          <span className="footer-opendata">{t.openDataNotice}</span>
+          <span className="footer-divider desktop-only">&bull;</span>
+          <span className="footer-opendata desktop-only">{t.openDataNotice}</span>
         </div>
 
         <div className="footer-right">
