@@ -846,37 +846,6 @@ export default function EventMap() {
                     </article>
                   );
                 })}
-
-                {/* Slim Mobile-Friendly List End Links */}
-                <div className="list-bottom-info">
-                  <div className="list-info-links">
-                    <a
-                      href="https://buymeacoffee.com/wienwasgeht"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="footer-beer-btn"
-                    >
-                      <i className="fa-solid fa-beer-mug-empty"></i>{" "}
-                      <span>{language === "de" ? "Bier ausgeben" : "Buy a beer"}</span>
-                    </a>
-                    <span className="footer-divider">&bull;</span>
-                    <button
-                      type="button"
-                      className="btn-footer-link"
-                      onClick={() => setActiveModal("imprint")}
-                    >
-                      {t.imprint}
-                    </button>
-                    <span className="footer-divider">&bull;</span>
-                    <button
-                      type="button"
-                      className="btn-footer-link"
-                      onClick={() => setActiveModal("privacy")}
-                    >
-                      {t.privacyPolicy}
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
         </aside>
