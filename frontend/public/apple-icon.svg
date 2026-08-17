@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Pin Body Gradient: Otto Wagner Resedagrün -->
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b8250"/>
+      <stop offset="50%" stop-color="#2e6f40"/>
+      <stop offset="100%" stop-color="#1e4d2b"/>
+    </linearGradient>
+
+    <!-- Subtle Golden Rim Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fae892"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#a08022"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow for Depth -->
+    <filter id="pinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1e4d2b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Clean Pure White Background -->
+  <rect width="512" height="512" fill="#ffffff"/>
+
+  <!-- Clean Green Map Pin with White Center (No Green Dot) -->
+  <g filter="url(#pinShadow)">
+    <!-- Outer Pin Shape -->
+    <path d="M256 68 C172 68 104 136 104 220 C104 316 235 448 246.5 459.5 C251.5 464.5 260.5 464.5 265.5 459.5 C277 448 408 316 408 220 C408 136 340 68 256 68 Z"
+          fill="url(#pinGrad)"
+          stroke="url(#goldGrad)"
+          stroke-width="12"
+          stroke-linejoin="round"/>
+
+    <!-- Crisp White Inner Cutout (Clean Map Marker Hole) -->
+    <circle cx="256" cy="216" r="66" fill="#ffffff" stroke="url(#goldGrad)" stroke-width="8"/>
+  </g>
+</svg>

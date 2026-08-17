@@ -73,6 +73,14 @@ export const metadata: Metadata = {
     description:
       "Tagesaktuelle Veranstaltungen, Club-Nächte, Konzerte und Kultur-Highlights in Wien auf der Live-Karte.",
   },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/apple-icon.svg",
+  },
   robots: {
     index: true,
     follow: true,
@@ -135,6 +143,9 @@ export default function RootLayout({
   return (
     <html lang="de" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="alternate icon" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/apple-icon.svg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
