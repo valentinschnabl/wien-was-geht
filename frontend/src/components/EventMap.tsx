@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { translations, Language, normalizeCategory, getCategoryLabel } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "./ThemeToggle";
 import type { EventRecord, UserLocation } from "./MapView";
 import { calculateDistanceKm } from "@/lib/distance";
 
@@ -88,9 +89,33 @@ function formatEventDateRange(
 
 export default function EventMap() {
   const [language, setLanguage] = useState<Language>("de");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize theme from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("wienwasgeht_theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else if (
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      setTheme("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("wienwasgeht_theme", nextTheme);
+  };
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -435,6 +460,11 @@ export default function EventMap() {
         </div>
 
         <div className="header-actions">
+          <ThemeToggle
+            theme={theme}
+            onToggle={toggleTheme}
+            language={language}
+          />
           <LanguageSwitcher
             currentLanguage={language}
             onLanguageChange={setLanguage}
@@ -612,6 +642,7 @@ export default function EventMap() {
               events={filteredEvents}
               userLocation={userLocation}
               language={language}
+              theme={theme}
               onLocateClick={requestBrowserLocation}
               locationState={locationState}
               onSelectEvent={(event) => handleSelectEvent(event, "map")}

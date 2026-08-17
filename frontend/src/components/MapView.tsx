@@ -36,6 +36,7 @@ interface MapViewProps {
   language: Language;
   onLocateClick: () => void;
   locationState: "idle" | "locating" | "active" | "denied";
+  theme?: "light" | "dark";
   onSelectEvent?: (event: EventRecord) => void;
   selectedEvent?: EventRecord | null;
   selectionSource?: "map" | "list";
@@ -504,10 +505,21 @@ export default function MapView({
         scrollWheelZoom
         className="map-shell"
       >
-        <TileLayer
-          attribution='&copy; Esri &bull; OpenStreetMap'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-        />
+        {theme === "dark" ? (
+          <TileLayer
+            key="carto-dark"
+            attribution='&copy; <a href="https://carto.com/">CARTO</a> &bull; OpenStreetMap'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            subdomains="abcd"
+            maxZoom={19}
+          />
+        ) : (
+          <TileLayer
+            key="esri-light"
+            attribution='&copy; Esri &bull; OpenStreetMap'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          />
+        )}
 
         {/* Resizes and invalidates map container size on mobile tab switch */}
         <MapResizeController />
