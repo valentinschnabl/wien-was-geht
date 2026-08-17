@@ -31,7 +31,7 @@ interface GeminiClassificationItem {
 @Injectable()
 export class AiCategorizerService {
   private readonly logger = new Logger(AiCategorizerService.name);
-  private readonly geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  private readonly geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -109,9 +109,9 @@ export class AiCategorizerService {
     const classifiedEvents: Prisma.EventCreateInput[] = [];
 
     for (let i = 0; i < events.length; i += batchSize) {
-      // Throttle slightly between batches to respect RPM limits
+      // Throttle between batches to respect RPM limits
       if (i > 0) {
-        await new Promise((res) => setTimeout(res, 600));
+        await new Promise((res) => setTimeout(res, 1500));
       }
 
       const batch = events.slice(i, i + batchSize);
