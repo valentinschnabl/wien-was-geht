@@ -20,6 +20,7 @@ export interface EventRecord {
   url?: string | null;
   imageUrl?: string | null;
   category?: string | null;
+  isFree?: boolean | null;
   distanceKm?: number | null;
   temporalStatus?: "live" | "upcoming" | "tomorrow" | "concluded";
 }
@@ -437,6 +438,11 @@ export default function MapView({
                       <span className="badge badge-concluded">
                         <i className="fa-solid fa-circle badge-dot"></i>{" "}
                         {language === "de" ? "BEENDET" : "ENDED"}
+                      </span>
+                    )}
+                    {event.isFree === true && (
+                      <span className="badge badge-free">
+                        <i className="fa-solid fa-tag badge-icon"></i> {t.badgeFree}
                       </span>
                     )}
                     {typeof event.distanceKm === "number" && (

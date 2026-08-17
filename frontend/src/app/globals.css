@@ -360,6 +360,41 @@ html, body {
   color: #ffffff !important;
 }
 
+.cat-chip-free {
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.cat-chip-free i {
+  color: #059669;
+}
+
+.cat-chip-free.active {
+  background: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.35) !important;
+}
+
+.cat-chip-free.active i {
+  color: #ffffff !important;
+}
+
+.badge-free {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-free .badge-icon {
+  font-size: 0.65rem;
+  color: #059669;
+}
+
 /* Sidebar Search Bar */
 .sidebar-search-container {
   position: relative;

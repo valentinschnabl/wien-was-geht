@@ -23,6 +23,7 @@ model Event {
   venueName   String
   latitude    Float
   longitude   Float
+  isFree      Boolean?  @default(false)
   geom        Unsupported("geometry(Point, 4326)")?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

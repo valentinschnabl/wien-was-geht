@@ -215,6 +215,7 @@ export class EintrittFreiService implements IEventProvider {
         venueName: venueClean,
         latitude: coords.lat,
         longitude: coords.lng,
+        isFree: true,
       });
     }
 

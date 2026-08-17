@@ -88,10 +88,15 @@ export class AiCategorizerService {
     events: Prisma.EventCreateInput[],
     apiKey: string,
   ): Promise<Prisma.EventCreateInput[]> {
-    const batchSize = 40;
+    const batchSize = 25;
     const classifiedEvents: Prisma.EventCreateInput[] = [];
 
     for (let i = 0; i < events.length; i += batchSize) {
+      // Throttle slightly between batches to respect RPM limits
+      if (i > 0) {
+        await new Promise((res) => setTimeout(res, 600));
+      }
+
       const batch = events.slice(i, i + batchSize);
       const batchInput = batch.map((ev, index) => ({
         id: String(index),
@@ -116,58 +121,78 @@ Events:
 ${JSON.stringify(batchInput, null, 2)}
 `;
 
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${apiKey}`;
-        const response = await firstValueFrom(
-          this.httpService.post<any>(
-            url,
-            {
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseMimeType: 'application/json',
-                temperature: 0.1,
+      let batchClassified = false;
+      const maxRetries = 2;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${apiKey}`;
+          const response = await firstValueFrom(
+            this.httpService.post<any>(
+              url,
+              {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  responseMimeType: 'application/json',
+                  temperature: 0.1,
+                },
               },
-            },
-            {
-              headers: { 'Content-Type': 'application/json' },
-              timeout: 10000,
-            },
-          ),
-        );
+              {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 25000,
+              },
+            ),
+          );
 
-        const rawText =
-          response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const results: GeminiClassificationItem[] = JSON.parse(rawText);
-          const resultMap = new Map(results.map((r) => [r.id, r.category]));
+          const rawText =
+            response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const results: GeminiClassificationItem[] = JSON.parse(rawText);
+            const resultMap = new Map(results.map((r) => [r.id, r.category]));
 
-          batch.forEach((ev, index) => {
-            const aiCategory = resultMap.get(String(index));
-            const finalCategory =
-              aiCategory && VALID_CATEGORIES.includes(aiCategory)
-                ? aiCategory
-                : this.classifyWithKeywords(ev.title, ev.description || '');
+            batch.forEach((ev, index) => {
+              const aiCategory = resultMap.get(String(index));
+              const finalCategory =
+                aiCategory && VALID_CATEGORIES.includes(aiCategory)
+                  ? aiCategory
+                  : this.classifyWithKeywords(ev.title, ev.description || '');
 
-            classifiedEvents.push({
-              ...ev,
-              category: finalCategory,
+              classifiedEvents.push({
+                ...ev,
+                category: finalCategory,
+              });
             });
-          });
-          continue;
+            batchClassified = true;
+            break;
+          }
+        } catch (batchErr) {
+          const errMsg = (batchErr as Error).message || '';
+          const isRateLimit = errMsg.includes('429');
+
+          if (isRateLimit && attempt < maxRetries) {
+            this.logger.debug(
+              `Gemini 429 rate limit hit, backing off ${(attempt + 1) * 1500}ms...`,
+            );
+            await new Promise((res) => setTimeout(res, (attempt + 1) * 1500));
+            continue;
+          }
+
+          this.logger.debug(
+            `Batch categorization attempt ${attempt + 1} fallback: ${errMsg}`,
+          );
+          break;
         }
-      } catch (batchErr) {
-        this.logger.debug(
-          `Batch classification failed: ${(batchErr as Error).message}`,
-        );
       }
 
-      // Fallback for this batch if request failed
-      batch.forEach((ev) => {
-        classifiedEvents.push({
-          ...ev,
-          category: this.classifyWithKeywords(ev.title, ev.description || ''),
+      // Fallback for this batch if request failed or was rate-limited
+      if (!batchClassified) {
+        batch.forEach((ev) => {
+          classifiedEvents.push({
+            ...ev,
+            category: this.classifyWithKeywords(ev.title, ev.description || ''),
+          });
         });
-      });
+      }
     }
 
     return classifiedEvents;

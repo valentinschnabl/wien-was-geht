@@ -149,8 +149,9 @@ Returns paginated events with optional filtering.
 
 **Query Parameters:**
 - `date` (string) — `today` (default), `tomorrow`, or `all`.
+- `free` (boolean) — Filter strictly for admission-free events (`free=true`).
 - `category` (string) — Filter by normalized category (`Music`, `Culture`, `Nightlife`, `Sports`, `Culinary`, `Family`).
-- `provider` (string) — Filter by source provider (`stadt_wien`, `oh_schon_hell`, `capeet`, `resident_advisor`, `goodnight`, `events_at`, `ticketmaster`, `eventbrite`, `eventfrog`).
+- `provider` (string) — Filter by source provider (`stadt_wien`, `kultursommer`, `oh_schon_hell`, `capeet`, `eintritt_frei`, `resident_advisor`, `goodnight`, `events_at`, `ticketmaster`, `eventbrite`, `eventfrog`).
 - `limit` (number, default: 500) — Max records to return.
 - `offset` (number, default: 0) — Pagination offset.
 
@@ -167,13 +168,13 @@ Manually triggers an immediate ingestion and enrichment cycle across all active 
 The project maintains comprehensive test suites for both backend and frontend:
 
 ```bash
-# Run backend test suite (NestJS / Jest) — 56 tests
+# Run backend test suite (NestJS / Jest) — 64 tests
 npm run test
 
 # Run frontend test suite (Next.js / Vitest) — 15 tests
 cd frontend && npm run test
 
-# Run full project test suite
+# Run full project test suite (79 tests)
 npm run test && cd frontend && npm run test && cd ..
 ```
 

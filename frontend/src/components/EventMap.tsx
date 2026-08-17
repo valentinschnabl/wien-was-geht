@@ -95,6 +95,7 @@ export default function EventMap() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [onlyFree, setOnlyFree] = useState(false);
   const [includeConcluded, setIncludeConcluded] = useState(false);
   const [quickFilter, setQuickFilter] = useState<"all" | "live" | "tomorrow">("all");
 
@@ -293,6 +294,11 @@ export default function EventMap() {
           }
         }
 
+        // Free / Admission Filter
+        if (onlyFree && ev.isFree !== true) {
+          return false;
+        }
+
         // Category Filter
         if (selectedCategory !== "all") {
           const normEvCat = normalizeCategory(ev.category);
@@ -321,13 +327,14 @@ export default function EventMap() {
         }
         return a.title.localeCompare(b.title);
       });
-  }, [events, userLocation, includeConcluded, searchQuery, quickFilter, selectedCategory]);
+  }, [events, userLocation, includeConcluded, searchQuery, quickFilter, selectedCategory, onlyFree]);
 
   // Compute category event counts for badges
   const stats = useMemo(() => {
     let todayTotal = 0;
     let tomorrowTotal = 0;
     let liveTotal = 0;
+    let freeTotal = 0;
 
     const categoryCounts: Record<string, number> = {
       all: 0,
@@ -369,10 +376,13 @@ export default function EventMap() {
         tomorrowTotal++;
       }
 
-      // Count categories scoped to the current day view (tomorrow vs today)
+      // Count categories and free events scoped to active day view (tomorrow vs today)
       const inScope = quickFilter === "tomorrow" ? isTomorrow : isToday;
       if (inScope) {
         categoryCounts.all++;
+        if (ev.isFree === true) {
+          freeTotal++;
+        }
         const norm = normalizeCategory(ev.category);
         if (categoryCounts[norm] !== undefined) {
           categoryCounts[norm]++;
@@ -380,7 +390,7 @@ export default function EventMap() {
       }
     });
 
-    return { todayTotal, tomorrowTotal, liveTotal, categoryCounts };
+    return { todayTotal, tomorrowTotal, liveTotal, freeTotal, categoryCounts };
   }, [events, quickFilter]);
 
   return (
@@ -438,15 +448,16 @@ export default function EventMap() {
         <div className="category-chips-scroll">
           <button
             type="button"
-            className={`cat-chip ${selectedCategory === "all" && quickFilter === "all" ? "active" : ""}`}
+            className={`cat-chip ${selectedCategory === "all" && quickFilter === "all" && !onlyFree ? "active" : ""}`}
             onClick={() => {
               setSelectedCategory("all");
               setQuickFilter("all");
+              setOnlyFree(false);
               setSelectedEvent(null);
             }}
           >
             <i className="fa-solid fa-layer-group"></i>
-            <span>{t.filterAllCategories} ({stats.todayTotal})</span>
+            <span>{t.filterAllCategories} ({quickFilter === "tomorrow" ? stats.tomorrowTotal : stats.todayTotal})</span>
           </button>
 
           <button
@@ -471,6 +482,18 @@ export default function EventMap() {
           >
             <i className="fa-solid fa-calendar-day"></i>
             <span>{t.statusTomorrow} ({stats.tomorrowTotal})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cat-chip cat-chip-free ${onlyFree ? "active" : ""}`}
+            onClick={() => {
+              setOnlyFree(!onlyFree);
+              setSelectedEvent(null);
+            }}
+          >
+            <i className="fa-solid fa-tag"></i>
+            <span>{t.filterFree} ({stats.freeTotal})</span>
           </button>
 
           <button
@@ -652,6 +675,11 @@ export default function EventMap() {
                       <i className="fa-solid fa-circle badge-dot"></i> {t.statusConcluded}
                     </span>
                   )}
+                  {selectedEvent.isFree === true && (
+                    <span className="badge badge-free">
+                      <i className="fa-solid fa-tag badge-icon"></i> {t.badgeFree}
+                    </span>
+                  )}
 
                   {typeof selectedEvent.distanceKm === "number" && (
                     <span className="distance-pill">
@@ -807,6 +835,11 @@ export default function EventMap() {
                             {event.temporalStatus === "concluded" && (
                               <span className="badge badge-concluded">
                                 <i className="fa-solid fa-circle badge-dot"></i> {t.statusConcluded}
+                              </span>
+                            )}
+                            {event.isFree === true && (
+                              <span className="badge badge-free">
+                                <i className="fa-solid fa-tag badge-icon"></i> {t.badgeFree}
                               </span>
                             )}
 

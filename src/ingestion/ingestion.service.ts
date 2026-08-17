@@ -15,6 +15,8 @@ import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
 
+import { detectIsFree } from '../common/utils/pricing.util';
+
 export interface IngestionResult {
   fetched: number;
   persisted: number;
@@ -168,7 +170,16 @@ export class IngestionService implements OnModuleInit {
       deduplicatedEvents,
     );
 
-    const persisted = await this.persistence.saveEvents(categorizedEvents);
+    // Free / Price enrichment step
+    const enrichedEvents = categorizedEvents.map((ev) => ({
+      ...ev,
+      isFree:
+        ev.isFree !== undefined
+          ? ev.isFree
+          : detectIsFree(ev.provider, ev.title, ev.description),
+    }));
+
+    const persisted = await this.persistence.saveEvents(enrichedEvents);
 
     this.logger.log(
       `Ingestion complete. Combined total fetched: ${combinedEvents.length}, ` +

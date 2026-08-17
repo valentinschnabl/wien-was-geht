@@ -13,16 +13,19 @@ export class EventsController {
     @Query('category') category?: string,
     @Query('today') today?: string,
     @Query('date') date?: string,
+    @Query('free') free?: string,
   ) {
     const parsedLimit = this.parsePositiveInt(limit, 500, 2000);
     const parsedOffset = this.parseNonNegativeInt(offset, 0);
     const isToday = today === 'true' || today === '1';
+    const isFree = free === 'true' || free === '1';
 
     return this.eventsService.findAll(parsedLimit, parsedOffset, {
       provider,
       category,
       today: isToday,
       date,
+      free: isFree ? true : undefined,
     });
   }
 

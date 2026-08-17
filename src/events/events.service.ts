@@ -7,6 +7,7 @@ export interface EventFilters {
   category?: string;
   today?: boolean;
   date?: string;
+  free?: boolean;
 }
 
 @Injectable()
@@ -31,6 +32,10 @@ export class EventsService {
 
     if (filters.category) {
       where.category = filters.category;
+    }
+
+    if (filters.free) {
+      where.isFree = true;
     }
 
     const now = new Date();

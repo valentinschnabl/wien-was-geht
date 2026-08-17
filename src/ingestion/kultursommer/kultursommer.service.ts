@@ -184,6 +184,7 @@ export class KultursommerService implements IEventProvider {
               venueName,
               latitude: coords.lat,
               longitude: coords.lng,
+              isFree: true,
             });
           }
         }
