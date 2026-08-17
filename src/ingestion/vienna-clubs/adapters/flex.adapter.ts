@@ -29,6 +29,11 @@ export function parseFlexEvents(
       for (const item of items) {
         if (item['@type'] !== 'Event' || !item.name || !item.startDate) continue;
 
+        const nameLower = item.name.trim().toLowerCase();
+        if (nameLower === 'home' || nameLower === 'startseite' || nameLower === 'flex' || nameLower === 'programm') {
+          continue;
+        }
+
         const start = new Date(item.startDate);
         if (isNaN(start.getTime())) continue;
 

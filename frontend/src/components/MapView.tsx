@@ -506,19 +506,15 @@ export default function MapView({
         scrollWheelZoom
         className="map-shell"
       >
-        {theme === "dark" ? (
-          <TileLayer
-            key="esri-dark-gray"
-            attribution='&copy; Esri &bull; OpenStreetMap'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-          />
-        ) : (
-          <TileLayer
-            key="esri-light"
-            attribution='&copy; Esri &bull; OpenStreetMap'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-          />
-        )}
+        <TileLayer
+          key={`tile-layer-${theme}`}
+          attribution='&copy; Esri &bull; OpenStreetMap'
+          url={
+            theme === "dark"
+              ? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          }
+        />
 
         {/* Resizes and invalidates map container size on mobile tab switch */}
         <MapResizeController />
