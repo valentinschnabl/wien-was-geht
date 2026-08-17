@@ -1004,7 +1004,38 @@ export default function EventMap() {
             </div>
             <div className="modal-body">
               <p>
-                {activeModal === "imprint" ? t.imprintText : t.privacyText}
+                {(activeModal === "imprint" ? t.imprintText : t.privacyText)
+                  .split("\n")
+                  .map((line, idx) => {
+                    if (line.includes("https://valentin-schnabl.at")) {
+                      return (
+                        <span key={idx}>
+                          Website:{" "}
+                          <a
+                            href="https://valentin-schnabl.at"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            valentin-schnabl.at
+                          </a>
+                          {"\n"}
+                        </span>
+                      );
+                    }
+                    if (line.includes("simplyycoding@gmail.com")) {
+                      const prefix = line.split("simplyycoding@gmail.com")[0];
+                      return (
+                        <span key={idx}>
+                          {prefix}
+                          <a href="mailto:simplyycoding@gmail.com">
+                            simplyycoding@gmail.com
+                          </a>
+                          {"\n"}
+                        </span>
+                      );
+                    }
+                    return <span key={idx}>{line}{"\n"}</span>;
+                  })}
               </p>
             </div>
             <div className="modal-footer modal-footer-flex">

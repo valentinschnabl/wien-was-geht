@@ -18,11 +18,13 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.de.imprintText).toContain("Valentin Schnabl");
     expect(translations.de.imprintText).toContain("Margaretenstraße 89/2");
     expect(translations.de.imprintText).toContain("40023236");
+    expect(translations.de.imprintText).toContain("valentin-schnabl.at");
     expect(translations.de.imprintText).toContain("Stadt Wien Open Government Data");
     expect(translations.de.imprintText).toContain("simplyycoding@gmail.com");
 
     expect(translations.en.imprintText).toContain("Valentin Schnabl");
     expect(translations.en.imprintText).toContain("40023236");
+    expect(translations.en.imprintText).toContain("valentin-schnabl.at");
     expect(translations.en.imprintText).toContain("simplyycoding@gmail.com");
   });
 

@@ -1518,6 +1518,18 @@ html, body {
   min-height: 0;
 }
 
+.modal-body a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.modal-body a:hover {
+  color: var(--accent-primary-hover);
+}
+
 .modal-footer {
   padding: 12px 18px;
   border-top: 1px solid var(--panel-border);
