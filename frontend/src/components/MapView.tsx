@@ -282,6 +282,7 @@ export default function MapView({
   language,
   onLocateClick,
   locationState,
+  theme = "light",
   onSelectEvent,
   selectedEvent,
   selectionSource,
@@ -359,8 +360,8 @@ export default function MapView({
       if (totalAtLoc > 1) {
         const angle = (indexAtLoc / totalAtLoc) * 2 * Math.PI;
         const radius = 0.00018; // ~15 meters in Vienna coordinates
-        finalLat = event.latitude + Math.sin(angle) * radius;
-        finalLng = event.longitude + Math.cos(angle) * (radius * 1.45);
+        finalLat = lat + Math.sin(angle) * radius;
+        finalLng = lng + Math.cos(angle) * (radius * 1.45);
       }
 
       // Truncate description snippet for mini map popup

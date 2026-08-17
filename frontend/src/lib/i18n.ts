@@ -39,6 +39,8 @@ export interface Translations {
   filterCategory: string;
   filterAllCategories: string;
   filterTomorrow: string;
+  filterFree: string;
+  badgeFree: string;
   filterMusic: string;
   filterCulture: string;
   filterSports: string;
