@@ -12,6 +12,7 @@ import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
 import { LumaService } from './luma/luma.service';
+import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -42,6 +43,7 @@ export class IngestionService implements OnModuleInit {
     private readonly eintrittFreiProvider: EintrittFreiService,
     private readonly kultursommerProvider: KultursommerService,
     private readonly lumaProvider: LumaService,
+    private readonly viennaClubsProvider: ViennaClubsService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -159,6 +161,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Luma Vienna ingestion failed', error);
     }
 
+    let viennaClubsEvents: Prisma.EventCreateInput[] = [];
+    try {
+      viennaClubsEvents = await this.viennaClubsProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Vienna Clubs ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -172,6 +181,7 @@ export class IngestionService implements OnModuleInit {
       ...eintrittFreiEvents,
       ...kultursommerEvents,
       ...lumaEvents,
+      ...viennaClubsEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -242,7 +252,7 @@ export class IngestionService implements OnModuleInit {
         // Prioritize non-scraped, richer events (with photos, official APIs, better metadata)
         if (newScore > existingScore) {
           this.logger.debug(
-            `Deduplication: Replaced lower quality event "${existing.title}" (${existing.provider}, score ${existingScore}) with higher quality event from ${event.provider} (score ${newScore}).`,
+            `Deduplication: Replaced event "${existing.title}" (${existing.provider}, score ${existingScore}) with higher quality ${event.provider} (score ${newScore}).`,
           );
           uniqueEvents[existingIndex] = event;
         } else {
@@ -264,6 +274,7 @@ export class IngestionService implements OnModuleInit {
       TICKETMASTER: 50,
       EVENTBRITE: 50,
       RESIDENT_ADVISOR: 48,
+      VIENNA_CLUBS: 46,
       EVENTFROG: 45,
       LUMA: 42,
       STADT_WIEN: 40,

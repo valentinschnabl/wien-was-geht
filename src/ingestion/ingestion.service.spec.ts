@@ -12,6 +12,7 @@ import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
 import { LumaService } from './luma/luma.service';
+import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -29,11 +30,26 @@ describe('IngestionService', () => {
   let eintrittFreiService: EintrittFreiService;
   let kultursommerService: KultursommerService;
   let lumaService: LumaService;
+  let viennaClubsService: ViennaClubsService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
 
   const mockLumaService = {
     fetchEvents: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockViennaClubsService = {
+    fetchEvents: jest.fn().mockResolvedValue([
+      {
+        externalId: 'club-1',
+        provider: 'VIENNA_CLUBS',
+        title: 'BEAT IT Drum and Bass',
+        startTime: new Date('2026-08-15T23:00:00Z'),
+        venueName: 'Flex',
+        latitude: 48.2185,
+        longitude: 16.3705,
+      },
+    ]),
   };
 
   const mockStadtWienService = {
@@ -215,6 +231,7 @@ describe('IngestionService', () => {
         { provide: EintrittFreiService, useValue: mockEintrittFreiService },
         { provide: KultursommerService, useValue: mockKultursommerService },
         { provide: LumaService, useValue: mockLumaService },
+        { provide: ViennaClubsService, useValue: mockViennaClubsService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -233,6 +250,9 @@ describe('IngestionService', () => {
     eintrittFreiService = module.get<EintrittFreiService>(EintrittFreiService);
     kultursommerService = module.get<KultursommerService>(KultursommerService);
     lumaService = module.get<LumaService>(LumaService);
+    viennaClubsService = module.get<ViennaClubsService>(ViennaClubsService);
+    aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
+    lumaService = module.get<LumaService>(LumaService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
@@ -250,7 +270,7 @@ describe('IngestionService', () => {
       const summary = await service.run();
 
       expect(summary).toBeDefined();
-      expect(summary.fetched).toBe(11);
+      expect(summary.fetched).toBe(12);
       expect(summary.persisted).toBe(11);
       expect(summary.pruned).toBe(3);
 
@@ -263,6 +283,7 @@ describe('IngestionService', () => {
       expect(eventsAtService.fetchEvents).toHaveBeenCalled();
       expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
       expect(capeetService.fetchEvents).toHaveBeenCalled();
+      expect(viennaClubsService.fetchEvents).toHaveBeenCalled();
       expect(ohSchonHellService.fetchEvents).toHaveBeenCalled();
       expect(eintrittFreiService.fetchEvents).toHaveBeenCalled();
       expect(mockKultursommerService.fetchEvents).toHaveBeenCalled();
