@@ -947,8 +947,6 @@ export default function EventMap() {
       <footer className="app-footer-clean">
         <div className="footer-left">
           <span>WienWasGeht &bull; &copy; 2026</span>
-          <span className="footer-divider desktop-only">&bull;</span>
-          <span className="footer-opendata desktop-only">{t.openDataNotice}</span>
         </div>
 
         <div className="footer-right">
