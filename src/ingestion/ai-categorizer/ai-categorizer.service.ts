@@ -20,9 +20,12 @@ const VALID_CATEGORIES: EventCategory[] = [
   'Family',
 ];
 
+import { detectIsFree } from '../../common/utils/pricing.util';
+
 interface GeminiClassificationItem {
   id: string;
   category: EventCategory;
+  isFree?: boolean;
 }
 
 @Injectable()
@@ -37,37 +40,13 @@ export class AiCategorizerService {
   ): Promise<Prisma.EventCreateInput[]> {
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Separate events that already have a specific category from those needing AI classification
-    const eventsNeedingClassification: Prisma.EventCreateInput[] = [];
-    const unchangedEvents: Prisma.EventCreateInput[] = [];
-
-    for (const ev of events) {
-      if (
-        ev.category &&
-        ev.category !== 'General' &&
-        VALID_CATEGORIES.includes(ev.category as EventCategory)
-      ) {
-        unchangedEvents.push(ev);
-      } else {
-        eventsNeedingClassification.push(ev);
-      }
-    }
-
-    if (eventsNeedingClassification.length === 0) {
-      return events;
-    }
-
     this.logger.log(
-      `Categorizing ${eventsNeedingClassification.length} events using ${apiKey ? 'Gemini 2.5 Flash' : 'Keyword Fallback'}...`,
+      `Categorizing & price-enriching ${events.length} events using ${apiKey ? 'Gemini 2.5 Flash' : 'Keyword Fallback'}...`,
     );
 
     if (apiKey) {
       try {
-        const classified = await this.classifyWithGemini(
-          eventsNeedingClassification,
-          apiKey,
-        );
-        return [...unchangedEvents, ...classified];
+        return await this.classifyWithGemini(events, apiKey);
       } catch (err) {
         this.logger.warn(
           `Gemini AI categorization failed, falling back to keyword heuristics: ${(err as Error).message}`,
@@ -75,13 +54,18 @@ export class AiCategorizerService {
       }
     }
 
-    // Fallback to keyword matching
-    const classifiedWithKeywords = eventsNeedingClassification.map((ev) => ({
+    // Fallback to keyword matching & regex price detection
+    return events.map((ev) => ({
       ...ev,
-      category: this.classifyWithKeywords(ev.title, ev.description || ''),
+      category:
+        ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory)
+          ? ev.category
+          : this.classifyWithKeywords(ev.title, ev.description || ''),
+      isFree:
+        ev.isFree !== undefined && ev.isFree !== null
+          ? ev.isFree
+          : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
     }));
-
-    return [...unchangedEvents, ...classifiedWithKeywords];
   }
 
   private async classifyWithGemini(
@@ -101,21 +85,17 @@ export class AiCategorizerService {
       const batchInput = batch.map((ev, index) => ({
         id: String(index),
         title: ev.title,
-        description: ev.description ? ev.description.substring(0, 150) : '',
+        description: ev.description ? ev.description.substring(0, 160) : '',
         venue: ev.venueName,
       }));
 
       const prompt = `
-You are an expert event categorization AI for events happening in Vienna, Austria.
-Classify each of the following events into EXACTLY ONE of these categories:
-- "Music" (Live concerts, bands, classical music, jazz, acoustic, choir, orchestra)
-- "Nightlife" (Raves, techno, electronic club nights, party, DJ sets, afterhours)
-- "Culture" (Theater, exhibitions, comedy/kabarett, museums, guided walking tours, readings, vernissage)
-- "Sports" (Yoga, fitness workouts, running, cycling, sports tournaments)
-- "Culinary" (Food festivals, wine/beer tastings, markets, street food, cooking workshops)
-- "Family" (Events specifically targeted at children, toddlers, puppets, and families)
+You are an expert event categorization and pricing AI for events happening in Vienna, Austria.
+For each event, determine:
+1. "category": EXACTLY ONE of "Music", "Nightlife", "Culture", "Sports", "Culinary", "Family".
+2. "isFree": boolean (true if the event is free of charge / gratis / free admission / open air without ticket / freie Spende / vernissage / community festival; false if commercial ticket, entrance fee or club admission is required).
 
-Return ONLY a valid JSON array of objects with "id" and "category".
+Return ONLY a valid JSON array of objects with "id", "category", and "isFree".
 
 Events:
 ${JSON.stringify(batchInput, null, 2)}
@@ -148,18 +128,30 @@ ${JSON.stringify(batchInput, null, 2)}
             response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
             const results: GeminiClassificationItem[] = JSON.parse(rawText);
-            const resultMap = new Map(results.map((r) => [r.id, r.category]));
+            const resultMap = new Map(results.map((r) => [r.id, r]));
 
             batch.forEach((ev, index) => {
-              const aiCategory = resultMap.get(String(index));
+              const aiItem = resultMap.get(String(index));
+              const aiCategory = aiItem?.category;
               const finalCategory =
                 aiCategory && VALID_CATEGORIES.includes(aiCategory)
                   ? aiCategory
+                  : (ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory))
+                  ? ev.category
                   : this.classifyWithKeywords(ev.title, ev.description || '');
+
+              const keywordFree = detectIsFree(ev.provider, ev.title, ev.description);
+              const finalIsFree =
+                ev.isFree !== undefined && ev.isFree !== null
+                  ? ev.isFree
+                  : keywordFree !== null
+                  ? keywordFree
+                  : (aiItem?.isFree ?? false);
 
               classifiedEvents.push({
                 ...ev,
                 category: finalCategory,
+                isFree: finalIsFree,
               });
             });
             batchClassified = true;
@@ -189,7 +181,14 @@ ${JSON.stringify(batchInput, null, 2)}
         batch.forEach((ev) => {
           classifiedEvents.push({
             ...ev,
-            category: this.classifyWithKeywords(ev.title, ev.description || ''),
+            category:
+              ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory)
+                ? ev.category
+                : this.classifyWithKeywords(ev.title, ev.description || ''),
+            isFree:
+              ev.isFree !== undefined && ev.isFree !== null
+                ? ev.isFree
+                : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
           });
         });
       }

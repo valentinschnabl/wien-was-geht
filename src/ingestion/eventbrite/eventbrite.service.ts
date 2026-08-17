@@ -24,6 +24,7 @@ interface EventbriteDestinationEvent {
   end_date?: string;
   end_time?: string;
   timezone?: string;
+  is_free?: boolean;
   tags?: EventbriteTag[];
 }
 
@@ -287,6 +288,7 @@ export class EventbriteService implements IEventProvider {
         venueName,
         latitude,
         longitude,
+        isFree: typeof event.is_free === 'boolean' ? event.is_free : undefined,
       });
     }
 

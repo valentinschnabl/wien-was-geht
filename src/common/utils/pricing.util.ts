@@ -26,15 +26,22 @@ export function detectIsFree(
   const combined = `${title || ''} ${description || ''}`.toLowerCase();
 
   const freePatterns = [
-    /\beintritt\s+frei\b/i,
-    /\bfreier\s+eintritt\b/i,
+    /\beintritt\s*(ist\s*)?frei\b/i,
+    /\bfreier\s*eintritt\b/i,
     /\bkostenlos\b/i,
     /\bgratis\b/i,
-    /\bfree\s+entry\b/i,
-    /\bfree\s+admission\b/i,
+    /\bfree\s*entry\b/i,
+    /\bfree\s*admission\b/i,
     /\bspendenbasis\b/i,
-    /\bpay\s+as\s+you\s+wish\b/i,
-    /\bfreie\s+spende\b/i,
+    /\bpay\s*as\s*you\s*wish\b/i,
+    /\bfreie\s*spende\b/i,
+    /\bohne\s*eintritt\b/i,
+    /\bkein\s*eintritt\b/i,
+    /\bkostenfreier?\b/i,
+    /\bgebührenfrei\b/i,
+    /\beintritt\s*:\s*frei\b/i,
+    /\beintritt\s*:\s*0\b/i,
+    /\beintritt\s*frei\s*bis\b/i,
   ];
 
   for (const pattern of freePatterns) {
@@ -44,11 +51,13 @@ export function detectIsFree(
   }
 
   const paidPatterns = [
-    /\btickets?\s+ab\s+\d+/i,
+    /\btickets?\s*(ab|von|um)\s*(\d+|€)/i,
     /\bvvk\s*[:€\d]/i,
     /\bak\s*[:€\d]/i,
-    /\beintritt\s*[:€\s]*\d+/i,
+    /\beintritt\s*[:€\s]*\d+([.,]\d+)?\s*€/i,
+    /\b\d+([.,]\d+)?\s*€\s*eintritt\b/i,
     /\bticketpreis\b/i,
+    /\bticket\s*kaufen\b/i,
   ];
 
   for (const pattern of paidPatterns) {

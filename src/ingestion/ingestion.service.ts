@@ -165,21 +165,12 @@ export class IngestionService implements OnModuleInit {
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
-    // AI Categorization step: Classify events with Gemini 2.5 Flash
+    // AI Categorization & Price Enrichment step: Classify events with Gemini 2.5 Flash
     const categorizedEvents = await this.aiCategorizer.categorizeEvents(
       deduplicatedEvents,
     );
 
-    // Free / Price enrichment step
-    const enrichedEvents = categorizedEvents.map((ev) => ({
-      ...ev,
-      isFree:
-        ev.isFree !== undefined
-          ? ev.isFree
-          : detectIsFree(ev.provider, ev.title, ev.description),
-    }));
-
-    const persisted = await this.persistence.saveEvents(enrichedEvents);
+    const persisted = await this.persistence.saveEvents(categorizedEvents);
 
     this.logger.log(
       `Ingestion complete. Combined total fetched: ${combinedEvents.length}, ` +
