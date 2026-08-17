@@ -35,34 +35,34 @@
 }
 
 [data-theme="dark"] {
-  --bg-color: #0c110d;
-  --panel-bg: #141a15;
-  --panel-border: #232d24;
-  --card-bg: #182019;
-  --card-border: #273428;
-  --subtle-bg: #1c251d;
-  --subtle-border: #2c3c2e;
-  --popup-bg: #161e17;
+  --bg-color: #191c1a;
+  --panel-bg: #212522;
+  --panel-border: #323834;
+  --card-bg: #282d2a;
+  --card-border: #3a423d;
+  --subtle-bg: #2f3631;
+  --subtle-border: #414b43;
+  --popup-bg: #242926;
 
-  --text-main: #f0f4ef;
-  --text-muted: #9eb0a1;
-  --text-light: #758677;
+  --text-main: #f4f5f3;
+  --text-muted: #a6b2a8;
+  --text-light: #7e8d81;
 
-  /* Reseda Green Dark Mode adjusted for high legibility */
-  --accent-primary: #6c9464;
-  --accent-primary-hover: #82aa7a;
-  --accent-primary-light: #1b261c;
+  /* Reseda Green Dark Mode adjusted for warm elegance */
+  --accent-primary: #74a86c;
+  --accent-primary-hover: #8ac082;
+  --accent-primary-light: #2c3c2b;
 
   /* User Location GPS Blue */
   --user-location-blue: #38bdf8;
-  --user-location-light: #0c2d48;
+  --user-location-light: #163044;
 
-  --live-bg: #064e3b;
-  --live-text: #6ee7b7;
-  --upcoming-bg: #1b261c;
+  --live-bg: #3c1e22;
+  --live-text: #fca5a5;
+  --upcoming-bg: #2c3c2b;
   --upcoming-text: #86efac;
-  --concluded-bg: #450a0a;
-  --concluded-text: #fca5a5;
+  --concluded-bg: #362424;
+  --concluded-text: #f87171;
 }
 
 * {
