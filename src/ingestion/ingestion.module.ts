@@ -11,6 +11,7 @@ import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
+import { LumaService } from './luma/luma.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -33,6 +34,7 @@ import { IngestionController } from './ingestion.controller';
     OhSchonHellService,
     EintrittFreiService,
     KultursommerService,
+    LumaService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -49,6 +51,7 @@ import { IngestionController } from './ingestion.controller';
     OhSchonHellService,
     EintrittFreiService,
     KultursommerService,
+    LumaService,
     AiCategorizerService,
     IngestionService,
   ],

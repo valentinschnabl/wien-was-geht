@@ -11,6 +11,7 @@ import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
+import { LumaService } from './luma/luma.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -40,6 +41,7 @@ export class IngestionService implements OnModuleInit {
     private readonly ohSchonHellProvider: OhSchonHellService,
     private readonly eintrittFreiProvider: EintrittFreiService,
     private readonly kultursommerProvider: KultursommerService,
+    private readonly lumaProvider: LumaService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -150,6 +152,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Kultursommer Wien ingestion failed', error);
     }
 
+    let lumaEvents: Prisma.EventCreateInput[] = [];
+    try {
+      lumaEvents = await this.lumaProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('Luma Vienna ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -162,6 +171,7 @@ export class IngestionService implements OnModuleInit {
       ...ohSchonHellEvents,
       ...eintrittFreiEvents,
       ...kultursommerEvents,
+      ...lumaEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -255,6 +265,7 @@ export class IngestionService implements OnModuleInit {
       EVENTBRITE: 50,
       RESIDENT_ADVISOR: 48,
       EVENTFROG: 45,
+      LUMA: 42,
       STADT_WIEN: 40,
       OPENWEB_NINJA: 30,
       CAPEET: 35,

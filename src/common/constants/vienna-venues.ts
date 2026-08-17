@@ -69,6 +69,10 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'club u': { lat: 48.2005, lng: 16.3695 },
   'ponyhof': { lat: 48.1988, lng: 16.3512 },
   'babylon': { lat: 48.2152, lng: 16.3421 },
+  'zoku': { lat: 48.2172, lng: 16.4021 },
+  'zoku vienna': { lat: 48.2172, lng: 16.4021 },
+  'the popp': { lat: 48.2149, lng: 16.4029 },
+  'ototo store': { lat: 48.2155, lng: 16.3839 },
 
   // Large Concert Halls & Arenas
   'gasometer': { lat: 48.1852, lng: 16.4208 },

@@ -11,6 +11,7 @@ import { CapeetService } from './capeet/capeet.service';
 import { OhSchonHellService } from './oh-schon-hell/oh-schon-hell.service';
 import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
+import { LumaService } from './luma/luma.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -27,8 +28,13 @@ describe('IngestionService', () => {
   let ohSchonHellService: OhSchonHellService;
   let eintrittFreiService: EintrittFreiService;
   let kultursommerService: KultursommerService;
+  let lumaService: LumaService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
+
+  const mockLumaService = {
+    fetchEvents: jest.fn().mockResolvedValue([]),
+  };
 
   const mockStadtWienService = {
     fetchEvents: jest.fn().mockResolvedValue([
@@ -208,6 +214,7 @@ describe('IngestionService', () => {
         { provide: OhSchonHellService, useValue: mockOhSchonHellService },
         { provide: EintrittFreiService, useValue: mockEintrittFreiService },
         { provide: KultursommerService, useValue: mockKultursommerService },
+        { provide: LumaService, useValue: mockLumaService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -224,6 +231,8 @@ describe('IngestionService', () => {
     capeetService = module.get<CapeetService>(CapeetService);
     ohSchonHellService = module.get<OhSchonHellService>(OhSchonHellService);
     eintrittFreiService = module.get<EintrittFreiService>(EintrittFreiService);
+    kultursommerService = module.get<KultursommerService>(KultursommerService);
+    lumaService = module.get<LumaService>(LumaService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });
