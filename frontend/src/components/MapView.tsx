@@ -343,21 +343,16 @@ export default function MapView({
     const locationIndices = new Map<string, number>();
 
     return events.map((event) => {
-      if (
-        typeof event.latitude !== "number" ||
-        typeof event.longitude !== "number" ||
-        (event.latitude === 0 && event.longitude === 0)
-      ) {
-        return null;
-      }
+      const lat = (typeof event.latitude === "number" && event.latitude !== 0) ? event.latitude : 48.2082;
+      const lng = (typeof event.longitude === "number" && event.longitude !== 0) ? event.longitude : 16.3738;
 
-      const key = `${event.latitude.toFixed(5)},${event.longitude.toFixed(5)}`;
+      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       const totalAtLoc = locationCounts.get(key) || 1;
       const indexAtLoc = locationIndices.get(key) || 0;
       locationIndices.set(key, indexAtLoc + 1);
 
-      let finalLat = event.latitude;
-      let finalLng = event.longitude;
+      let finalLat = lat;
+      let finalLng = lng;
 
       // Micro-spread co-located events in a clean ~15m radius around the venue location
       if (totalAtLoc > 1) {

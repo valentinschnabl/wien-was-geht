@@ -365,10 +365,14 @@ export default function EventMap() {
 
       const isToday = start <= todayEnd && end >= todayStart;
       const isTomorrow = start <= tomorrowEnd && end >= tomorrowStart;
+      const isLive = start <= now && end >= now;
+      const isConcluded = end < now;
 
       if (isToday) {
-        todayTotal++;
-        if (start <= now && end >= now) {
+        if (includeConcluded || !isConcluded) {
+          todayTotal++;
+        }
+        if (isLive) {
           liveTotal++;
         }
       }
@@ -376,8 +380,16 @@ export default function EventMap() {
         tomorrowTotal++;
       }
 
-      // Count categories and free events scoped to active day view (tomorrow vs today)
-      const inScope = quickFilter === "tomorrow" ? isTomorrow : isToday;
+      // Count categories and free events scoped strictly to active visible filter
+      let inScope = false;
+      if (quickFilter === "tomorrow") {
+        inScope = isTomorrow;
+      } else if (quickFilter === "live") {
+        inScope = isToday && isLive;
+      } else {
+        inScope = isToday && (includeConcluded || !isConcluded);
+      }
+
       if (inScope) {
         categoryCounts.all++;
         if (ev.isFree === true) {
@@ -391,7 +403,7 @@ export default function EventMap() {
     });
 
     return { todayTotal, tomorrowTotal, liveTotal, freeTotal, categoryCounts };
-  }, [events, quickFilter]);
+  }, [events, quickFilter, includeConcluded]);
 
   return (
     <div className="app-container-clean">
