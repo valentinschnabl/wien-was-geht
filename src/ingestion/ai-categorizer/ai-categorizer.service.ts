@@ -31,7 +31,8 @@ interface GeminiClassificationItem {
 @Injectable()
 export class AiCategorizerService {
   private readonly logger = new Logger(AiCategorizerService.name);
-  private readonly geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  private readonly geminiModel =
+    process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
 
   constructor(private readonly httpService: HttpService) {}
 
