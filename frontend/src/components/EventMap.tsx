@@ -94,19 +94,15 @@ export default function EventMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme from localStorage or default strictly to Light (White) mode on start
   useEffect(() => {
     const savedTheme = localStorage.getItem("wienwasgeht_theme");
     if (savedTheme === "dark" || savedTheme === "light") {
       setTheme(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
-    } else if (
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    ) {
-      setTheme("dark");
-      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      setTheme("light");
+      document.documentElement.setAttribute("data-theme", "light");
     }
   }, []);
 
