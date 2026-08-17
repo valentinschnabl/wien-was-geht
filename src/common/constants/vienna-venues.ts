@@ -136,10 +136,17 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   '1210 wien': { lat: 48.2785, lng: 16.4025 },
 };
 
+// Pre-sorted venue entries (longest key first) for precise fuzzy matching
+const SORTED_VENUE_ENTRIES = Object.entries(VIENNA_VENUES).sort(
+  (a, b) => b[0].length - a[0].length,
+);
+
 /**
  * Fast string normalization for fuzzy venue matching
  */
-export function resolveViennaVenueCoordinates(venueNameOrAddress?: string | null): Coordinates | null {
+export function resolveViennaVenueCoordinates(
+  venueNameOrAddress?: string | null,
+): Coordinates | null {
   if (!venueNameOrAddress) return null;
 
   const normalized = venueNameOrAddress
@@ -148,15 +155,18 @@ export function resolveViennaVenueCoordinates(venueNameOrAddress?: string | null
     .replace(/\s+/g, ' ')
     .trim();
 
+  if (!normalized) return null;
+
   // 1. Direct key match
   if (VIENNA_VENUES[normalized]) {
     return VIENNA_VENUES[normalized];
   }
 
-  // 2. Substring matching for famous venues (e.g. "Arena (Open Air), Wien" -> "arena")
-  for (const [venueKey, coords] of Object.entries(VIENNA_VENUES)) {
-    // Check if the venue key is contained as a whole word or significant part
-    if (normalized.includes(venueKey)) {
+  // 2. Whole-word substring matching, longest specific venue key first
+  for (const [venueKey, coords] of SORTED_VENUE_ENTRIES) {
+    const escapedKey = venueKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(^|\\s)${escapedKey}(\\s|$)`, 'i');
+    if (regex.test(normalized)) {
       return coords;
     }
   }

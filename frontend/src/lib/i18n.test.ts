@@ -29,6 +29,13 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.en.statusUpcoming("18:30")).toContain("18:30");
   });
 
+  it("should contain translation entries for Free Admission filter and badge", () => {
+    expect(translations.de.filterFree).toBe("Eintritt frei");
+    expect(translations.en.filterFree).toBe("Free Entry");
+    expect(translations.de.badgeFree).toBe("EINTRITT FREI");
+    expect(translations.en.badgeFree).toBe("FREE ENTRY");
+  });
+
   it("should normalize and label categories correctly", () => {
     expect(normalizeCategory("Konzert")).toBe("Music");
     expect(normalizeCategory("Party")).toBe("Nightlife");
@@ -41,5 +48,8 @@ describe("i18n Localization Dictionaries", () => {
     expect(getCategoryLabel("Music", "en")).toBe("Music");
     expect(getCategoryLabel("Nightlife", "de")).toBe("Nightlife");
     expect(getCategoryLabel("Family", "de")).toBe("Familie");
+    expect(getCategoryLabel("Culture", "de")).toBe("Kultur");
+    expect(getCategoryLabel("Sports", "de")).toBe("Sport");
+    expect(getCategoryLabel("Culinary", "de")).toBe("Kulinarik");
   });
 });

@@ -27,8 +27,8 @@ export function detectIsFree(
 
   const freePatterns = [
     /\beintritt\s*(ist\s*)?frei\b/i,
-    /\bfreier\s*eintritt\b/i,
-    /\bkostenlos\b/i,
+    /\bfreier?\s*eintritt\b/i,
+    /\bkostenlos(e[rsnm]?)?\b/i,
     /\bgratis\b/i,
     /\bfree\s*entry\b/i,
     /\bfree\s*admission\b/i,
@@ -37,33 +37,37 @@ export function detectIsFree(
     /\bfreie\s*spende\b/i,
     /\bohne\s*eintritt\b/i,
     /\bkein\s*eintritt\b/i,
-    /\bkostenfreier?\b/i,
-    /\bgebührenfrei\b/i,
+    /\bkostenfrei(e[rsnm]?)?\b/i,
+    /\bgebührenfrei(e[rsnm]?)?\b/i,
     /\beintritt\s*:\s*frei\b/i,
     /\beintritt\s*:\s*0\b/i,
     /\beintritt\s*frei\s*bis\b/i,
   ];
 
-  for (const pattern of freePatterns) {
-    if (pattern.test(combined)) {
-      return true;
-    }
-  }
-
   const paidPatterns = [
-    /\btickets?\s*(ab|von|um)\s*(\d+|€)/i,
-    /\bvvk\s*[:€\d]/i,
-    /\bak\s*[:€\d]/i,
-    /\beintritt\s*[:€\s]*\d+([.,]\d+)?\s*€/i,
-    /\b\d+([.,]\d+)?\s*€\s*eintritt\b/i,
+    /\btickets?\s*(ab|von|um)\s*([1-9]\d*|€)/i,
+    /\bvvk\s*[:€\s]*[1-9]/i,
+    /\bak\s*[:€\s]*[1-9]/i,
+    /\beintritt\s*[:€\s]*[1-9]\d*([.,]\d+)?\s*€/i,
+    /\b[1-9]\d*([.,]\d+)?\s*€\s*eintritt\b/i,
     /\bticketpreis\b/i,
     /\bticket\s*kaufen\b/i,
   ];
 
-  for (const pattern of paidPatterns) {
-    if (pattern.test(combined)) {
-      return false;
-    }
+  const hasPaidSignal = paidPatterns.some((pattern) => pattern.test(combined));
+  const hasFreeSignal = freePatterns.some((pattern) => pattern.test(combined));
+
+  // If there's an explicit paid ticket price (e.g. "Tickets ab 25€"), it is paid
+  if (hasPaidSignal && !/^\s*(eintritt\s*frei|freier\s*eintritt)\b/i.test(title || '')) {
+    return false;
+  }
+
+  if (hasFreeSignal) {
+    return true;
+  }
+
+  if (hasPaidSignal) {
+    return false;
   }
 
   if (provider === 'TICKETMASTER') {

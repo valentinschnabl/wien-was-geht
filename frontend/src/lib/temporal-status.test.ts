@@ -61,6 +61,19 @@ describe("Event Temporal Status Classifier", () => {
     ).toBe("upcoming");
   });
 
+  it("should correctly handle overnight events (e.g. 23:00 to 05:00 next morning)", () => {
+    const overnightStart = "2026-08-15T21:00:00.000Z"; // 23:00 CEST
+    const overnightEnd = "2026-08-16T03:00:00.000Z";   // 05:00 CEST next morning
+    
+    // At 23:30 (01:30 CEST), event should be live
+    const duringNight = new Date("2026-08-15T23:30:00.000Z");
+    expect(computeTemporalStatus(overnightStart, overnightEnd, duringNight)).toBe("live");
+
+    // After 05:00, event is concluded
+    const afterNight = new Date("2026-08-16T06:00:00.000Z");
+    expect(computeTemporalStatus(overnightStart, overnightEnd, afterNight)).toBe("concluded");
+  });
+
   it("should handle null or invalid start strings gracefully", () => {
     expect(computeTemporalStatus(null, null, referenceTime)).toBe("upcoming");
     expect(computeTemporalStatus(undefined, undefined, referenceTime)).toBe("upcoming");
