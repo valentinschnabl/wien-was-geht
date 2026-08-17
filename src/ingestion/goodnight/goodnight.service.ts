@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
 
 interface GoodnightAddress {
   city?: string | null;
@@ -193,31 +194,11 @@ export class GoodnightService implements IEventProvider {
     }
 
     // Fast in-memory lookup for prominent Vienna nightlife and event venues
-    const venueLookup = (venueTitle || streetClean).toLowerCase();
-    const knownVenues: Record<string, { lat: number; lng: number }> = {
-      pratersauna: { lat: 48.2132, lng: 16.4024 },
-      'das werk': { lat: 48.2346, lng: 16.3582 },
-      werk: { lat: 48.2346, lng: 16.3582 },
-      fluc: { lat: 48.2173, lng: 16.3905 },
-      'fluc wanne': { lat: 48.2173, lng: 16.3905 },
-      sass: { lat: 48.2007, lng: 16.3688 },
-      'sass music club': { lat: 48.2007, lng: 16.3688 },
-      flex: { lat: 48.2185, lng: 16.3705 },
-      'grelle forelle': { lat: 48.2355, lng: 16.3575 },
-      volksgarten: { lat: 48.2065, lng: 16.3615 },
-      prst: { lat: 48.2195, lng: 16.3945 },
-      'porgy & bess': { lat: 48.2052, lng: 16.3742 },
-      chelsea: { lat: 48.2155, lng: 16.3425 },
-      b72: { lat: 48.2175, lng: 16.3455 },
-      arena: { lat: 48.1883, lng: 16.4136 },
-      gasometer: { lat: 48.1852, lng: 16.4208 },
-      stadthalle: { lat: 48.2019, lng: 16.3376 },
-    };
-
-    for (const [key, coords] of Object.entries(knownVenues)) {
-      if (venueLookup.includes(key)) {
-        return coords;
-      }
+    const resolvedFast =
+      (venueTitle && resolveViennaVenueCoordinates(venueTitle)) ||
+      (streetClean && resolveViennaVenueCoordinates(streetClean));
+    if (resolvedFast) {
+      return resolvedFast;
     }
 
     try {
