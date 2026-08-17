@@ -10,16 +10,15 @@ Live Platform: [wienwasgeht.at](https://wienwasgeht.at)
 
 Finding out what is happening in Vienna today or tomorrow usually requires checking half a dozen fragmented platforms: club listings on Resident Advisor and ohschonhell.at, direct club programs (Flex, The Loft, Chelsea), municipal cultural calendars, underground concert listings, tech & community meetups, theater feeds, editorial guides, and ticketing portals.
 
-**WienWasGeht** solves this by running an automated ingestion engine that pulls from **14 verified data sources** across a rolling 48-hour window, normalizes heterogeneous schemas, classifies categories using Google Gemini Flash, and serves the results on a fast, responsive map interface with zero client-side tracking.
+**WienWasGeht** solves this by running an automated ingestion engine that pulls from **13 verified data sources** across a rolling 48-hour window, normalizes heterogeneous schemas, classifies categories using Google Gemini Flash, and serves the results on a fast, responsive map interface with zero client-side tracking.
 
 ---
 
 ## System Architecture
 
 ```
-[ 14 Integrated Data Sources ]
+[ 13 Integrated Data Sources ]
   - City of Vienna Open Government Data (data.wien.gv.at)
-  - FALTER Event Calendar (falter.at/events)
   - Vienna Club Feeds & Schemas (Flex, The Loft, Chelsea)
   - Luma Vienna (lu.ma/vienna - Tech meetups, runs, talks)
   - Resident Advisor (ra.co - Electronic & club nights)

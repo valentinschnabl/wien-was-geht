@@ -64,7 +64,7 @@ describe('pricing.util detectIsFree', () => {
     ];
 
     test.each(paidPhrases)('detects paid phrase: "%s"', (phrase) => {
-      expect(detectIsFree('FALTER', 'Event Title', phrase)).toBe(false);
+      expect(detectIsFree('GENERIC', 'Event Title', phrase)).toBe(false);
     });
   });
 
