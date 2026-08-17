@@ -19,6 +19,11 @@ interface StadtWienSource {
   title?: string;
   short_description?: string | null;
   link?: string | null;
+  price_teaser_string?: string | null;
+  price?: {
+    fixedPrice?: number | null;
+    priceRichText?: string | null;
+  } | null;
   address?: StadtWienAddress[];
   teaser_event_image?: StadtWienImage[];
   teaser_image?: StadtWienImage[];
@@ -232,6 +237,12 @@ export class StadtWienService implements IEventProvider {
           : `https://www.wien.gv.at${imageObj.url}`
         : null;
 
+      const isFree =
+        source.price_teaser_string?.toLowerCase().includes('gratis') ||
+        source.price?.fixedPrice === 0;
+      const isPaid =
+        typeof source.price?.fixedPrice === 'number' && source.price.fixedPrice > 0;
+
       events.push({
         externalId: event._id ?? '',
         provider: 'STADT_WIEN',
@@ -246,6 +257,7 @@ export class StadtWienService implements IEventProvider {
           addressObj.addressName ?? addressObj.addressStreet ?? 'Vienna',
         longitude: Number(coordinates[0]),
         latitude: Number(coordinates[1]),
+        isFree: isFree ? true : isPaid ? false : undefined,
       });
     }
 

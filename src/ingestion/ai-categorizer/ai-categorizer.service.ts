@@ -31,7 +31,7 @@ interface GeminiClassificationItem {
 @Injectable()
 export class AiCategorizerService {
   private readonly logger = new Logger(AiCategorizerService.name);
-  private readonly geminiModel = 'gemini-2.5-flash';
+  private readonly geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -40,13 +40,44 @@ export class AiCategorizerService {
   ): Promise<Prisma.EventCreateInput[]> {
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // Filter to only events that truly need AI classification or price resolution
+    const resolvedEvents: Prisma.EventCreateInput[] = [];
+    const eventsNeedingAi: Prisma.EventCreateInput[] = [];
+
+    for (const ev of events) {
+      const keywordFree = detectIsFree(ev.provider, ev.title, ev.description);
+      const isFreeResolved =
+        ev.isFree !== undefined && ev.isFree !== null ? ev.isFree : keywordFree;
+      const hasSpecificCategory =
+        ev.category &&
+        ev.category !== 'General' &&
+        VALID_CATEGORIES.includes(ev.category as EventCategory);
+
+      if (isFreeResolved !== null && hasSpecificCategory) {
+        resolvedEvents.push({
+          ...ev,
+          isFree: isFreeResolved,
+        });
+      } else {
+        eventsNeedingAi.push({
+          ...ev,
+          isFree: isFreeResolved !== null ? isFreeResolved : undefined,
+        });
+      }
+    }
+
+    if (eventsNeedingAi.length === 0) {
+      return resolvedEvents;
+    }
+
     this.logger.log(
-      `Categorizing & price-enriching ${events.length} events using ${apiKey ? 'Gemini 2.5 Flash' : 'Keyword Fallback'}...`,
+      `AI Categorizing ${eventsNeedingAi.length} unresolved events (out of ${events.length}) using ${apiKey ? this.geminiModel : 'Keyword Fallback'}...`,
     );
 
     if (apiKey) {
       try {
-        return await this.classifyWithGemini(events, apiKey);
+        const classified = await this.classifyWithGemini(eventsNeedingAi, apiKey);
+        return [...resolvedEvents, ...classified];
       } catch (err) {
         this.logger.warn(
           `Gemini AI categorization failed, falling back to keyword heuristics: ${(err as Error).message}`,
@@ -55,7 +86,7 @@ export class AiCategorizerService {
     }
 
     // Fallback to keyword matching & regex price detection
-    return events.map((ev) => ({
+    const fallbackEvents = eventsNeedingAi.map((ev) => ({
       ...ev,
       category:
         ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory)
@@ -66,6 +97,8 @@ export class AiCategorizerService {
           ? ev.isFree
           : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
     }));
+
+    return [...resolvedEvents, ...fallbackEvents];
   }
 
   private async classifyWithGemini(

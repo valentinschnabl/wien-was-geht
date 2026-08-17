@@ -190,6 +190,17 @@ export class EventsAtService implements IEventProvider {
           const slugMatch = url.match(/\/event\/([a-zA-Z0-9_\-]+)/);
           const externalId = slugMatch ? `eventsat-${slugMatch[1]}` : `eventsat-${Date.now()}`;
 
+          const offers = Array.isArray(eventData.offers) ? eventData.offers[0] : eventData.offers;
+          let isFree: boolean | undefined = undefined;
+          if (offers && offers.price !== undefined) {
+            const priceNum = parseFloat(String(offers.price));
+            if (priceNum === 0) {
+              isFree = true;
+            } else if (!isNaN(priceNum) && priceNum > 0) {
+              isFree = false;
+            }
+          }
+
           normalizedEvents.push({
             externalId,
             provider: 'EVENTS_AT',
@@ -205,6 +216,7 @@ export class EventsAtService implements IEventProvider {
             venueName,
             latitude: lat,
             longitude: lng,
+            isFree,
           });
         } catch (detailErr) {
           this.logger.debug(`Could not parse event detail at ${url}: ${(detailErr as Error).message}`);

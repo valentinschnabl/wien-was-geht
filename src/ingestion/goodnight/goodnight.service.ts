@@ -149,6 +149,19 @@ export class GoodnightService implements IEventProvider {
           }
         }
 
+        const teaser = (event.teaser_text || '').toLowerCase();
+        let isFree: boolean | undefined = undefined;
+        if (
+          teaser.includes('spende') ||
+          teaser.includes('eintritt frei') ||
+          teaser.includes('kostenlos') ||
+          teaser.includes('gratis')
+        ) {
+          isFree = true;
+        } else if (/\/\s*\d+([.,]\d+)?\s*€/.test(teaser) || /\b\d+([.,]\d+)?\s*€\b/.test(teaser)) {
+          isFree = false;
+        }
+
         normalizedEvents.push({
           externalId: `goodnight-${event.id}`,
           provider: 'GOODNIGHT',
@@ -162,6 +175,7 @@ export class GoodnightService implements IEventProvider {
           venueName: venueTitle || street || 'Wien',
           latitude,
           longitude,
+          isFree,
         });
       }
 
