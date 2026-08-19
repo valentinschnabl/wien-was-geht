@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import * as cheerio from 'cheerio';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
 
 interface SchemaOrgEvent {
   '@type'?: string;
@@ -165,27 +166,53 @@ export class EventsAtService implements IEventProvider {
             continue;
           }
 
-          // Resolve venue, locality and coordinates
+          // Resolve venue, address and coordinates
           const locationItem = Array.isArray(eventData.location)
             ? eventData.location[0]
             : eventData.location;
 
           const venueName = locationItem?.name || 'Wien';
           const locality = locationItem?.address?.addressLocality || '';
-          let lat = locationItem?.geo?.latitude
-            ? parseFloat(String(locationItem.geo.latitude))
-            : 48.2082;
-          let lng = locationItem?.geo?.longitude
-            ? parseFloat(String(locationItem.geo.longitude))
-            : 16.3738;
+          const streetAddress = locationItem?.address?.streetAddress || '';
+          const postalCode = locationItem?.address?.postalCode || '';
+
+          let lat: number | null = null;
+          let lng: number | null = null;
+
+          if (locationItem?.geo?.latitude && locationItem?.geo?.longitude) {
+            const parsedLat = parseFloat(String(locationItem.geo.latitude));
+            const parsedLng = parseFloat(String(locationItem.geo.longitude));
+            if (!isNaN(parsedLat) && !isNaN(parsedLng) && parsedLat !== 0 && parsedLng !== 0) {
+              lat = parsedLat;
+              lng = parsedLng;
+            }
+          }
+
+          // In-memory fuzzy dictionary resolution (venue name, full address, street, postal code, title)
+          if (lat === null || lng === null) {
+            const resolved =
+              resolveViennaVenueCoordinates(venueName) ||
+              resolveViennaVenueCoordinates(`${streetAddress} ${postalCode} ${locality}`.trim()) ||
+              resolveViennaVenueCoordinates(streetAddress) ||
+              resolveViennaVenueCoordinates(postalCode) ||
+              resolveViennaVenueCoordinates(eventData.name);
+
+            if (resolved) {
+              lat = resolved.lat;
+              lng = resolved.lng;
+            }
+          }
+
+          // Fallback if still unresolved
+          if (lat === null || lng === null) {
+            lat = 48.2082;
+            lng = 16.3738;
+          }
 
           // Proximity check: Must be in Vienna region (distance <= 35km or locality matches Wien)
           if (!locality.toLowerCase().includes('wien') && !this.isInViennaRegion(lat, lng)) {
             continue;
           }
-
-          if (isNaN(lat)) lat = 48.2082;
-          if (isNaN(lng)) lng = 16.3738;
 
           const slugMatch = url.match(/\/event\/([a-zA-Z0-9_\-]+)/);
           const externalId = slugMatch ? `eventsat-${slugMatch[1]}` : `eventsat-${Date.now()}`;
