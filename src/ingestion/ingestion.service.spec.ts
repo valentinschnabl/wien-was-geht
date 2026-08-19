@@ -13,6 +13,7 @@ import { EintrittFreiService } from './eintritt-frei/eintritt-frei.service';
 import { KultursommerService } from './kultursommer/kultursommer.service';
 import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
+import { RausgegangenService } from './rausgegangen/rausgegangen.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -31,8 +32,13 @@ describe('IngestionService', () => {
   let kultursommerService: KultursommerService;
   let lumaService: LumaService;
   let viennaClubsService: ViennaClubsService;
+  let rausgegangenService: RausgegangenService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
+
+  const mockRausgegangenService = {
+    fetchEvents: jest.fn().mockResolvedValue([]),
+  };
 
   const mockLumaService = {
     fetchEvents: jest.fn().mockResolvedValue([]),
@@ -232,6 +238,7 @@ describe('IngestionService', () => {
         { provide: KultursommerService, useValue: mockKultursommerService },
         { provide: LumaService, useValue: mockLumaService },
         { provide: ViennaClubsService, useValue: mockViennaClubsService },
+        { provide: RausgegangenService, useValue: mockRausgegangenService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -251,6 +258,7 @@ describe('IngestionService', () => {
     kultursommerService = module.get<KultursommerService>(KultursommerService);
     lumaService = module.get<LumaService>(LumaService);
     viennaClubsService = module.get<ViennaClubsService>(ViennaClubsService);
+    rausgegangenService = module.get<RausgegangenService>(RausgegangenService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     lumaService = module.get<LumaService>(LumaService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
@@ -284,6 +292,7 @@ describe('IngestionService', () => {
       expect(residentAdvisorService.fetchEvents).toHaveBeenCalled();
       expect(capeetService.fetchEvents).toHaveBeenCalled();
       expect(viennaClubsService.fetchEvents).toHaveBeenCalled();
+      expect(rausgegangenService.fetchEvents).toHaveBeenCalled();
       expect(ohSchonHellService.fetchEvents).toHaveBeenCalled();
       expect(eintrittFreiService.fetchEvents).toHaveBeenCalled();
       expect(mockKultursommerService.fetchEvents).toHaveBeenCalled();
