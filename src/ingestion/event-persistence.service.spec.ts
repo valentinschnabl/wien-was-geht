@@ -8,6 +8,7 @@ describe('EventPersistenceService', () => {
 
   const mockPrismaService = {
     event: {
+      findMany: jest.fn().mockResolvedValue([]),
       upsert: jest.fn().mockImplementation(({ create }) => {
         return Promise.resolve({ id: 'generated-id', ...create });
       }),
