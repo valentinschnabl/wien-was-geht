@@ -14,6 +14,7 @@ import { KultursommerService } from './kultursommer/kultursommer.service';
 import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
+import { WardaService } from './warda/warda.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -46,6 +47,7 @@ export class IngestionService implements OnModuleInit {
     private readonly lumaProvider: LumaService,
     private readonly viennaClubsProvider: ViennaClubsService,
     private readonly rausgegangenProvider: RausgegangenService,
+    private readonly wardaProvider: WardaService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -177,6 +179,13 @@ export class IngestionService implements OnModuleInit {
       this.logger.error('Rausgegangen Wien ingestion failed', error);
     }
 
+    let wardaEvents: Prisma.EventCreateInput[] = [];
+    try {
+      wardaEvents = await this.wardaProvider.fetchEvents();
+    } catch (error) {
+      this.logger.error('WARDA Wien ingestion failed', error);
+    }
+
     const combinedEvents = [
       ...stadtWienEvents,
       ...eventfrogEvents,
@@ -192,6 +201,7 @@ export class IngestionService implements OnModuleInit {
       ...lumaEvents,
       ...viennaClubsEvents,
       ...rausgegangenEvents,
+      ...wardaEvents,
     ];
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
@@ -291,6 +301,7 @@ export class IngestionService implements OnModuleInit {
       OPENWEB_NINJA: 30,
       CAPEET: 35,
       RAUSGEGANGEN: 35,
+      WARDA: 38,
       GOODNIGHT: 10,
       EVENTS_AT: 10,
     };

@@ -14,6 +14,7 @@ import { KultursommerService } from './kultursommer/kultursommer.service';
 import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
+import { WardaService } from './warda/warda.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -39,6 +40,7 @@ import { IngestionController } from './ingestion.controller';
     LumaService,
     ViennaClubsService,
     RausgegangenService,
+    WardaService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -58,6 +60,7 @@ import { IngestionController } from './ingestion.controller';
     LumaService,
     ViennaClubsService,
     RausgegangenService,
+    WardaService,
     AiCategorizerService,
     IngestionService,
   ],
