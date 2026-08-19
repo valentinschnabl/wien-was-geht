@@ -59,6 +59,8 @@ export interface Translations {
   noEvents: string;
   distanceAway: (km: number) => string;
   showDetails: string;
+  shareEvent: string;
+  shareSuccess: string;
   timeUnknown: string;
   startsAt: string;
   endsAt: string;
