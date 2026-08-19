@@ -333,9 +333,24 @@ export default function MapView({
 
   // Calculate micro-offsets for co-located events and memoize marker elements
   const markerElements = useMemo(() => {
+    // Only place events on the map if they have verified Vienna coordinates
+    const mappableEvents = events.filter((ev) => {
+      const lat = ev.latitude;
+      const lng = ev.longitude;
+      return (
+        typeof lat === "number" &&
+        typeof lng === "number" &&
+        lat >= 48.05 &&
+        lat <= 48.36 &&
+        lng >= 16.15 &&
+        lng <= 16.60 &&
+        !(lat === 0 && lng === 0)
+      );
+    });
+
     // 1. Group events by coordinate key to detect co-located events
     const locationCounts = new Map<string, number>();
-    events.forEach((ev) => {
+    mappableEvents.forEach((ev) => {
       if (typeof ev.latitude === "number" && typeof ev.longitude === "number") {
         const key = `${ev.latitude.toFixed(5)},${ev.longitude.toFixed(5)}`;
         locationCounts.set(key, (locationCounts.get(key) || 0) + 1);
@@ -344,9 +359,9 @@ export default function MapView({
 
     const locationIndices = new Map<string, number>();
 
-    return events.map((event) => {
-      const lat = (typeof event.latitude === "number" && event.latitude !== 0) ? event.latitude : 48.2082;
-      const lng = (typeof event.longitude === "number" && event.longitude !== 0) ? event.longitude : 16.3738;
+    return mappableEvents.map((event) => {
+      const lat = event.latitude!;
+      const lng = event.longitude!;
 
       const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       const totalAtLoc = locationCounts.get(key) || 1;

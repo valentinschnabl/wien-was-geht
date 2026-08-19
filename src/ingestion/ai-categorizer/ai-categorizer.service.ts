@@ -26,6 +26,8 @@ interface GeminiClassificationItem {
   id: string;
   category: EventCategory;
   isFree?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 @Injectable()
@@ -41,7 +43,7 @@ export class AiCategorizerService {
   ): Promise<Prisma.EventCreateInput[]> {
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Filter to only events that truly need AI classification or price resolution
+    // Filter to only events that truly need AI classification, price resolution or coordinate resolution
     const resolvedEvents: Prisma.EventCreateInput[] = [];
     const eventsNeedingAi: Prisma.EventCreateInput[] = [];
 
@@ -54,7 +56,16 @@ export class AiCategorizerService {
         ev.category !== 'General' &&
         VALID_CATEGORIES.includes(ev.category as EventCategory);
 
-      if (isFreeResolved !== null && hasSpecificCategory) {
+      const hasValidCoords =
+        typeof ev.latitude === 'number' &&
+        typeof ev.longitude === 'number' &&
+        ev.latitude >= 48.05 &&
+        ev.latitude <= 48.36 &&
+        ev.longitude >= 16.15 &&
+        ev.longitude <= 16.60 &&
+        !(ev.latitude === 48.2082 && ev.longitude === 16.3738 && (!ev.venueName || ev.venueName === 'Wien'));
+
+      if (isFreeResolved !== null && hasSpecificCategory && hasValidCoords) {
         resolvedEvents.push({
           ...ev,
           isFree: isFreeResolved,
@@ -72,7 +83,7 @@ export class AiCategorizerService {
     }
 
     this.logger.log(
-      `AI Categorizing ${eventsNeedingAi.length} unresolved events (out of ${events.length}) using ${apiKey ? this.geminiModel : 'Keyword Fallback'}...`,
+      `AI Processing ${eventsNeedingAi.length} events (category, pricing & geo resolution) out of ${events.length} using ${apiKey ? this.geminiModel : 'Keyword Fallback'}...`,
     );
 
     if (apiKey) {
@@ -107,7 +118,6 @@ export class AiCategorizerService {
     apiKey: string,
   ): Promise<Prisma.EventCreateInput[]> {
     const batchSize = 30;
-    const classifiedEvents: Prisma.EventCreateInput[] = [];
 
     // Split into batches
     const batches: Prisma.EventCreateInput[][] = [];
@@ -115,7 +125,7 @@ export class AiCategorizerService {
       batches.push(events.slice(i, i + batchSize));
     }
 
-    const batchPromises = batches.map(async (batch, batchIndex) => {
+    const batchPromises = batches.map(async (batch) => {
       const batchInput = batch.map((ev, index) => ({
         id: String(index),
         title: ev.title,
@@ -124,12 +134,13 @@ export class AiCategorizerService {
       }));
 
       const prompt = `
-You are an expert event categorization and pricing AI for events happening in Vienna, Austria.
+You are an expert event categorization, pricing and geocoding AI for events happening in Vienna, Austria.
 For each event, determine:
 1. "category": EXACTLY ONE of "Music", "Nightlife", "Culture", "Sports", "Culinary", "Family".
 2. "isFree": boolean (true if the event is free of charge / gratis / free admission / open air without ticket / freie Spende / vernissage / community festival; false if commercial ticket, entrance fee or club admission is required).
+3. "latitude" (number) and "longitude" (number): If venue or address is recognized in Vienna, provide exact GPS coordinates within Vienna (lat 48.10 to 48.33, lng 16.20 to 16.55). If location is unknown, outside Vienna, or unidentifiable, return null for both.
 
-Return ONLY a valid JSON array of objects with "id", "category", and "isFree".
+Return ONLY a valid JSON array of objects with "id", "category", "isFree", "latitude", and "longitude".
 
 Events:
 ${JSON.stringify(batchInput, null, 2)}
@@ -181,36 +192,61 @@ ${JSON.stringify(batchInput, null, 2)}
                 ? keywordFree
                 : (aiItem?.isFree ?? false);
 
+            let finalLat = ev.latitude;
+            let finalLng = ev.longitude;
+
+            // If coordinates are missing or default fallback, try AI resolved coordinates
+            const isUnresolvedCoord =
+              !finalLat ||
+              !finalLng ||
+              (Math.abs(finalLat - 48.2082) < 0.0001 && Math.abs(finalLng - 16.3738) < 0.0001 && (!ev.venueName || ev.venueName === 'Wien'));
+
+            if (isUnresolvedCoord) {
+              if (
+                typeof aiItem?.latitude === 'number' &&
+                typeof aiItem?.longitude === 'number' &&
+                aiItem.latitude >= 48.05 &&
+                aiItem.latitude <= 48.36 &&
+                aiItem.longitude >= 16.15 &&
+                aiItem.longitude <= 16.60
+              ) {
+                finalLat = aiItem.latitude;
+                finalLng = aiItem.longitude;
+              } else {
+                // If unknown, set 0,0 so it's only shown on list, not on map
+                finalLat = 0;
+                finalLng = 0;
+              }
+            }
+
             return {
               ...ev,
               category: finalCategory,
               isFree: finalIsFree,
+              latitude: finalLat,
+              longitude: finalLng,
             };
           });
         }
-      } catch (batchErr) {
-        this.logger.debug(
-          `Batch ${batchIndex + 1}/${batches.length} AI classification fallback: ${(batchErr as Error).message}`,
-        );
+        return batch;
+      } catch (error) {
+        this.logger.warn(`AI batch categorization failed: ${(error as Error).message}`);
+        return batch.map((ev) => ({
+          ...ev,
+          category:
+            ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory)
+              ? ev.category
+              : this.classifyWithKeywords(ev.title, ev.description || ''),
+          isFree:
+            ev.isFree !== undefined && ev.isFree !== null
+              ? ev.isFree
+              : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
+        }));
       }
-
-      // Fast fallback for this batch
-      return batch.map((ev) => ({
-        ...ev,
-        category:
-          ev.category && ev.category !== 'General' && VALID_CATEGORIES.includes(ev.category as EventCategory)
-            ? ev.category
-            : this.classifyWithKeywords(ev.title, ev.description || ''),
-        isFree:
-          ev.isFree !== undefined && ev.isFree !== null
-            ? ev.isFree
-            : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
-      }));
     });
 
-    const results = await Promise.all(batchPromises);
-    results.forEach((batchResults) => classifiedEvents.push(...batchResults));
-    return classifiedEvents;
+    const settled = await Promise.all(batchPromises);
+    return settled.flat();
   }
 
   public classifyWithKeywords(title: string, description: string): EventCategory {
