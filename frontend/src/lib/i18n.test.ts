@@ -12,6 +12,10 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.en.statusLive).toBe("NOW");
     expect(translations.de.statsNow).toBe("Jetzt");
     expect(translations.en.statsNow).toBe("Now");
+    expect(translations.de.shareEvent).toBe("Event teilen");
+    expect(translations.en.shareEvent).toBe("Share Event");
+    expect(translations.de.shareSuccess).toContain("Zwischenablage");
+    expect(translations.en.shareSuccess).toContain("clipboard");
   });
 
   it("should contain correct Impressum legal owner, Gewerbenummer and contact details", () => {

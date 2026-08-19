@@ -161,6 +161,49 @@ export default function EventMap() {
     }
   }, [hoveredEventId]);
 
+  const [copiedToast, setCopiedToast] = useState(false);
+
+  // Deep-linking: auto-select event from URL query parameter (?event=<id>)
+  useEffect(() => {
+    if (events.length === 0) return;
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get("event");
+    if (eventId) {
+      const matched = events.find((e) => e.id === eventId);
+      if (matched) {
+        setSelectionSource("map");
+        setSelectedEvent(matched);
+        setHoveredEventId(matched.id);
+        setMobileTab("list");
+      }
+    }
+  }, [events]);
+
+  // Handle browser Back/Forward navigation (popstate)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const eventId = params.get("event");
+      if (eventId) {
+        const matched = events.find((e) => e.id === eventId);
+        if (matched) {
+          setSelectedEvent(matched);
+          setHoveredEventId(matched.id);
+          return;
+        }
+      }
+      setSelectedEvent(null);
+      setHoveredEventId(null);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [events]);
+
   const handleHoverEvent = (id: string | null) => {
     setHoveredEventId(id);
   };
@@ -174,6 +217,13 @@ export default function EventMap() {
     setSelectedEvent(event);
     setHoveredEventId(event.id); // Automatically mark the event with the RED highlighted pin
     setMobileTab("list"); // On mobile, automatically switch to detailed view panel
+
+    // Synchronize URL with ?event=<id>
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("event", event.id);
+      window.history.pushState({ eventId: event.id }, "", url.toString());
+    }
   };
 
   const handleBackFromDetail = () => {
@@ -183,6 +233,41 @@ export default function EventMap() {
       setMobileTab("map");
     } else {
       setMobileTab("list");
+    }
+
+    // Clear ?event parameter from URL
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("event");
+      const cleanUrl = url.pathname + (url.search ? url.search : "");
+      window.history.pushState({}, "", cleanUrl);
+    }
+  };
+
+  const handleShareEvent = async (event: EventRecord) => {
+    if (typeof window === "undefined") return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?event=${encodeURIComponent(event.id)}`;
+    const shareData = {
+      title: `${event.title} – WienWasGeht`,
+      text: `${event.title} in Wien (${event.venueName || "Wien"})`,
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 2500);
+    } catch {
+      window.prompt(language === "de" ? "Link kopieren:" : "Copy link:", shareUrl);
     }
   };
 
@@ -656,20 +741,33 @@ export default function EventMap() {
           {selectedEvent && (
             /* DETAILED EVENT PAGE ON THE RIGHT SIDEBAR */
             <div className="sidebar-detail-view">
-              <button
-                type="button"
-                className="btn-back-sidebar"
-                onClick={handleBackFromDetail}
-              >
-                <i className="fa-solid fa-arrow-left"></i>{" "}
-                {selectionSource === "map"
-                  ? language === "de"
-                    ? "Zurück zur Karte"
-                    : "Back to map"
-                  : language === "de"
-                  ? "Zurück zur Liste"
-                  : "Back to list"}
-              </button>
+              {/* Top bar with Back and Share button */}
+              <div className="sidebar-detail-top-bar">
+                <button
+                  type="button"
+                  className="btn-back-sidebar"
+                  onClick={handleBackFromDetail}
+                >
+                  <i className="fa-solid fa-arrow-left"></i>{" "}
+                  {selectionSource === "map"
+                    ? language === "de"
+                      ? "Zurück zur Karte"
+                      : "Back to map"
+                    : language === "de"
+                    ? "Zurück zur Liste"
+                    : "Back to list"}
+                </button>
+                <button
+                  type="button"
+                  className="btn-share-top"
+                  onClick={() => handleShareEvent(selectedEvent)}
+                  title={t.shareEvent}
+                  aria-label={t.shareEvent}
+                >
+                  <i className="fa-solid fa-arrow-up-from-bracket"></i>{" "}
+                  <span>{t.shareEvent}</span>
+                </button>
+              </div>
 
               {/* Event Image Banner or Clean Informative Placeholder */}
               <div className="sidebar-detail-image-wrapper">
@@ -759,17 +857,26 @@ export default function EventMap() {
                   </p>
                 </div>
 
-                {selectedEvent.url && (
-                  <a
-                    href={selectedEvent.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-primary btn-full-width"
+                <div className="sidebar-detail-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-share-action"
+                    onClick={() => handleShareEvent(selectedEvent)}
                   >
-                    {t.externalLink}{" "}
-                    <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                  </a>
-                )}
+                    <i className="fa-solid fa-arrow-up-from-bracket"></i> {t.shareEvent}
+                  </button>
+                  {selectedEvent.url && (
+                    <a
+                      href={selectedEvent.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-ticket-action"
+                    >
+                      {t.externalLink}{" "}
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -1059,6 +1166,13 @@ export default function EventMap() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Share Toast Notification */}
+      {copiedToast && (
+        <div className="share-toast" role="status" aria-live="polite">
+          <i className="fa-solid fa-circle-check"></i> {t.shareSuccess}
         </div>
       )}
     </div>
