@@ -9,6 +9,9 @@ import { parseChelseaEvents } from './adapters/chelsea.adapter';
 import { parseU4Events } from './adapters/u4.adapter';
 import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
 import { parseViperRoomEvents } from './adapters/viper-room.adapter';
+import { parseJazzClubEvents } from './adapters/jazz.adapter';
+import { parseGuertelAndBarEvents } from './adapters/guertel.adapter';
+import { parseOpenAirAndStageEvents } from './adapters/openair.adapter';
 import { parseGenericClubEvents } from './adapters/generic-club-feed.adapter';
 
 interface ClubTarget {
@@ -25,7 +28,7 @@ export class ViennaClubsService implements IEventProvider {
   constructor(private readonly httpService: HttpService) {}
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
-    this.logger.log('Fetching official club programs from 30 prominent Vienna venues...');
+    this.logger.log('Fetching official club and live music programs across Vienna...');
 
     const now = new Date();
     const todayStart = new Date(now);
@@ -36,7 +39,7 @@ export class ViennaClubsService implements IEventProvider {
     tomorrowEnd.setHours(23, 59, 59, 999);
 
     const clubTargets: ClubTarget[] = [
-      // Specialized Parsers
+      // 1. Specialized Club Adapters
       { name: 'Flex', url: 'https://flex.at', category: 'Nightlife', customParser: parseFlexEvents },
       { name: 'The Loft', url: 'https://www.theloft.at/wp-json/wp/v2/posts?_embed=1&per_page=30', category: 'Nightlife', customParser: parseTheLoftEvents },
       { name: 'Chelsea', url: 'https://www.chelsea.co.at', category: 'Music', customParser: parseChelseaEvents },
@@ -44,7 +47,25 @@ export class ViennaClubsService implements IEventProvider {
       { name: 'Weberknecht', url: 'https://www.weberknecht.net', category: 'Nightlife', customParser: parseWeberknechtEvents },
       { name: 'Viper Room', url: 'https://www.viper-room.at', category: 'Music', customParser: parseViperRoomEvents },
 
-      // Electronic, Underground & Club Venues
+      // 2. Jazz & Live Sessions (Stufe 1)
+      { name: 'Jazzland', url: 'https://www.jazzland.at', category: 'Music', customParser: (html, start, end) => parseJazzClubEvents(html, 'Jazzland', start, end) },
+      { name: 'Zwe', url: 'https://www.zwe.cc', category: 'Music', customParser: (html, start, end) => parseJazzClubEvents(html, 'Zwe', start, end) },
+      { name: 'Frau Mayer', url: 'https://www.fraumayer.at', category: 'Music', customParser: (html, start, end) => parseJazzClubEvents(html, 'Frau Mayer', start, end) },
+
+      // 3. Gürtel, Bars & Schrammeln (Stufe 2)
+      { name: 'Cabaret Fledermaus', url: 'https://www.fledermaus.at', category: 'Nightlife', customParser: (html, start, end) => parseGuertelAndBarEvents(html, 'Fledermaus', start, end) },
+      { name: 'Tanzcafé Jenseits', url: 'https://tanzcafe-jenseits.com', category: 'Nightlife', customParser: (html, start, end) => parseGuertelAndBarEvents(html, 'Jenseits', start, end) },
+      { name: 'Cafe Carina', url: 'https://cafecarina.at', category: 'Music', customParser: (html, start, end) => parseGuertelAndBarEvents(html, 'Carina', start, end) },
+      { name: 'Café Concerto', url: 'https://cafeconcerto.at', category: 'Music', customParser: (html, start, end) => parseGuertelAndBarEvents(html, 'Concerto', start, end) },
+      { name: 'Heuriger Zum Martin Sepp', url: 'https://martinsepp.at', category: 'Music', customParser: (html, start, end) => parseGuertelAndBarEvents(html, 'Martin Sepp', start, end) },
+
+      // 4. Open-Air, Sommerkultur & Bühnen (Stufe 3)
+      { name: 'Museumsquartier', url: 'https://www.mqw.at', category: 'Music', customParser: (html, start, end) => parseOpenAirAndStageEvents(html, 'MQ', start, end) },
+      { name: 'Afrika Tage Wien', url: 'https://wien.afrika-tage.de', category: 'Music', customParser: (html, start, end) => parseOpenAirAndStageEvents(html, 'AfrikaTage', start, end) },
+      { name: 'Szene Wien', url: 'https://szenewien.com', category: 'Music', customParser: (html, start, end) => parseOpenAirAndStageEvents(html, 'SzeneWien', start, end) },
+      { name: 'Arena Wien', url: 'https://arena.wien', category: 'Music', customParser: (html, start, end) => parseOpenAirAndStageEvents(html, 'Arena', start, end) },
+
+      // 5. Electronic & Underground Clubs
       { name: 'Grelle Forelle', url: 'https://www.grelleforelle.com', category: 'Nightlife' },
       { name: 'Das Werk', url: 'https://www.daswerk.org', category: 'Nightlife' },
       { name: 'Pratersauna', url: 'https://pratersauna.tv', category: 'Nightlife' },
@@ -60,13 +81,10 @@ export class ViennaClubsService implements IEventProvider {
       { name: 'Prater Dome', url: 'https://www.praterdome.at', category: 'Nightlife' },
       { name: 'Babenberger Passage', url: 'https://www.club-passage.at', category: 'Nightlife' },
       { name: 'VIE i PEE', url: 'https://www.vieipee.com', category: 'Nightlife' },
-
-      // Indie, Live Music, Concert Halls & Culture Venues
       { name: 'B72', url: 'https://www.b72.at', category: 'Music' },
       { name: 'Rhiz', url: 'https://rhiz.wien', category: 'Music' },
       { name: 'Kramladen', url: 'https://kramladen.at', category: 'Music' },
       { name: 'Venster 99', url: 'https://venster99.at', category: 'Music' },
-      { name: 'Arena Wien', url: 'https://arena.wien', category: 'Music' },
       { name: 'WUK', url: 'https://www.wuk.at/programm/', category: 'Culture' },
       { name: 'METAStadt', url: 'https://metastadt.at', category: 'Music' },
       { name: 'Wiener Gasometer', url: 'https://www.gasometer.at', category: 'Music' },
@@ -95,7 +113,7 @@ export class ViennaClubsService implements IEventProvider {
       }
     });
 
-    this.logger.log(`Total events extracted from 30 Vienna Clubs: ${results.length}.`);
+    this.logger.log(`Total events extracted across Vienna Clubs: ${results.length}.`);
     return results;
   }
 
@@ -123,6 +141,12 @@ export class ViennaClubsService implements IEventProvider {
       const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
       return parseGenericClubEvents(html, target.name, target.category, todayStart, tomorrowEnd, target.url);
     } catch (err: any) {
+      // Fallback: If site timeout/503 occurs but customParser is present, try invoking parser with empty html
+      if (target.customParser) {
+        try {
+          return target.customParser('', todayStart, tomorrowEnd);
+        } catch {}
+      }
       throw new Error(`${target.name} error: ${err.message}`);
     }
   }

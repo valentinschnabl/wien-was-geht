@@ -10,6 +10,9 @@ import { parseU4Events } from './adapters/u4.adapter';
 import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
 import { parseViperRoomEvents } from './adapters/viper-room.adapter';
 import { parseGenericClubEvents } from './adapters/generic-club-feed.adapter';
+import { parseJazzClubEvents } from './adapters/jazz.adapter';
+import { parseGuertelAndBarEvents } from './adapters/guertel.adapter';
+import { parseOpenAirAndStageEvents } from './adapters/openair.adapter';
 
 describe('ViennaClubsService & Adapters', () => {
   let service: ViennaClubsService;
@@ -261,6 +264,73 @@ describe('ViennaClubsService & Adapters', () => {
       expect(events[0].venueName).toBe('Grelle Forelle');
       expect(events[0].latitude).toBeCloseTo(48.2355, 3);
       expect(events[0].longitude).toBeCloseTo(16.3575, 3);
+    });
+  });
+
+  describe('Jazz Adapter (parseJazzClubEvents)', () => {
+    it('should parse Jazzland and Zwe live sessions', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const jlEvents = parseJazzClubEvents('Matyas Bartha Quartett 19.08', 'Jazzland', today, tomorrowEnd);
+      expect(jlEvents).toHaveLength(1);
+      expect(jlEvents[0].venueName).toBe('Jazzland');
+      expect(jlEvents[0].category).toBe('Music');
+
+      const zweEvents = parseJazzClubEvents('Let\'s Groove Jam Session', 'Zwe', today, tomorrowEnd);
+      expect(zweEvents).toHaveLength(1);
+      expect(zweEvents[0].venueName).toBe('Zwe');
+
+      const frauMayerEvents = parseJazzClubEvents('', 'Frau Mayer', today, tomorrowEnd);
+      expect(frauMayerEvents).toHaveLength(1);
+      expect(frauMayerEvents[0].venueName).toBe('Frau Mayer');
+    });
+  });
+
+  describe('Gürtel & Bar Adapter (parseGuertelAndBarEvents)', () => {
+    it('should parse Fledermaus, Jenseits and Carina events', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const fledermausEvents = parseGuertelAndBarEvents('', 'Fledermaus', today, tomorrowEnd);
+      expect(fledermausEvents).toHaveLength(2);
+      expect(fledermausEvents[0].venueName).toBe('Cabaret Fledermaus');
+
+      const jenseitsEvents = parseGuertelAndBarEvents('', 'Jenseits', today, tomorrowEnd);
+      expect(jenseitsEvents).toHaveLength(2);
+      expect(jenseitsEvents[0].venueName).toBe('Tanzcafé Jenseits');
+
+      const carinaEvents = parseGuertelAndBarEvents('', 'Carina', today, tomorrowEnd);
+      expect(carinaEvents).toHaveLength(1);
+      expect(carinaEvents[0].title).toContain('Thunder Tits');
+
+      const martinSeppEvents = parseGuertelAndBarEvents('', 'Martin Sepp', today, tomorrowEnd);
+      expect(martinSeppEvents).toHaveLength(1);
+      expect(martinSeppEvents[0].venueName).toBe('Heuriger Zum Martin Sepp');
+    });
+  });
+
+  describe('Open Air & Stage Adapter (parseOpenAirAndStageEvents)', () => {
+    it('should parse MQ, Afrika Tage, Szene Wien and Arena events', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const mqEvents = parseOpenAirAndStageEvents('', 'MQ', today, tomorrowEnd);
+      expect(mqEvents).toHaveLength(1);
+      expect(mqEvents[0].title).toContain('BAIBA');
+      expect(mqEvents[0].venueName).toBe('Museumsquartier');
+
+      const afrikaEvents = parseOpenAirAndStageEvents('', 'AfrikaTage', today, tomorrowEnd);
+      expect(afrikaEvents).toHaveLength(2);
+      expect(afrikaEvents[0].venueName).toBe('Donauinsel');
+
+      const szeneEvents = parseOpenAirAndStageEvents('', 'SzeneWien', today, tomorrowEnd);
+      expect(szeneEvents).toHaveLength(1);
+      expect(szeneEvents[0].venueName).toBe('Szene Wien');
+
+      const arenaEvents = parseOpenAirAndStageEvents('', 'Arena', today, tomorrowEnd);
+      expect(arenaEvents).toHaveLength(1);
+      expect(arenaEvents[0].title).toContain('Kruder & Dorfmeister');
     });
   });
 
