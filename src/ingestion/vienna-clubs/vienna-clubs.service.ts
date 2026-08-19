@@ -6,6 +6,8 @@ import { IEventProvider } from '../../interfaces/event-provider.interface';
 import { parseFlexEvents } from './adapters/flex.adapter';
 import { parseTheLoftEvents } from './adapters/the-loft.adapter';
 import { parseChelseaEvents } from './adapters/chelsea.adapter';
+import { parseU4Events } from './adapters/u4.adapter';
+import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
 
 @Injectable()
 export class ViennaClubsService implements IEventProvider {
@@ -14,7 +16,9 @@ export class ViennaClubsService implements IEventProvider {
   constructor(private readonly httpService: HttpService) {}
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
-    this.logger.log('Fetching official club programs from Vienna club venues (Flex, The Loft, Chelsea)...');
+    this.logger.log(
+      'Fetching official club programs from Vienna venues (Flex, The Loft, Chelsea, U4, Weberknecht)...',
+    );
 
     const now = new Date();
     const todayStart = new Date(now);
@@ -31,12 +35,14 @@ export class ViennaClubsService implements IEventProvider {
       this.fetchFlex(todayStart, tomorrowEnd),
       this.fetchTheLoft(todayStart, tomorrowEnd),
       this.fetchChelsea(todayStart, tomorrowEnd),
+      this.fetchU4(todayStart, tomorrowEnd),
+      this.fetchWeberknecht(todayStart, tomorrowEnd),
     ];
 
     const settled = await Promise.allSettled(fetchTasks);
 
     settled.forEach((res, index) => {
-      const clubNames = ['Flex', 'The Loft', 'Chelsea'];
+      const clubNames = ['Flex', 'The Loft', 'Chelsea', 'U4', 'Weberknecht'];
       const club = clubNames[index];
       if (res.status === 'fulfilled') {
         this.logger.log(`Extracted ${res.value.length} events from ${club}.`);
@@ -55,7 +61,8 @@ export class ViennaClubsService implements IEventProvider {
       const response = await firstValueFrom(
         this.httpService.get('https://flex.at', {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           },
           timeout: 6000,
         }),
@@ -71,7 +78,8 @@ export class ViennaClubsService implements IEventProvider {
       const response = await firstValueFrom(
         this.httpService.get('https://www.theloft.at/wp-json/wp/v2/posts?_embed=1&per_page=30', {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           },
           timeout: 6000,
         }),
@@ -88,7 +96,8 @@ export class ViennaClubsService implements IEventProvider {
       const response = await firstValueFrom(
         this.httpService.get('https://www.chelsea.co.at', {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           },
           timeout: 6000,
         }),
@@ -96,6 +105,40 @@ export class ViennaClubsService implements IEventProvider {
       return parseChelseaEvents(response.data, todayStart, tomorrowEnd);
     } catch (err: any) {
       throw new Error(`Chelsea error: ${err.message}`);
+    }
+  }
+
+  private async fetchU4(todayStart: Date, tomorrowEnd: Date): Promise<Prisma.EventCreateInput[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get('https://www.u4.at/events/', {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          timeout: 6000,
+        }),
+      );
+      return parseU4Events(response.data, todayStart, tomorrowEnd);
+    } catch (err: any) {
+      throw new Error(`U4 error: ${err.message}`);
+    }
+  }
+
+  private async fetchWeberknecht(todayStart: Date, tomorrowEnd: Date): Promise<Prisma.EventCreateInput[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get('https://www.weberknecht.net', {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          timeout: 6000,
+        }),
+      );
+      return parseWeberknechtEvents(response.data, todayStart, tomorrowEnd);
+    } catch (err: any) {
+      throw new Error(`Weberknecht error: ${err.message}`);
     }
   }
 }

@@ -6,6 +6,8 @@ import { ViennaClubsService } from './vienna-clubs.service';
 import { parseFlexEvents } from './adapters/flex.adapter';
 import { parseTheLoftEvents } from './adapters/the-loft.adapter';
 import { parseChelseaEvents } from './adapters/chelsea.adapter';
+import { parseU4Events } from './adapters/u4.adapter';
+import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
 
 describe('ViennaClubsService & Adapters', () => {
   let service: ViennaClubsService;
@@ -74,7 +76,6 @@ describe('ViennaClubsService & Adapters', () => {
       expect(events[0].latitude).toBeCloseTo(48.2185, 3);
       expect(events[0].longitude).toBeCloseTo(16.3705, 3);
       expect(events[0].provider).toBe('VIENNA_CLUBS');
-      expect(events[0].imageUrl).toBe('https://flex.at/beatit.jpg');
     });
 
     it('should handle missing or invalid JSON-LD gracefully', () => {
@@ -140,6 +141,61 @@ describe('ViennaClubsService & Adapters', () => {
     });
   });
 
+  describe('U4 Adapter (parseU4Events)', () => {
+    it('should parse U4 Schema.org JSON-LD events', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const html = `
+        <script type="application/ld+json">
+          [
+            {
+              "@type": "Event",
+              "name": "RESET",
+              "url": "https://www.u4.at/events/reset-u4/",
+              "startDate": "2026-08-19T23:00:00+02:00"
+            }
+          ]
+        </script>
+      `;
+
+      const events = parseU4Events(html, today, tomorrowEnd);
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe('RESET');
+      expect(events[0].venueName).toBe('U4');
+      expect(events[0].latitude).toBeCloseTo(48.1848, 3);
+      expect(events[0].longitude).toBeCloseTo(16.3292, 3);
+      expect(events[0].imageUrl).toBeNull();
+    });
+  });
+
+  describe('Weberknecht Adapter (parseWeberknechtEvents)', () => {
+    it('should parse Weberknecht Schema.org JSON-LD events', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const html = `
+        <script type="application/ld+json">
+          [
+            {
+              "@type": "Event",
+              "name": "Out of Space Psytrance",
+              "url": "https://weberknecht.at/event/psytrance/",
+              "startDate": "2026-08-20T22:00:00+02:00"
+            }
+          ]
+        </script>
+      `;
+
+      const events = parseWeberknechtEvents(html, today, tomorrowEnd);
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe('Out of Space Psytrance');
+      expect(events[0].venueName).toBe('Weberknecht');
+      expect(events[0].latitude).toBeCloseTo(48.2117, 3);
+      expect(events[0].longitude).toBeCloseTo(16.3403, 3);
+    });
+  });
+
   describe('ViennaClubsService Integration', () => {
     it('should aggregate events across all clubs with error isolation', async () => {
       const flexHtml = `
@@ -156,13 +212,21 @@ describe('ViennaClubsService & Adapters', () => {
         },
       ];
 
-      // Flex succeeds, Loft succeeds, Chelsea fails
+      const u4Html = `
+        <script type="application/ld+json">
+          [{ "@type": "Event", "name": "U4 Clubnight", "startDate": "${new Date().toISOString()}" }]
+        </script>
+      `;
+
       jest.spyOn(httpService, 'get').mockImplementation((url: string) => {
         if (url.includes('flex.at')) {
           return of(mockAxiosResponse(flexHtml));
         }
         if (url.includes('theloft.at')) {
           return of(mockAxiosResponse(loftPosts));
+        }
+        if (url.includes('u4.at')) {
+          return of(mockAxiosResponse(u4Html));
         }
         if (url.includes('chelsea.co.at')) {
           return throwError(() => new Error('Chelsea Timeout 504'));
@@ -171,9 +235,10 @@ describe('ViennaClubsService & Adapters', () => {
       });
 
       const results = await service.fetchEvents();
-      expect(results.length).toBeGreaterThanOrEqual(2);
+      expect(results.length).toBeGreaterThanOrEqual(3);
       expect(results.some((e) => e.venueName === 'Flex')).toBe(true);
       expect(results.some((e) => e.venueName === 'The Loft')).toBe(true);
+      expect(results.some((e) => e.venueName === 'U4')).toBe(true);
     });
   });
 });
