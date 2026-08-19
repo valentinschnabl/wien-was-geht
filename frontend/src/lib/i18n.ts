@@ -260,3 +260,23 @@ export function getCategoryLabel(category?: string | null, language: Language = 
       return t.filterCulture;
   }
 }
+
+export function getCategoryIcon(category?: string | null): string {
+  const norm = normalizeCategory(category);
+  switch (norm) {
+    case "Music":
+      return "fa-music";
+    case "Nightlife":
+      return "fa-martini-glass-citrus";
+    case "Culture":
+      return "fa-palette";
+    case "Family":
+      return "fa-people-roof";
+    case "Sports":
+      return "fa-person-running";
+    case "Culinary":
+      return "fa-utensils";
+    default:
+      return "fa-shapes";
+  }
+}

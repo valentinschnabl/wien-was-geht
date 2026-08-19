@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { translations, normalizeCategory, getCategoryLabel } from "./i18n";
+import { translations, normalizeCategory, getCategoryLabel, getCategoryIcon } from "./i18n";
 
 describe("i18n Localization Dictionaries", () => {
   it("should contain complete translation entries for both German and English", () => {
@@ -68,5 +68,13 @@ describe("i18n Localization Dictionaries", () => {
     expect(getCategoryLabel("Culture", "de")).toBe("Kultur");
     expect(getCategoryLabel("Sports", "de")).toBe("Sport");
     expect(getCategoryLabel("Culinary", "de")).toBe("Kulinarik");
+
+    expect(getCategoryIcon("Music")).toBe("fa-music");
+    expect(getCategoryIcon("Nightlife")).toBe("fa-martini-glass-citrus");
+    expect(getCategoryIcon("Culture")).toBe("fa-palette");
+    expect(getCategoryIcon("Family")).toBe("fa-people-roof");
+    expect(getCategoryIcon("Sports")).toBe("fa-person-running");
+    expect(getCategoryIcon("Culinary")).toBe("fa-utensils");
+    expect(getCategoryIcon("Unknown")).toBe("fa-shapes");
   });
 });

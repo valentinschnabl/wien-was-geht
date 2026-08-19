@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState, useMemo, useRef } from "react";
-import { translations, Language, normalizeCategory, getCategoryLabel } from "@/lib/i18n";
+import { translations, Language, normalizeCategory, getCategoryLabel, getCategoryIcon } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import type { EventRecord, UserLocation } from "./MapView";
@@ -792,6 +792,18 @@ export default function EventMap() {
 
               <div className="sidebar-detail-content">
                 <div className="compact-top-tags">
+                  <span
+                    className={`badge badge-cat badge-cat-${normalizeCategory(
+                      selectedEvent.category
+                    ).toLowerCase()}`}
+                  >
+                    <i
+                      className={`fa-solid ${getCategoryIcon(
+                        selectedEvent.category
+                      )}`}
+                    ></i>{" "}
+                    {getCategoryLabel(selectedEvent.category, language)}
+                  </span>
                   {selectedEvent.temporalStatus === "live" && (
                     <span className="badge badge-live">
                       <i className="fa-solid fa-circle badge-dot"></i> {t.statusLive}
