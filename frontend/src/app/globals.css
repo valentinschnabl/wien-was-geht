@@ -51,17 +51,17 @@
   /* Reseda Green Dark Mode adjusted for warm elegance */
   --accent-primary: #74a86c;
   --accent-primary-hover: #8ac082;
-  --accent-primary-light: #2c3c2b;
+  --accent-primary-light: #233122;
 
   /* User Location GPS Blue */
   --user-location-blue: #38bdf8;
   --user-location-light: #163044;
 
-  --live-bg: #3c1e22;
-  --live-text: #fca5a5;
-  --upcoming-bg: #2c3c2b;
-  --upcoming-text: #86efac;
-  --concluded-bg: #362424;
+  --live-bg: #143522;
+  --live-text: #4ade80;
+  --upcoming-bg: #1e2e22;
+  --upcoming-text: #8ac082;
+  --concluded-bg: #381e22;
   --concluded-text: #f87171;
 }
 
@@ -359,6 +359,10 @@ html, body {
   scrollbar-color: #d1cfc7 transparent;
 }
 
+[data-theme="dark"] .category-chips-scroll {
+  scrollbar-color: #4a544d transparent;
+}
+
 .category-chips-scroll::-webkit-scrollbar {
   height: 4px;
 }
@@ -366,6 +370,10 @@ html, body {
 .category-chips-scroll::-webkit-scrollbar-thumb {
   background: #d1cfc7;
   border-radius: 4px;
+}
+
+[data-theme="dark"] .category-chips-scroll::-webkit-scrollbar-thumb {
+  background: #4a544d;
 }
 
 .cat-chip {
@@ -626,6 +634,12 @@ html, body {
   display: inline-block;
   position: relative;
   background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .checkbox-custom {
+  background: var(--subtle-bg);
+  border-color: var(--panel-border);
 }
 
 .checkbox-input:checked + .checkbox-custom {
@@ -743,40 +757,50 @@ html, body {
 .leaflet-control-locate-btn {
   width: 34px;
   height: 34px;
-  background: #ffffff;
-  border: none;
-  color: #1d271d;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
   font-size: 1.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .leaflet-control-locate-btn:hover {
-  background: #f2f1ec;
+  background: var(--subtle-bg);
 }
 
 .leaflet-control-locate-btn.active {
   background: var(--user-location-light);
   color: var(--user-location-blue);
+  border-color: var(--user-location-blue);
 }
 
 /* Micro-styled Unobtrusive Leaflet Attribution */
 .leaflet-container .leaflet-control-attribution {
   font-size: 0.65rem !important;
-  color: #78716c !important;
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(2px);
-  opacity: 0.7;
+  color: var(--text-light) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(4px);
+  opacity: 0.8;
   padding: 2px 6px !important;
   border-radius: 4px 0 0 0;
 }
 
+[data-theme="dark"] .leaflet-container .leaflet-control-attribution {
+  background: rgba(33, 37, 34, 0.85) !important;
+  color: var(--text-muted) !important;
+}
+
 .leaflet-container .leaflet-control-attribution a {
-  color: #586357 !important;
+  color: var(--text-muted) !important;
   text-decoration: none !important;
+}
+
+[data-theme="dark"] .leaflet-container .leaflet-control-attribution a {
+  color: var(--accent-primary) !important;
 }
 
 /* Custom User Location Marker (Dedicated GPS Cyan Blue) */
@@ -1159,6 +1183,12 @@ html, body {
   border-color: #fde68a;
 }
 
+[data-theme="dark"] .badge-warning {
+  background: #3b2812;
+  color: #fcd34d;
+  border-color: #78350f;
+}
+
 .badge-info {
   background: var(--upcoming-bg);
   color: var(--upcoming-text);
@@ -1191,6 +1221,12 @@ html, body {
   box-shadow: 0 4px 12px rgba(225, 29, 72, 0.12);
 }
 
+[data-theme="dark"] .event-compact-card:hover, [data-theme="dark"] .event-compact-card.hovered {
+  border-color: #f43f5e;
+  background: #351f24;
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.22);
+}
+
 .compact-card-body {
   display: flex;
   gap: 10px;
@@ -1203,7 +1239,8 @@ html, body {
   min-width: 64px;
   border-radius: 8px;
   overflow: hidden;
-  background: #e2e0d8;
+  background: var(--subtle-bg);
+  border: 1px solid var(--panel-border);
 }
 
 .compact-thumb {
@@ -1215,8 +1252,8 @@ html, body {
 .compact-thumb-placeholder {
   width: 100%;
   height: 100%;
-  background: #f2f1ec;
-  color: #a09d94;
+  background: var(--subtle-bg);
+  color: var(--text-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2061,9 +2098,18 @@ html, body {
     text-overflow: ellipsis;
   }
 
+  [data-theme="dark"] .leaflet-control-attribution {
+    background: rgba(25, 28, 26, 0.85) !important;
+    color: #a6b2a8 !important;
+  }
+
   .leaflet-control-attribution a {
     color: #444 !important;
     text-decoration: none;
+  }
+
+  [data-theme="dark"] .leaflet-control-attribution a {
+    color: #74a86c !important;
   }
 
   .mobile-floating-switcher {
@@ -2077,6 +2123,12 @@ html, body {
     border-radius: 999px;
     padding: 4px;
     box-shadow: 0 8px 24px rgba(29, 39, 29, 0.4);
+  }
+
+  [data-theme="dark"] .mobile-floating-switcher {
+    background: #131714;
+    border: 1px solid #323834;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   }
 
   .mobile-switch-btn {
