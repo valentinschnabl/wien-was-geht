@@ -38,6 +38,7 @@ export interface Translations {
   // Filters
   filterCategory: string;
   filterAllCategories: string;
+  filterToday: string;
   filterTomorrow: string;
   filterFree: string;
   badgeFree: string;
@@ -115,6 +116,7 @@ export const translations: Record<Language, Translations> = {
 
     filterCategory: "Kategorie",
     filterAllCategories: "Alle",
+    filterToday: "Heute",
     filterTomorrow: "Morgen",
     filterFree: "Eintritt frei",
     badgeFree: "EINTRITT FREI",
@@ -188,6 +190,7 @@ export const translations: Record<Language, Translations> = {
 
     filterCategory: "Category",
     filterAllCategories: "All",
+    filterToday: "Today",
     filterTomorrow: "Tomorrow",
     filterFree: "Free Entry",
     badgeFree: "FREE ENTRY",

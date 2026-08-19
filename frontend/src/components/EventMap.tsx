@@ -571,16 +571,16 @@ export default function EventMap() {
         <div className="category-chips-scroll">
           <button
             type="button"
-            className={`cat-chip ${selectedCategory === "all" && quickFilter === "all" && !onlyFree ? "active" : ""}`}
+            className={`cat-chip ${quickFilter === "all" && selectedCategory === "all" && !onlyFree ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory("all");
               setQuickFilter("all");
+              setSelectedCategory("all");
               setOnlyFree(false);
               setSelectedEvent(null);
             }}
           >
-            <i className="fa-solid fa-layer-group"></i>
-            <span>{t.filterAllCategories} ({quickFilter === "tomorrow" ? stats.tomorrowTotal : stats.todayTotal})</span>
+            <i className="fa-solid fa-calendar-day"></i>
+            <span>{t.filterToday} ({stats.todayTotal})</span>
           </button>
 
           <button
@@ -603,7 +603,7 @@ export default function EventMap() {
               setSelectedEvent(null);
             }}
           >
-            <i className="fa-solid fa-calendar-day"></i>
+            <i className="fa-solid fa-calendar-plus"></i>
             <span>{t.statusTomorrow} ({stats.tomorrowTotal})</span>
           </button>
 
