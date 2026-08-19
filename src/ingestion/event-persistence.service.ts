@@ -43,29 +43,46 @@ export class EventPersistenceService {
     return savedCount;
   }
 
-  async pruneExpiredEvents(retentionWindowHours: number): Promise<number> {
-    const cutoff = new Date(Date.now() - retentionWindowHours * 60 * 60 * 1000);
+  async pruneExpiredEvents(retentionWindowHours: number = 48): Promise<number> {
+    const now = new Date();
 
+    // Start of today (Vienna local context)
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+
+    // End of tomorrow (Vienna local context)
+    const tomorrowEnd = new Date(now);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
+    // Prune events that are past (concluded before today) or far in future (after tomorrow)
     const deleted = await this.prisma.event.deleteMany({
       where: {
         OR: [
+          // Concluded in the past
           {
             endTime: {
               not: null,
-              lt: cutoff,
+              lt: todayStart,
             },
           },
           {
             endTime: null,
             startTime: {
-              lt: cutoff,
+              lt: todayStart,
+            },
+          },
+          // Far in future beyond active window (today + tomorrow)
+          {
+            startTime: {
+              gt: tomorrowEnd,
             },
           },
         ],
       },
     });
 
-    this.logger.debug(`Deleted ${deleted.count} expired events.`);
+    this.logger.log(`Pruned ${deleted.count} out-of-scope (past or far-future) events from database.`);
 
     return deleted.count;
   }
