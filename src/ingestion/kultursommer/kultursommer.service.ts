@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
 import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { applyViennaTime } from '../../common/utils/time.util';
 
 interface KsSubmission {
   submission_id?: string;
@@ -122,13 +123,19 @@ export class KultursommerService implements IEventProvider {
               .split(':')
               .map((n) => parseInt(n, 10));
 
-            const startTime = new Date(eventDate);
-            startTime.setHours(startHour || 18, startMin || 30, 0, 0);
+            const startTime = applyViennaTime(
+              eventDate,
+              startHour || 18,
+              startMin || 30,
+            );
 
-            const endTime = new Date(eventDate);
-            endTime.setHours(endHour || 21, endMin || 0, 0, 0);
+            let endTime = applyViennaTime(
+              eventDate,
+              endHour || 21,
+              endMin || 0,
+            );
             if (endTime <= startTime) {
-              endTime.setDate(endTime.getDate() + 1);
+              endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
             }
 
             const district = slot.zip_code ? `${slot.zip_code}. Bezirk` : 'Wien';

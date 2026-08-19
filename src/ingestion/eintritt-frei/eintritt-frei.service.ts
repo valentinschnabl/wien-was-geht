@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import * as cheerio from 'cheerio';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
 import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { applyViennaTime } from '../../common/utils/time.util';
 
 interface ParsedEintrittFreiEvent {
   date: Date;
@@ -168,17 +169,24 @@ export class EintrittFreiService implements IEventProvider {
         .replace(/^Filmfestival am Rathausplatz:\s*/i, 'Filmfestival Rathausplatz: ')
         .trim();
 
-      const startTime = new Date(item.date);
-      startTime.setHours(item.startHour ?? 19, item.startMin ?? 0, 0, 0);
+      const startTime = applyViennaTime(
+        item.date,
+        item.startHour ?? 19,
+        item.startMin ?? 0,
+      );
 
-      const endTime = new Date(startTime);
+      let endTime: Date;
       if (item.endHour !== undefined && item.endMin !== undefined) {
-        endTime.setHours(item.endHour, item.endMin, 0, 0);
+        endTime = applyViennaTime(
+          item.date,
+          item.endHour,
+          item.endMin,
+        );
         if (endTime <= startTime) {
-          endTime.setDate(endTime.getDate() + 1);
+          endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
         }
       } else {
-        endTime.setHours(startTime.getHours() + 3);
+        endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
       }
 
       // Resolve venue & coordinates

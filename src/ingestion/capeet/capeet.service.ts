@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { applyViennaTime } from '../../common/utils/time.util';
 
 @Injectable()
 export class CapeetService {
@@ -95,13 +96,13 @@ export class CapeetService {
 
         // Extract custom start time if listed (e.g. [17:00!])
         const timeMatch = trimmed.match(/\[(\d{1,2}:\d{2})!?\]/);
-        const startTime = new Date(eventDate);
+        let startTime: Date;
         if (timeMatch) {
           const [hours, minutes] = timeMatch[1].split(':').map(Number);
-          startTime.setHours(hours, minutes, 0, 0);
+          startTime = applyViennaTime(eventDate, hours, minutes);
         } else {
           // Default Vienna live gig doors / start time
-          startTime.setHours(20, 0, 0, 0);
+          startTime = applyViennaTime(eventDate, 20, 0);
         }
 
         const endTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000); // 4h duration

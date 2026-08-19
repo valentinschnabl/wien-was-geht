@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import { Prisma } from '@prisma/client';
 import { VIENNA_VENUES } from '../../../common/constants/vienna-venues';
 import { detectIsFree } from '../../../common/utils/pricing.util';
+import { applyViennaTime } from '../../../common/utils/time.util';
 
 export function parseChelseaEvents(
   html: string,
@@ -16,10 +17,8 @@ export function parseChelseaEvents(
   if (match && match[1]) {
     const act = match[1].trim();
     if (act.length > 2 && !act.toLowerCase().includes('closed') && !act.toLowerCase().includes('ruhetag')) {
-      const start = new Date(todayStart);
-      start.setHours(20, 30, 0, 0); // Chelsea live shows typically start at 20:30
-      const end = new Date(todayStart);
-      end.setHours(23, 30, 0, 0);
+      const start = applyViennaTime(todayStart, 20, 30); // Chelsea live shows typically start at 20:30 Vienna time
+      const end = applyViennaTime(todayStart, 23, 30);
 
       const venueCoords = VIENNA_VENUES['chelsea'] || { lat: 48.2155, lng: 16.3425 };
       const isFree = detectIsFree('VIENNA_CLUBS', act, 'Live at Chelsea Vienna') ?? false;

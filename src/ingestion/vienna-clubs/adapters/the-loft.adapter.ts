@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import { Prisma } from '@prisma/client';
 import { VIENNA_VENUES } from '../../../common/constants/vienna-venues';
 import { detectIsFree } from '../../../common/utils/pricing.util';
+import { applyViennaTime } from '../../../common/utils/time.util';
 
 interface LoftPost {
   id?: number;
@@ -31,13 +32,10 @@ export function parseTheLoftEvents(
     const rawDesc = cheerio.load(post.excerpt?.rendered || post.content?.rendered || '').text().trim();
 
     // The post date on WordPress is the publication or scheduled event date
-    const start = new Date(post.date);
-    if (isNaN(start.getTime())) continue;
+    const parsedDate = new Date(post.date);
+    if (isNaN(parsedDate.getTime())) continue;
 
-    // Set default night club start time if time is midnight
-    if (start.getHours() === 0 && start.getMinutes() === 0) {
-      start.setHours(21, 0, 0, 0);
-    }
+    const start = applyViennaTime(parsedDate, 21, 0); // Loft party club nights start at 21:00 Vienna time
 
     if (start < todayStart || start > tomorrowEnd) continue;
 
