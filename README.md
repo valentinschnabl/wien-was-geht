@@ -17,10 +17,11 @@ Finding out what is happening in Vienna today or tomorrow usually requires check
 ## System Architecture
 
 ```
-[ 15 Integrated Data Sources ]
+[ 16 Integrated Data Sources ]
   - City of Vienna Open Government Data (data.wien.gv.at)
   - Rausgegangen Wien (rausgegangen.com/at/wien - Curated daily tips & exhibitions)
   - WARDA (warda.at - Vienna lifestyle, nightlife & open-air events)
+  - Partytimer Wien (partytimer.at - Vienna clubs, live sessions, U4, Fledermaus, Jazzland)
   - Vienna Club Feeds & Schemas (Flex, The Loft, Chelsea)
   - Luma Vienna (lu.ma/vienna - Tech meetups, runs, talks)
   - Resident Advisor (ra.co - Electronic & club nights)

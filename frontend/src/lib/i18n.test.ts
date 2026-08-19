@@ -27,6 +27,7 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.de.imprintText).toContain("simplyycoding@gmail.com");
     expect(translations.de.imprintText).toContain("Rausgegangen Wien");
     expect(translations.de.imprintText).toContain("WARDA Wien");
+    expect(translations.de.imprintText).toContain("Partytimer Wien");
 
     expect(translations.en.imprintText).toContain("Valentin Schnabl");
     expect(translations.en.imprintText).toContain("40023236");
@@ -34,6 +35,7 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.en.imprintText).toContain("simplyycoding@gmail.com");
     expect(translations.en.imprintText).toContain("Rausgegangen Vienna");
     expect(translations.en.imprintText).toContain("WARDA Vienna");
+    expect(translations.en.imprintText).toContain("Partytimer Vienna");
   });
 
   it("should correctly format distance string in German and English", () => {
