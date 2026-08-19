@@ -180,7 +180,7 @@ export function resolveViennaVenueCoordinates(
 
   const normalized = venueNameOrAddress
     .toLowerCase()
-    .replace(/[,\.\-\/\\()]/g, ' ')
+    .replace(/[,\.\-\/\\()"„“»«']/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
