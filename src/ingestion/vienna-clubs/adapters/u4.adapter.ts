@@ -13,6 +13,25 @@ interface U4JsonLdEvent {
   endDate?: string;
 }
 
+function parseFlexibleDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  // Fix non-padded date formats like "2026-8-19T23:00+2:00"
+  const normalized = dateStr.replace(
+    /(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?(?:([+-])(\d{1,2})(?::?(\d{1,2}))?)?/,
+    (_, y, m, d, h, min, sec, sign, tzH, tzM) => {
+      const mm = m.padStart(2, '0');
+      const dd = d.padStart(2, '0');
+      const hh = h.padStart(2, '0');
+      const minmin = min.padStart(2, '0');
+      const secsec = (sec || '00').padStart(2, '0');
+      const tz = sign ? `${sign}${tzH.padStart(2, '0')}:${(tzM || '00').padStart(2, '0')}` : 'Z';
+      return `${y}-${mm}-${dd}T${hh}:${minmin}:${secsec}${tz}`;
+    },
+  );
+  const d = new Date(normalized);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export function parseU4Events(
   html: string,
   todayStart: Date,
@@ -35,13 +54,12 @@ export function parseU4Events(
           continue;
         }
 
-        // Format: "2026-8-19T23:00+2:00" or ISO format
-        const start = new Date(item.startDate);
-        if (isNaN(start.getTime())) continue;
+        const start = parseFlexibleDate(item.startDate);
+        if (!start) continue;
 
         if (start < todayStart || start > tomorrowEnd) continue;
 
-        const end = item.endDate ? new Date(item.endDate) : new Date(start.getTime() + 6 * 3600000);
+        const end = item.endDate ? parseFlexibleDate(item.endDate) || new Date(start.getTime() + 6 * 3600000) : new Date(start.getTime() + 6 * 3600000);
 
         const cleanDesc = item.description
           ? cheerio.load(item.description).text().trim().replace(/\s+/g, ' ')
