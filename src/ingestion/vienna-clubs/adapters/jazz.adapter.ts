@@ -4,6 +4,16 @@ import { VIENNA_VENUES } from '../../../common/constants/vienna-venues';
 import { detectIsFree } from '../../../common/utils/pricing.util';
 import { applyViennaTime } from '../../../common/utils/time.util';
 
+interface JazzJsonLdEvent {
+  '@type'?: string | string[];
+  name?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export function parseJazzClubEvents(
   html: string,
   venue: 'Jazzland' | 'Zwe' | 'Frau Mayer',
@@ -14,84 +24,53 @@ export function parseJazzClubEvents(
   const $ = cheerio.load(html || '');
   const venueKey = venue.toLowerCase();
   const coords = VIENNA_VENUES[venueKey] || { lat: 48.2128, lng: 16.3744 };
+  const fallbackUrl =
+    venue === 'Jazzland' ? 'https://www.jazzland.at' :
+    venue === 'Zwe' ? 'https://www.zwe.cc' :
+    'https://www.fraumayer.at';
 
-  const todayIso = todayStart.toISOString().split('T')[0];
-  const tomorrowIso = tomorrowEnd.toISOString().split('T')[0];
-  const fullText = (html || '') + ' ' + $('body').text();
+  $('script[type="application/ld+json"]').each((_, el) => {
+    try {
+      const raw = JSON.parse($(el).html() || '');
+      const items: JazzJsonLdEvent[] = Array.isArray(raw) ? raw : [raw];
 
-  if (venue === 'Jazzland') {
-    if (
-      fullText.includes('19.08') ||
-      fullText.includes('20.08') ||
-      fullText.includes('19.8') ||
-      fullText.includes('20.8') ||
-      fullText.toLowerCase().includes('matyas bartha') ||
-      fullText.toLowerCase().includes('worry later') ||
-      html === ''
-    ) {
-      const isTomorrow = fullText.includes('20.08') || fullText.includes('20.8') || fullText.toLowerCase().includes('worry later');
-      const targetDate = isTomorrow ? tomorrowEnd : todayStart;
-      const start = applyViennaTime(targetDate, 21, 0);
-      const end = applyViennaTime(targetDate, 23, 30);
-      const title = isTomorrow ? 'Live: Worry Later (Jazz Session)' : 'Live: Matyas Bartha - Guillem Arnedo Quartett';
+      for (const item of items) {
+        const types = Array.isArray(item['@type']) ? item['@type'] : [item['@type']];
+        if (!types.includes('Event') || !item.name || !item.startDate) continue;
 
-      events.push({
-        externalId: `jazzland-${targetDate.toISOString().split('T')[0]}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30)}`,
-        provider: 'VIENNA_CLUBS',
-        title,
-        description: `Live Jazz Session im traditionsreichen Jazzland Wien (Franz-Josefs-Kai 29). Beginn 21:00 Uhr.`,
-        category: 'Music',
-        url: 'https://www.jazzland.at',
-        imageUrl: null,
-        startTime: start,
-        endTime: end,
-        venueName: 'Jazzland',
-        latitude: coords.lat,
-        longitude: coords.lng,
-        isFree: false,
-      });
+        const start = new Date(item.startDate);
+        if (isNaN(start.getTime())) continue;
+
+        if (start < todayStart || start > tomorrowEnd) continue;
+
+        const end = item.endDate ? new Date(item.endDate) : new Date(start.getTime() + 4 * 3600000);
+
+        const cleanDesc = item.description
+          ? cheerio.load(item.description).text().trim().replace(/\s+/g, ' ')
+          : '';
+
+        const isFree = detectIsFree('VIENNA_CLUBS', item.name, cleanDesc) ?? false;
+
+        events.push({
+          externalId: `${venueKey}-${start.toISOString().split('T')[0]}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30)}`,
+          provider: 'VIENNA_CLUBS',
+          title: item.name.trim(),
+          description: cleanDesc ? cleanDesc.substring(0, 1500) : null,
+          category: 'Music',
+          url: item.url || fallbackUrl,
+          imageUrl: item.image || null,
+          startTime: start,
+          endTime: end,
+          venueName: venue,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          isFree,
+        });
+      }
+    } catch (parseErr) {
+      // silently skip non-event JSON-LD
     }
-  } else if (venue === 'Zwe') {
-    const isTomorrow = fullText.includes('20.08') || fullText.includes('20.8') || fullText.toLowerCase().includes('časlav') || fullText.toLowerCase().includes('caslav');
-    const targetDate = isTomorrow ? tomorrowEnd : todayStart;
-    const start = applyViennaTime(targetDate, 20, 0);
-    const end = applyViennaTime(targetDate, 23, 0);
-    const title = isTomorrow ? 'Live: Časlav Šehović Quintet' : 'Let\'s Groove Jazz Jam Session';
-
-    events.push({
-      externalId: `zwe-${targetDate.toISOString().split('T')[0]}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30)}`,
-      provider: 'VIENNA_CLUBS',
-      title,
-      description: `Live Jazz Session im Zwe Jazz Club (Floßgasse 4, 1020 Wien). Beginn 20:00 Uhr.`,
-      category: 'Music',
-      url: 'https://www.zwe.cc',
-      imageUrl: null,
-      startTime: start,
-      endTime: end,
-      venueName: 'Zwe',
-      latitude: coords.lat,
-      longitude: coords.lng,
-      isFree: detectIsFree('VIENNA_CLUBS', title, 'Jam Session') ?? false,
-    });
-  } else if (venue === 'Frau Mayer') {
-    const start = applyViennaTime(todayStart, 20, 15);
-    const end = applyViennaTime(todayStart, 23, 0);
-    events.push({
-      externalId: `fraumayer-${todayIso}-live-jazz`,
-      provider: 'VIENNA_CLUBS',
-      title: 'Live Session: Larry Lofquist & Stephanie Semeniuc',
-      description: 'Wiener Jazz- & Liedermacher-Abend im Kulturcafé Frau Mayer (Pfarrgasse 1, 1010 Wien).',
-      category: 'Music',
-      url: 'https://www.fraumayer.at',
-      imageUrl: null,
-      startTime: start,
-      endTime: end,
-      venueName: 'Frau Mayer',
-      latitude: coords.lat,
-      longitude: coords.lng,
-      isFree: false,
-    });
-  }
+  });
 
   return events;
 }

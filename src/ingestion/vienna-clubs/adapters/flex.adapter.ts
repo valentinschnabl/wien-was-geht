@@ -70,8 +70,8 @@ export function parseFlexEvents(
           isFree,
         });
       }
-    } catch {
-      // Ignore JSON parse errors for non-event JSON-LD scripts
+    } catch (parseErr) {
+      // silently skip non-event JSON-LD
     }
   });
 

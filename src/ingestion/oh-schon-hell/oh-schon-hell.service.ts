@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { createViennaDate } from '../../common/utils/time.util';
 
 export interface OhSchonHellRawEvent {
   event_id: number;
@@ -120,7 +121,7 @@ export class OhSchonHellService {
       const timeStr = ev.event_time && /^\d{1,2}:\d{2}$/.test(ev.event_time)
         ? ev.event_time
         : '22:00';
-      const startTime = new Date(`${dateStr}T${timeStr}:00+02:00`);
+      const startTime = createViennaDate(dateStr, timeStr);
 
       // Club nights typically run 6 hours into next morning
       const endTime = new Date(startTime.getTime() + 6 * 60 * 60 * 1000);

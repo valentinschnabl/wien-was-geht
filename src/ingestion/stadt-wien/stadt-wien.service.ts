@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { createViennaDate } from '../../common/utils/time.util';
 
 interface StadtWienApiResponse {
   hits?: {
@@ -188,7 +189,7 @@ export class StadtWienService implements IEventProvider {
         }
         if (range.to) {
           // Setzt das Ende auf 23:59:59 lokaler Zeit des letzten Tages
-          endTime = new Date(`${range.to}T23:59:59+02:00`);
+          endTime = createViennaDate(range.to, '23:59:59');
         }
       } else {
         // Einzelveranstaltungen: Spezifischen Zeitblock für heute oder morgen suchen

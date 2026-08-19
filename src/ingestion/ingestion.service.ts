@@ -81,128 +81,34 @@ export class IngestionService implements OnModuleInit {
     );
 
     // Fetch from all active providers
-    let stadtWienEvents: Prisma.EventCreateInput[] = [];
-    try {
-      stadtWienEvents = await this.stadtWienProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Stadt Wien ingestion failed', error);
-    }
-
-    let eventfrogEvents: Prisma.EventCreateInput[] = [];
-    try {
-      eventfrogEvents = await this.eventfrogProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Eventfrog ingestion failed', error);
-    }
-
-    let ticketmasterEvents: Prisma.EventCreateInput[] = [];
-    try {
-      ticketmasterEvents = await this.ticketmasterProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Ticketmaster ingestion failed', error);
-    }
-
-    let eventbriteEvents: Prisma.EventCreateInput[] = [];
-    try {
-      eventbriteEvents = await this.eventbriteProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Eventbrite ingestion failed', error);
-    }
-
-    let goodnightEvents: Prisma.EventCreateInput[] = [];
-    try {
-      goodnightEvents = await this.goodnightProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Goodnight.at ingestion failed', error);
-    }
-
-    let eventsAtEvents: Prisma.EventCreateInput[] = [];
-    try {
-      eventsAtEvents = await this.eventsAtProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Events.at ingestion failed', error);
-    }
-
-    let residentAdvisorEvents: Prisma.EventCreateInput[] = [];
-    try {
-      residentAdvisorEvents = await this.residentAdvisorProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Resident Advisor ingestion failed', error);
-    }
-
-    let capeetEvents: Prisma.EventCreateInput[] = [];
-    try {
-      capeetEvents = await this.capeetProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Capeet ingestion failed', error);
-    }
-
-    let ohSchonHellEvents: Prisma.EventCreateInput[] = [];
-    try {
-      ohSchonHellEvents = await this.ohSchonHellProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('ohschonhell.at ingestion failed', error);
-    }
-
-    let eintrittFreiEvents: Prisma.EventCreateInput[] = [];
-    try {
-      eintrittFreiEvents = await this.eintrittFreiProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('eintrittfrei.at ingestion failed', error);
-    }
-
-    let kultursommerEvents: Prisma.EventCreateInput[] = [];
-    try {
-      kultursommerEvents = await this.kultursommerProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Kultursommer Wien ingestion failed', error);
-    }
-
-    let lumaEvents: Prisma.EventCreateInput[] = [];
-    try {
-      lumaEvents = await this.lumaProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Luma Vienna ingestion failed', error);
-    }
-
-    let viennaClubsEvents: Prisma.EventCreateInput[] = [];
-    try {
-      viennaClubsEvents = await this.viennaClubsProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Vienna Clubs ingestion failed', error);
-    }
-
-    let rausgegangenEvents: Prisma.EventCreateInput[] = [];
-    try {
-      rausgegangenEvents = await this.rausgegangenProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('Rausgegangen Wien ingestion failed', error);
-    }
-
-    let wardaEvents: Prisma.EventCreateInput[] = [];
-    try {
-      wardaEvents = await this.wardaProvider.fetchEvents();
-    } catch (error) {
-      this.logger.error('WARDA Wien ingestion failed', error);
-    }
-
-    const combinedEvents = [
-      ...stadtWienEvents,
-      ...eventfrogEvents,
-      ...ticketmasterEvents,
-      ...eventbriteEvents,
-      ...goodnightEvents,
-      ...eventsAtEvents,
-      ...residentAdvisorEvents,
-      ...capeetEvents,
-      ...ohSchonHellEvents,
-      ...eintrittFreiEvents,
-      ...kultursommerEvents,
-      ...lumaEvents,
-      ...viennaClubsEvents,
-      ...rausgegangenEvents,
-      ...wardaEvents,
+    const providers = [
+      { name: 'Stadt Wien', fetcher: () => this.stadtWienProvider.fetchEvents() },
+      { name: 'Eventfrog', fetcher: () => this.eventfrogProvider.fetchEvents() },
+      { name: 'Ticketmaster', fetcher: () => this.ticketmasterProvider.fetchEvents() },
+      { name: 'Eventbrite', fetcher: () => this.eventbriteProvider.fetchEvents() },
+      { name: 'Goodnight.at', fetcher: () => this.goodnightProvider.fetchEvents() },
+      { name: 'Events.at', fetcher: () => this.eventsAtProvider.fetchEvents() },
+      { name: 'Resident Advisor', fetcher: () => this.residentAdvisorProvider.fetchEvents() },
+      { name: 'Capeet', fetcher: () => this.capeetProvider.fetchEvents() },
+      { name: 'ohschonhell.at', fetcher: () => this.ohSchonHellProvider.fetchEvents() },
+      { name: 'eintrittfrei.at', fetcher: () => this.eintrittFreiProvider.fetchEvents() },
+      { name: 'Kultursommer Wien', fetcher: () => this.kultursommerProvider.fetchEvents() },
+      { name: 'Luma Vienna', fetcher: () => this.lumaProvider.fetchEvents() },
+      { name: 'Vienna Clubs', fetcher: () => this.viennaClubsProvider.fetchEvents() },
+      { name: 'Rausgegangen Wien', fetcher: () => this.rausgegangenProvider.fetchEvents() },
+      { name: 'WARDA Wien', fetcher: () => this.wardaProvider.fetchEvents() },
     ];
+
+    const results = await Promise.allSettled(providers.map(p => p.fetcher()));
+
+    const combinedEvents: Prisma.EventCreateInput[] = [];
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        combinedEvents.push(...result.value);
+      } else {
+        this.logger.error(`${providers[index].name} ingestion failed`, result.reason);
+      }
+    });
     const deduplicatedEvents = this.deduplicateEvents(combinedEvents);
 
     // AI Categorization & Price Enrichment step: Classify events with Gemini 2.5 Flash
@@ -228,20 +134,19 @@ export class IngestionService implements OnModuleInit {
     events: Prisma.EventCreateInput[],
   ): Prisma.EventCreateInput[] {
     const uniqueEvents: Prisma.EventCreateInput[] = [];
+    const eventsMap = new Map<string, number>();
 
     for (const event of events) {
       const normTitle = this.normalizeTitle(event.title);
-      const startMs = new Date(event.startTime).getTime();
+      const startDate = new Date(event.startTime);
+      const dateKey = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const compositeKey = `${normTitle}_${dateKey}`;
 
-      const existingIndex = uniqueEvents.findIndex((existing) => {
-        const existingNormTitle = this.normalizeTitle(existing.title);
+      if (eventsMap.has(compositeKey)) {
+        const existingIndex = eventsMap.get(compositeKey)!;
+        const existing = uniqueEvents[existingIndex];
+        const startMs = startDate.getTime();
         const existingStartMs = new Date(existing.startTime).getTime();
-
-        // 1. Title match (either identical or very close substring match)
-        const titleMatches =
-          existingNormTitle === normTitle ||
-          existingNormTitle.includes(normTitle) ||
-          normTitle.includes(existingNormTitle);
 
         // 2. Time match (start times are within 1 hour)
         const timeMatches = Math.abs(existingStartMs - startMs) <= 60 * 60 * 1000;
@@ -259,27 +164,27 @@ export class IngestionService implements OnModuleInit {
             Math.abs(existing.latitude - event.latitude) < 0.005 &&
             Math.abs(existing.longitude - event.longitude) < 0.005);
 
-        return titleMatches && timeMatches && venueMatches;
-      });
+        if (timeMatches && venueMatches) {
+          const newScore = this.getEventQualityScore(event);
+          const existingScore = this.getEventQualityScore(existing);
 
-      if (existingIndex === -1) {
-        uniqueEvents.push(event);
-      } else {
-        const existing = uniqueEvents[existingIndex];
-        const newScore = this.getEventQualityScore(event);
-        const existingScore = this.getEventQualityScore(existing);
-
-        // Prioritize non-scraped, richer events (with photos, official APIs, better metadata)
-        if (newScore > existingScore) {
-          this.logger.debug(
-            `Deduplication: Replaced event "${existing.title}" (${existing.provider}, score ${existingScore}) with higher quality ${event.provider} (score ${newScore}).`,
-          );
-          uniqueEvents[existingIndex] = event;
+          // Prioritize non-scraped, richer events (with photos, official APIs, better metadata)
+          if (newScore > existingScore) {
+            this.logger.debug(
+              `Deduplication: Replaced event "${existing.title}" (${existing.provider}, score ${existingScore}) with higher quality ${event.provider} (score ${newScore}).`,
+            );
+            uniqueEvents[existingIndex] = event;
+          } else {
+            this.logger.debug(
+              `Deduplication: Kept existing higher/equal quality event "${existing.title}" (${existing.provider}, score ${existingScore}) over ${event.provider} (score ${newScore}).`,
+            );
+          }
         } else {
-          this.logger.debug(
-            `Deduplication: Kept existing higher/equal quality event "${existing.title}" (${existing.provider}, score ${existingScore}) over ${event.provider} (score ${newScore}).`,
-          );
+          uniqueEvents.push(event);
         }
+      } else {
+        uniqueEvents.push(event);
+        eventsMap.set(compositeKey, uniqueEvents.length - 1);
       }
     }
 
@@ -297,11 +202,14 @@ export class IngestionService implements OnModuleInit {
       VIENNA_CLUBS: 46,
       EVENTFROG: 45,
       LUMA: 42,
+      KULTURSOMMER: 40,
       STADT_WIEN: 40,
-      OPENWEB_NINJA: 30,
+      WARDA: 38,
       CAPEET: 35,
       RAUSGEGANGEN: 35,
-      WARDA: 38,
+      OH_SCHON_HELL: 30,
+      OPENWEB_NINJA: 30,
+      EINTRITT_FREI: 25,
       GOODNIGHT: 10,
       EVENTS_AT: 10,
     };
@@ -332,6 +240,6 @@ export class IngestionService implements OnModuleInit {
   }
 
   private normalizeTitle(title: string): string {
-    return title.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return title.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
   }
 }

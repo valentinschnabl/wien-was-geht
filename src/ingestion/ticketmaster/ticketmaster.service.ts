@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { createViennaDate } from '../../common/utils/time.util';
 
 interface TicketmasterVenue {
   name?: string;
@@ -160,21 +161,17 @@ export class TicketmasterService implements IEventProvider {
   }
 
   private parseEventDates(event: TicketmasterEvent): { start: Date; end: Date } {
-    const startDateStr =
-      event.dates?.start?.dateTime ||
-      (event.dates?.start?.localDate
-        ? `${event.dates.start.localDate}T${event.dates.start.localTime || '00:00:00'}Z`
-        : null);
+    const start = event.dates?.start?.dateTime
+      ? new Date(event.dates.start.dateTime)
+      : event.dates?.start?.localDate
+      ? createViennaDate(event.dates.start.localDate, event.dates.start.localTime || '00:00:00')
+      : new Date();
 
-    const start = startDateStr ? new Date(startDateStr) : new Date();
-
-    const endDateStr =
-      event.dates?.end?.dateTime ||
-      (event.dates?.end?.localDate
-        ? `${event.dates.end.localDate}T${event.dates.end.localTime || '23:59:59'}Z`
-        : null);
-
-    const end = endDateStr ? new Date(endDateStr) : start;
+    const end = event.dates?.end?.dateTime
+      ? new Date(event.dates.end.dateTime)
+      : event.dates?.end?.localDate
+      ? createViennaDate(event.dates.end.localDate, event.dates.end.localTime || '23:59:59')
+      : start;
 
     return { start, end };
   }

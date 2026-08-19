@@ -31,7 +31,13 @@ export function parseViperRoomEvents(
       // Default start time for Viper Room live shows / clubnights is 20:00 (doors 19:00)
       const isLive = nameText.toLowerCase().includes('live');
       const startHour = isLive ? 20 : 22;
-      const start = createViennaDate(currentYear, month, day, startHour, 0);
+      let start = createViennaDate(currentYear, month, day, startHour, 0);
+
+      // Fix year rollover bug
+      const twoMonthsInMs = 60 * 24 * 60 * 60 * 1000;
+      if (start.getTime() < Date.now() - twoMonthsInMs) {
+        start = createViennaDate(currentYear + 1, month, day, startHour, 0);
+      }
 
       if (start < todayStart || start > tomorrowEnd) return;
 

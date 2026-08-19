@@ -14,7 +14,7 @@ export class EventPersistenceService {
 
     for (let i = 0; i < events.length; i += chunkSize) {
       const chunk = events.slice(i, i + chunkSize);
-      await Promise.all(
+      const results = await Promise.allSettled(
         chunk.map((event) =>
           this.prisma.event.upsert({
             where: {
@@ -28,7 +28,13 @@ export class EventPersistenceService {
           }),
         ),
       );
-      savedCount += chunk.length;
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          savedCount++;
+        } else {
+          this.logger.warn(`Failed to upsert event: ${result.reason?.message || result.reason}`);
+        }
+      }
     }
 
     return savedCount;

@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { createViennaDate } from '../../common/utils/time.util';
 
 interface EventbriteTag {
   prefix?: string;
@@ -188,8 +189,8 @@ export class EventbriteService implements IEventProvider {
     const endTime = event.end_time || '23:59';
     const endDate = event.end_date || event.start_date;
 
-    const start = new Date(`${event.start_date}T${startTime}:00Z`);
-    const end = new Date(`${endDate}T${endTime}:00Z`);
+    const start = createViennaDate(event.start_date, startTime);
+    const end = createViennaDate(endDate, endTime);
 
     return { start, end };
   }

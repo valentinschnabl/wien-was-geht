@@ -90,8 +90,8 @@ export function parseU4Events(
           isFree,
         });
       }
-    } catch {
-      // Ignore non-event JSON-LD
+    } catch (parseErr) {
+      // silently skip non-event JSON-LD
     }
   });
 

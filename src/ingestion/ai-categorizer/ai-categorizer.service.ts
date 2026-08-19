@@ -136,7 +136,7 @@ ${JSON.stringify(batchInput, null, 2)}
 `;
 
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent`;
         const response = await firstValueFrom(
           this.httpService.post<any>(
             url,
@@ -148,7 +148,10 @@ ${JSON.stringify(batchInput, null, 2)}
               },
             },
             {
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey,
+              },
               timeout: 10000,
             },
           ),

@@ -3,6 +3,16 @@ import { Prisma } from '@prisma/client';
 import { VIENNA_VENUES } from '../../../common/constants/vienna-venues';
 import { applyViennaTime } from '../../../common/utils/time.util';
 
+interface OpenAirJsonLdEvent {
+  '@type'?: string | string[];
+  name?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export function parseOpenAirAndStageEvents(
   html: string,
   venue: 'MQ' | 'AfrikaTage' | 'SzeneWien' | 'Arena',
@@ -10,95 +20,66 @@ export function parseOpenAirAndStageEvents(
   tomorrowEnd: Date,
 ): Prisma.EventCreateInput[] {
   const events: Prisma.EventCreateInput[] = [];
-  const todayIso = todayStart.toISOString().split('T')[0];
-  const tomorrowIso = tomorrowEnd.toISOString().split('T')[0];
+  const $ = cheerio.load(html || '');
+  const venueKeyMap: Record<string, string> = {
+    'MQ': 'museumsquartier',
+    'AfrikaTage': 'donauinsel',
+    'SzeneWien': 'szene wien',
+    'Arena': 'arena wien'
+  };
+  const venueKey = venueKeyMap[venue];
+  const coords = VIENNA_VENUES[venueKey] || { lat: 48.2035, lng: 16.3582 };
+  const fallbackUrlMap: Record<string, string> = {
+    'MQ': 'https://www.mqw.at',
+    'AfrikaTage': 'https://wien.afrika-tage.de',
+    'SzeneWien': 'https://szenewien.com',
+    'Arena': 'https://arena.wien'
+  };
+  const fallbackUrl = fallbackUrlMap[venue];
 
-  if (venue === 'MQ') {
-    const coords = VIENNA_VENUES['museumsquartier'] || { lat: 48.2035, lng: 16.3582 };
-    events.push({
-      externalId: `mq-${todayIso}-live-baiba`,
-      provider: 'VIENNA_CLUBS',
-      title: 'Live im MQ: BAIBA (MQ Sommerbühne)',
-      description: 'Elektro-Pop Open Air Konzert im Museumsquartier Wien (Haupthof). Freier Eintritt.',
-      category: 'Music',
-      url: 'https://www.mqw.at',
-      imageUrl: null,
-      startTime: applyViennaTime(todayStart, 19, 30),
-      endTime: applyViennaTime(todayStart, 22, 0),
-      venueName: 'Museumsquartier',
-      latitude: coords.lat,
-      longitude: coords.lng,
-      isFree: true,
-    });
-  } else if (venue === 'AfrikaTage') {
-    const coords = VIENNA_VENUES['donauinsel'] || { lat: 48.2325, lng: 16.4120 };
-    events.push(
-      {
-        externalId: `afrikatage-${todayIso}-jeys-marabini`,
-        provider: 'VIENNA_CLUBS',
-        title: 'Afrika Tage Wien: Jeys Marabini (Live)',
-        description: 'Afro-Jazz & World Music Live auf der Donauinsel bei den Afrika Tagen Wien.',
-        category: 'Music',
-        url: 'https://wien.afrika-tage.de',
-        imageUrl: null,
-        startTime: applyViennaTime(todayStart, 20, 0),
-        endTime: applyViennaTime(todayStart, 22, 30),
-        venueName: 'Donauinsel',
-        latitude: coords.lat,
-        longitude: coords.lng,
-        isFree: false,
-      },
-      {
-        externalId: `afrikatage-${tomorrowIso}-adama-dicko`,
-        provider: 'VIENNA_CLUBS',
-        title: 'Afrika Tage Wien: Adama Dicko & Seno Blues',
-        description: 'Wüstenblues & Mandingue-Rhythmen live auf der Donauinsel.',
-        category: 'Music',
-        url: 'https://wien.afrika-tage.de',
-        imageUrl: null,
-        startTime: applyViennaTime(tomorrowEnd, 20, 0),
-        endTime: applyViennaTime(tomorrowEnd, 22, 30),
-        venueName: 'Donauinsel',
-        latitude: coords.lat,
-        longitude: coords.lng,
-        isFree: false,
-      },
-    );
-  } else if (venue === 'SzeneWien') {
-    const coords = VIENNA_VENUES['szene wien'] || { lat: 48.1782, lng: 16.4172 };
-    events.push({
-      externalId: `szenewien-${tomorrowIso}-high-purple`,
-      provider: 'VIENNA_CLUBS',
-      title: 'Live: High Purple / Evolution',
-      description: 'Rock & Pop Live Showcase in der Szene Wien (Hauffgasse 26, 1110 Wien). Freier Eintritt.',
-      category: 'Music',
-      url: 'https://szenewien.com',
-      imageUrl: null,
-      startTime: applyViennaTime(tomorrowEnd, 19, 0),
-      endTime: applyViennaTime(tomorrowEnd, 22, 30),
-      venueName: 'Szene Wien',
-      latitude: coords.lat,
-      longitude: coords.lng,
-      isFree: true,
-    });
-  } else if (venue === 'Arena') {
-    const coords = VIENNA_VENUES['arena wien'] || { lat: 48.1883, lng: 16.4136 };
-    events.push({
-      externalId: `arena-${tomorrowIso}-kruder-dorfmeister`,
-      provider: 'VIENNA_CLUBS',
-      title: 'Kruder & Dorfmeister (Live Open Air)',
-      description: 'Legendäres Wiener TripHop & Downtempo Duo live in der Arena Wien (Open Air Gelände).',
-      category: 'Music',
-      url: 'https://arena.wien',
-      imageUrl: null,
-      startTime: applyViennaTime(tomorrowEnd, 19, 30),
-      endTime: applyViennaTime(tomorrowEnd, 23, 0),
-      venueName: 'Arena Wien',
-      latitude: coords.lat,
-      longitude: coords.lng,
-      isFree: false,
-    });
-  }
+  $('script[type="application/ld+json"]').each((_, el) => {
+    try {
+      const raw = JSON.parse($(el).html() || '');
+      const items: OpenAirJsonLdEvent[] = Array.isArray(raw) ? raw : [raw];
+
+      for (const item of items) {
+        const types = Array.isArray(item['@type']) ? item['@type'] : [item['@type']];
+        if (!types.includes('Event') || !item.name || !item.startDate) continue;
+
+        const start = new Date(item.startDate);
+        if (isNaN(start.getTime())) continue;
+
+        if (start < todayStart || start > tomorrowEnd) continue;
+
+        let end = item.endDate ? new Date(item.endDate) : new Date(start.getTime() + 4 * 3600000);
+        if (end < start) {
+          end = new Date(start.getTime() + 4 * 3600000);
+        }
+
+        const cleanDesc = item.description
+          ? cheerio.load(item.description).text().trim().replace(/\s+/g, ' ')
+          : '';
+
+        events.push({
+          externalId: `${venue.toLowerCase()}-${start.toISOString().split('T')[0]}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30)}`,
+          provider: 'VIENNA_CLUBS',
+          title: item.name.trim(),
+          description: cleanDesc ? cleanDesc.substring(0, 1500) : null,
+          category: 'Music',
+          url: item.url || fallbackUrl,
+          imageUrl: item.image || null,
+          startTime: start,
+          endTime: end,
+          venueName: venue,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          isFree: false, // Defaulting as pricing detection might not be accurate for open air without util, but we can set it to false as fallback. Or import and use detectIsFree if wanted, but instructions didn't specify. Actually, let's keep it safe.
+        });
+      }
+    } catch (parseErr) {
+      // silently skip non-event JSON-LD
+    }
+  });
 
   return events;
 }

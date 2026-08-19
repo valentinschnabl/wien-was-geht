@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
 import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { createViennaDate } from '../../common/utils/time.util';
 
 interface GoodnightAddress {
   city?: string | null;
@@ -122,11 +123,11 @@ export class GoodnightService implements IEventProvider {
         // Parse start and end time
         const startDateStr = event.event_date?.start || todayStr;
         const timeStartStr = event.time_start || '00:00';
-        const startTime = new Date(`${startDateStr}T${timeStartStr}:00+02:00`);
+        const startTime = createViennaDate(startDateStr, timeStartStr);
 
         let endTime: Date | null = null;
         if (event.event_date?.end && event.time_end) {
-          endTime = new Date(`${event.event_date.end}T${event.time_end}:00+02:00`);
+          endTime = createViennaDate(event.event_date.end, event.time_end);
         }
 
         // Address and venue resolution

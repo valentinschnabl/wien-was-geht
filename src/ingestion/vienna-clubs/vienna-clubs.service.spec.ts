@@ -268,69 +268,79 @@ describe('ViennaClubsService & Adapters', () => {
   });
 
   describe('Jazz Adapter (parseJazzClubEvents)', () => {
-    it('should parse Jazzland and Zwe live sessions', () => {
+    it('should parse Jazzland and Zwe live sessions from JSON-LD', () => {
       const today = new Date('2026-08-19T00:00:00.000Z');
       const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
 
-      const jlEvents = parseJazzClubEvents('Matyas Bartha Quartett 19.08', 'Jazzland', today, tomorrowEnd);
+      const jlJsonLd = `
+        <script type="application/ld+json">
+          {
+            "@type": "Event",
+            "name": "Matyas Bartha Quartett",
+            "startDate": "2026-08-19T21:00:00+02:00",
+            "url": "https://www.jazzland.at/events/matyas"
+          }
+        </script>
+      `;
+
+      const jlEvents = parseJazzClubEvents(jlJsonLd, 'Jazzland', today, tomorrowEnd);
       expect(jlEvents).toHaveLength(1);
       expect(jlEvents[0].venueName).toBe('Jazzland');
       expect(jlEvents[0].category).toBe('Music');
 
-      const zweEvents = parseJazzClubEvents('Let\'s Groove Jam Session', 'Zwe', today, tomorrowEnd);
-      expect(zweEvents).toHaveLength(1);
-      expect(zweEvents[0].venueName).toBe('Zwe');
-
-      const frauMayerEvents = parseJazzClubEvents('', 'Frau Mayer', today, tomorrowEnd);
-      expect(frauMayerEvents).toHaveLength(1);
-      expect(frauMayerEvents[0].venueName).toBe('Frau Mayer');
+      const emptyEvents = parseJazzClubEvents('', 'Zwe', today, tomorrowEnd);
+      expect(emptyEvents).toHaveLength(0);
     });
   });
 
   describe('Gürtel & Bar Adapter (parseGuertelAndBarEvents)', () => {
-    it('should parse Fledermaus, Jenseits and Carina events', () => {
+    it('should parse Fledermaus and Carina events from JSON-LD', () => {
       const today = new Date('2026-08-19T00:00:00.000Z');
       const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
 
-      const fledermausEvents = parseGuertelAndBarEvents('', 'Fledermaus', today, tomorrowEnd);
-      expect(fledermausEvents).toHaveLength(2);
-      expect(fledermausEvents[0].venueName).toBe('Cabaret Fledermaus');
+      const fledermausJsonLd = `
+        <script type="application/ld+json">
+          [
+            {
+              "@type": "Event",
+              "name": "Holiday Club",
+              "startDate": "2026-08-19T21:00:00+02:00"
+            }
+          ]
+        </script>
+      `;
 
-      const jenseitsEvents = parseGuertelAndBarEvents('', 'Jenseits', today, tomorrowEnd);
-      expect(jenseitsEvents).toHaveLength(2);
-      expect(jenseitsEvents[0].venueName).toBe('Tanzcafé Jenseits');
+      const fledermausEvents = parseGuertelAndBarEvents(fledermausJsonLd, 'Fledermaus', today, tomorrowEnd);
+      expect(fledermausEvents).toHaveLength(1);
+      expect(fledermausEvents[0].venueName).toBe('Fledermaus');
 
-      const carinaEvents = parseGuertelAndBarEvents('', 'Carina', today, tomorrowEnd);
-      expect(carinaEvents).toHaveLength(1);
-      expect(carinaEvents[0].title).toContain('Thunder Tits');
-
-      const martinSeppEvents = parseGuertelAndBarEvents('', 'Martin Sepp', today, tomorrowEnd);
-      expect(martinSeppEvents).toHaveLength(1);
-      expect(martinSeppEvents[0].venueName).toBe('Heuriger Zum Martin Sepp');
+      const emptyEvents = parseGuertelAndBarEvents('', 'Jenseits', today, tomorrowEnd);
+      expect(emptyEvents).toHaveLength(0);
     });
   });
 
   describe('Open Air & Stage Adapter (parseOpenAirAndStageEvents)', () => {
-    it('should parse MQ, Afrika Tage, Szene Wien and Arena events', () => {
+    it('should parse MQ and Arena events from JSON-LD', () => {
       const today = new Date('2026-08-19T00:00:00.000Z');
       const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
 
-      const mqEvents = parseOpenAirAndStageEvents('', 'MQ', today, tomorrowEnd);
+      const mqJsonLd = `
+        <script type="application/ld+json">
+          {
+            "@type": "Event",
+            "name": "BAIBA Live",
+            "startDate": "2026-08-19T19:30:00+02:00"
+          }
+        </script>
+      `;
+
+      const mqEvents = parseOpenAirAndStageEvents(mqJsonLd, 'MQ', today, tomorrowEnd);
       expect(mqEvents).toHaveLength(1);
       expect(mqEvents[0].title).toContain('BAIBA');
-      expect(mqEvents[0].venueName).toBe('Museumsquartier');
+      expect(mqEvents[0].venueName).toBe('MQ');
 
-      const afrikaEvents = parseOpenAirAndStageEvents('', 'AfrikaTage', today, tomorrowEnd);
-      expect(afrikaEvents).toHaveLength(2);
-      expect(afrikaEvents[0].venueName).toBe('Donauinsel');
-
-      const szeneEvents = parseOpenAirAndStageEvents('', 'SzeneWien', today, tomorrowEnd);
-      expect(szeneEvents).toHaveLength(1);
-      expect(szeneEvents[0].venueName).toBe('Szene Wien');
-
-      const arenaEvents = parseOpenAirAndStageEvents('', 'Arena', today, tomorrowEnd);
-      expect(arenaEvents).toHaveLength(1);
-      expect(arenaEvents[0].title).toContain('Kruder & Dorfmeister');
+      const emptyEvents = parseOpenAirAndStageEvents('', 'Arena', today, tomorrowEnd);
+      expect(emptyEvents).toHaveLength(0);
     });
   });
 

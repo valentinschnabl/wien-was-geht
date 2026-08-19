@@ -75,8 +75,8 @@ export function parseGenericClubEvents(
           isFree,
         });
       }
-    } catch {
-      // Ignore JSON parse errors
+    } catch (parseErr) {
+      // silently skip non-event JSON-LD
     }
   });
 
