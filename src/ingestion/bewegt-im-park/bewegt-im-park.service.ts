@@ -66,35 +66,39 @@ export class BewegtImParkService implements IEventProvider {
     ];
 
     const allEvents: Prisma.EventCreateInput[] = [];
+    const batchSize = 4;
 
-    // Parallel fetch across districts with Promise.allSettled
-    const districtFetches = VIENNA_DISTRICTS_LIST.map(async (dist) => {
-      const url = `${this.baseUrl}/stadt/${dist.slug}`;
-      try {
-        const res = await firstValueFrom(
-          this.httpService.get<string>(url, {
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              Accept: 'text/html,application/xhtml+xml',
-            },
-            timeout: 8000,
-          }),
-        );
+    // Fetch in small concurrent batches of 4 to prevent server throttling
+    for (let i = 0; i < VIENNA_DISTRICTS_LIST.length; i += batchSize) {
+      const chunk = VIENNA_DISTRICTS_LIST.slice(i, i + batchSize);
+      const districtFetches = chunk.map(async (dist) => {
+        const url = `${this.baseUrl}/stadt/${dist.slug}`;
+        try {
+          const res = await firstValueFrom(
+            this.httpService.get<string>(url, {
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                Accept: 'text/html,application/xhtml+xml',
+              },
+              timeout: 12000,
+            }),
+          );
 
-        return this.parseDistrictHtml(res.data, dist, targetDays);
-      } catch (err) {
-        this.logger.debug(`Could not fetch district ${dist.name}: ${(err as Error).message}`);
-        return [];
-      }
-    });
+          return this.parseDistrictHtml(res.data, dist, targetDays);
+        } catch (err) {
+          this.logger.debug(`Could not fetch district ${dist.name}: ${(err as Error).message}`);
+          return [];
+        }
+      });
 
-    const results = await Promise.allSettled(districtFetches);
-    results.forEach((r) => {
-      if (r.status === 'fulfilled') {
-        allEvents.push(...r.value);
-      }
-    });
+      const results = await Promise.allSettled(districtFetches);
+      results.forEach((r) => {
+        if (r.status === 'fulfilled') {
+          allEvents.push(...r.value);
+        }
+      });
+    }
 
     this.logger.log(`Extracted ${allEvents.length} active Bewegt im Park sport sessions for today and tomorrow.`);
     return allEvents;

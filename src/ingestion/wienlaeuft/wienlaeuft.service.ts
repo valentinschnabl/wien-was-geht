@@ -25,13 +25,13 @@ export class WienLaeuftService implements IEventProvider {
               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             Accept: 'text/html,application/xhtml+xml',
           },
-          timeout: 8000,
+          timeout: 15000,
         }),
       );
 
       return this.parseEventsHtml(response.data);
     } catch (error) {
-      this.logger.error('Failed to fetch events from Wienläuft', error);
+      this.logger.warn(`Failed to fetch events from Wienläuft: ${(error as Error).message}`);
       return [];
     }
   }

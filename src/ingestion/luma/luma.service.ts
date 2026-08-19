@@ -182,7 +182,7 @@ export class LumaService implements IEventProvider {
       );
       return normalizedEvents;
     } catch (error) {
-      this.logger.error('Failed to fetch events from Luma Vienna', error);
+      this.logger.warn(`Failed to fetch events from Luma Vienna: ${(error as Error).message}`);
       return [];
     }
   }
