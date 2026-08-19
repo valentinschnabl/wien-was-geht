@@ -502,10 +502,16 @@ html, body {
   background: #ecfdf5 !important;
   color: #047857 !important;
   border: 1px solid #a7f3d0 !important;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 0.74rem;
+  box-sizing: border-box;
+  border-radius: 6px;
 }
 
 [data-theme="dark"] .badge-free {
@@ -515,7 +521,7 @@ html, body {
 }
 
 .badge-free .badge-icon {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: #059669;
 }
 
@@ -523,88 +529,39 @@ html, body {
   color: #34d399;
 }
 
-/* Category Badges / Tabs */
+/* Category Badges / Tabs (Otto Wagner Resedagrün) */
 .badge-cat {
-  font-size: 0.72rem;
-  padding: 3px 8px;
+  background: var(--accent-primary-light) !important;
+  color: var(--accent-primary-hover) !important;
+  border: 1px solid rgba(91, 123, 85, 0.25) !important;
+  font-size: 0.74rem;
+  font-weight: 600;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
   border-radius: 6px;
-  font-weight: 700;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   white-space: nowrap;
-  letter-spacing: 0.02em;
-  border: 1px solid transparent;
+  letter-spacing: 0.01em;
+}
+
+[data-theme="dark"] .badge-cat {
+  background: var(--accent-primary-light) !important;
+  color: #8ac082 !important;
+  border-color: rgba(116, 168, 108, 0.35) !important;
 }
 
 .badge-cat i {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
+  color: var(--accent-primary);
 }
 
-.badge-cat-music {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border-color: #ddd6fe;
-}
-[data-theme="dark"] .badge-cat-music {
-  background: #2e1065;
-  color: #c4b5fd;
-  border-color: #5b21b6;
-}
-
-.badge-cat-nightlife {
-  background: #fdf2f8;
-  color: #db2777;
-  border-color: #fbcfe8;
-}
-[data-theme="dark"] .badge-cat-nightlife {
-  background: #500724;
-  color: #f472b6;
-  border-color: #9d174d;
-}
-
-.badge-cat-culture {
-  background: #f0f9ff;
-  color: #0284c7;
-  border-color: #bae6fd;
-}
-[data-theme="dark"] .badge-cat-culture {
-  background: #082f49;
-  color: #7dd3fc;
-  border-color: #0369a1;
-}
-
-.badge-cat-sports {
-  background: #f0fdf4;
-  color: #16a34a;
-  border-color: #bbf7d0;
-}
-[data-theme="dark"] .badge-cat-sports {
-  background: #052e16;
-  color: #86efac;
-  border-color: #15803d;
-}
-
-.badge-cat-culinary {
-  background: #fffbeb;
-  color: #d97706;
-  border-color: #fde68a;
-}
-[data-theme="dark"] .badge-cat-culinary {
-  background: #451a03;
-  color: #fcd34d;
-  border-color: #b45309;
-}
-
-.badge-cat-family {
-  background: #ecfeff;
-  color: #0891b2;
-  border-color: #a5f3fc;
-}
-[data-theme="dark"] .badge-cat-family {
-  background: #083344;
-  color: #67e8f9;
-  border-color: #0e7490;
+[data-theme="dark"] .badge-cat i {
+  color: #74a86c;
 }
 
 /* Sidebar Search Bar */
@@ -1145,21 +1102,26 @@ html, body {
   margin: 0;
 }
 
-/* Badges */
+/* Badges & Tags */
 .badge {
-  font-size: 0.72rem;
-  padding: 3px 8px;
+  font-size: 0.74rem;
+  height: 24px;
+  min-height: 24px;
+  box-sizing: border-box;
+  padding: 0 8px;
   border-radius: 6px;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   white-space: nowrap;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
 }
 
 .badge i {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   flex-shrink: 0;
 }
 
@@ -1170,31 +1132,37 @@ html, body {
 .badge-live {
   background: var(--live-bg);
   color: var(--live-text);
+  border-color: rgba(21, 128, 61, 0.25);
 }
 
 .badge-upcoming {
   background: var(--upcoming-bg);
   color: var(--upcoming-text);
+  border-color: rgba(91, 123, 85, 0.25);
 }
 
 .badge-concluded {
   background: var(--concluded-bg);
   color: var(--concluded-text);
+  border-color: rgba(220, 38, 38, 0.25);
 }
 
 .badge-success {
   background: var(--live-bg);
   color: var(--live-text);
+  border-color: rgba(21, 128, 61, 0.25);
 }
 
 .badge-warning {
   background: #fef3c7;
   color: #b45309;
+  border-color: #fde68a;
 }
 
 .badge-info {
   background: var(--upcoming-bg);
   color: var(--upcoming-text);
+  border-color: rgba(91, 123, 85, 0.25);
 }
 
 /* Sidebar Event List */
@@ -1272,13 +1240,36 @@ html, body {
 }
 
 .distance-pill {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  color: var(--accent-primary);
+  color: var(--accent-primary-hover);
   background: var(--accent-primary-light);
-  padding: 2px 6px;
-  border-radius: 4px;
+  border: 1px solid rgba(91, 123, 85, 0.25);
+  height: 24px;
+  min-height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   white-space: nowrap;
+}
+
+[data-theme="dark"] .distance-pill {
+  color: #8ac082;
+  background: var(--accent-primary-light);
+  border-color: rgba(116, 168, 108, 0.35);
+}
+
+.distance-pill i {
+  font-size: 0.72rem;
+  color: var(--accent-primary);
+}
+
+[data-theme="dark"] .distance-pill i {
+  color: #74a86c;
 }
 
 .compact-title {

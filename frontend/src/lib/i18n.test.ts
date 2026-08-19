@@ -75,6 +75,6 @@ describe("i18n Localization Dictionaries", () => {
     expect(getCategoryIcon("Family")).toBe("fa-people-roof");
     expect(getCategoryIcon("Sports")).toBe("fa-person-running");
     expect(getCategoryIcon("Culinary")).toBe("fa-utensils");
-    expect(getCategoryIcon("Unknown")).toBe("fa-shapes");
+    expect(getCategoryIcon("Unknown")).toBe("fa-palette");
   });
 });
