@@ -102,6 +102,14 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'zoku vienna': { lat: 48.2172, lng: 16.4021 },
   'the popp': { lat: 48.2149, lng: 16.4029 },
   'ototo store': { lat: 48.2155, lng: 16.3839 },
+  'exil': { lat: 48.1932, lng: 16.4012 },
+  'exil club': { lat: 48.1932, lng: 16.4012 },
+  'prater dome': { lat: 48.2168, lng: 16.3975 },
+  'babenberger passage': { lat: 48.2045, lng: 16.3638 },
+  'passage': { lat: 48.2045, lng: 16.3638 },
+  'usus am wasser': { lat: 48.2415, lng: 16.4278 },
+  'usus': { lat: 48.2415, lng: 16.4278 },
+  'schikaneder': { lat: 48.1965, lng: 16.3635 },
 
   // Large Concert Halls & Arenas
   'gasometer': { lat: 48.1852, lng: 16.4208 },

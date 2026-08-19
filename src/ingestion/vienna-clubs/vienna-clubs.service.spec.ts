@@ -9,6 +9,7 @@ import { parseChelseaEvents } from './adapters/chelsea.adapter';
 import { parseU4Events } from './adapters/u4.adapter';
 import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
 import { parseViperRoomEvents } from './adapters/viper-room.adapter';
+import { parseGenericClubEvents } from './adapters/generic-club-feed.adapter';
 
 describe('ViennaClubsService & Adapters', () => {
   let service: ViennaClubsService;
@@ -230,6 +231,36 @@ describe('ViennaClubsService & Adapters', () => {
       expect(events[0].category).toBe('Music');
       expect(events[0].latitude).toBeCloseTo(48.1963, 3);
       expect(events[0].longitude).toBeCloseTo(16.3985, 3);
+    });
+  });
+
+  describe('Generic Club Feed Adapter (parseGenericClubEvents)', () => {
+    it('should parse Schema.org JSON-LD @graph events for any Vienna club', () => {
+      const today = new Date('2026-08-19T00:00:00.000Z');
+      const tomorrowEnd = new Date('2026-08-20T23:59:59.999Z');
+
+      const html = `
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Event",
+                "name": "Electronic Club Night",
+                "url": "https://www.grelleforelle.com/events/night",
+                "startDate": "2026-08-19T23:00:00+02:00"
+              }
+            ]
+          }
+        </script>
+      `;
+
+      const events = parseGenericClubEvents(html, 'Grelle Forelle', 'Nightlife', today, tomorrowEnd);
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe('Electronic Club Night');
+      expect(events[0].venueName).toBe('Grelle Forelle');
+      expect(events[0].latitude).toBeCloseTo(48.2355, 3);
+      expect(events[0].longitude).toBeCloseTo(16.3575, 3);
     });
   });
 
