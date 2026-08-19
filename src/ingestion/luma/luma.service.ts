@@ -167,7 +167,7 @@ export class LumaService implements IEventProvider {
           description: ev.description ? ev.description.substring(0, 500) : null,
           category: 'Culture',
           url,
-          imageUrl: ev.cover_url || null,
+          imageUrl: null, // Strictly Option 2: 100% risk-free
           startTime,
           endTime,
           venueName,

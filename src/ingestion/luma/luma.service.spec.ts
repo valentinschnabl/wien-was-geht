@@ -102,7 +102,7 @@ describe('LumaService', () => {
       latitude: 48.217,
       longitude: 16.402,
       url: 'https://lu.ma/tech-meetup-wien',
-      imageUrl: 'https://images.lumacdn.com/cover1.jpg',
+      imageUrl: null,
       isFree: true,
     });
   });
