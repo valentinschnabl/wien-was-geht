@@ -1,16 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { StadtWienService } from './ingestion/stadt-wien/stadt-wien.service';
 
-@Controller('test-ingestion')
+@Controller()
 export class AppController {
-  constructor(private readonly wienService: StadtWienService) {}
-
-  @Get('wien')
-  async testWien() {
-    const events = await this.wienService.fetchEvents();
+  @Get('health')
+  getHealth() {
     return {
-      count: events.length,
-      data: events,
+      status: 'ok',
+      service: 'wienwasgeht-api',
+      timestamp: new Date().toISOString(),
+      uptimeSeconds: Math.floor(process.uptime()),
     };
   }
 }
