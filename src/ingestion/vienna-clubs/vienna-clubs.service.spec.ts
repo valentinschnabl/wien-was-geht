@@ -8,6 +8,7 @@ import { parseTheLoftEvents } from './adapters/the-loft.adapter';
 import { parseChelseaEvents } from './adapters/chelsea.adapter';
 import { parseU4Events } from './adapters/u4.adapter';
 import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
+import { parseViperRoomEvents } from './adapters/viper-room.adapter';
 
 describe('ViennaClubsService & Adapters', () => {
   let service: ViennaClubsService;
@@ -193,6 +194,42 @@ describe('ViennaClubsService & Adapters', () => {
       expect(events[0].venueName).toBe('Weberknecht');
       expect(events[0].latitude).toBeCloseTo(48.2117, 3);
       expect(events[0].longitude).toBeCloseTo(16.3403, 3);
+    });
+  });
+
+  describe('Viper Room Adapter (parseViperRoomEvents)', () => {
+    it('should parse Viper Room event items from DOM', () => {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const tomorrowEnd = new Date(now);
+      tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+      tomorrowEnd.setHours(23, 59, 59, 999);
+
+      const html = `
+        <ul>
+          <li class="event_item">
+            <a href="https://www.viper-room.at/events/anette-olzon" class="event_inner">
+              <div class="event_datetime">
+                <div class="event_date_day">Do.</div>
+                <div class="event_date_monthyear">${day}.${month}.</div>
+              </div>
+              <p class="event_title"><span class="event_name">Live: ANETTE OLZON</span></p>
+            </a>
+          </li>
+        </ul>
+      `;
+
+      const events = parseViperRoomEvents(html, todayStart, tomorrowEnd);
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe('Live: ANETTE OLZON');
+      expect(events[0].venueName).toBe('Viper Room');
+      expect(events[0].category).toBe('Music');
+      expect(events[0].latitude).toBeCloseTo(48.1963, 3);
+      expect(events[0].longitude).toBeCloseTo(16.3985, 3);
     });
   });
 

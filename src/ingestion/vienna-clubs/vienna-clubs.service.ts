@@ -8,6 +8,7 @@ import { parseTheLoftEvents } from './adapters/the-loft.adapter';
 import { parseChelseaEvents } from './adapters/chelsea.adapter';
 import { parseU4Events } from './adapters/u4.adapter';
 import { parseWeberknechtEvents } from './adapters/weberknecht.adapter';
+import { parseViperRoomEvents } from './adapters/viper-room.adapter';
 
 @Injectable()
 export class ViennaClubsService implements IEventProvider {
@@ -17,7 +18,7 @@ export class ViennaClubsService implements IEventProvider {
 
   async fetchEvents(): Promise<Prisma.EventCreateInput[]> {
     this.logger.log(
-      'Fetching official club programs from Vienna venues (Flex, The Loft, Chelsea, U4, Weberknecht)...',
+      'Fetching official club programs from Vienna venues (Flex, The Loft, Chelsea, U4, Weberknecht, Viper Room)...',
     );
 
     const now = new Date();
@@ -37,12 +38,13 @@ export class ViennaClubsService implements IEventProvider {
       this.fetchChelsea(todayStart, tomorrowEnd),
       this.fetchU4(todayStart, tomorrowEnd),
       this.fetchWeberknecht(todayStart, tomorrowEnd),
+      this.fetchViperRoom(todayStart, tomorrowEnd),
     ];
 
     const settled = await Promise.allSettled(fetchTasks);
 
     settled.forEach((res, index) => {
-      const clubNames = ['Flex', 'The Loft', 'Chelsea', 'U4', 'Weberknecht'];
+      const clubNames = ['Flex', 'The Loft', 'Chelsea', 'U4', 'Weberknecht', 'Viper Room'];
       const club = clubNames[index];
       if (res.status === 'fulfilled') {
         this.logger.log(`Extracted ${res.value.length} events from ${club}.`);
@@ -139,6 +141,23 @@ export class ViennaClubsService implements IEventProvider {
       return parseWeberknechtEvents(response.data, todayStart, tomorrowEnd);
     } catch (err: any) {
       throw new Error(`Weberknecht error: ${err.message}`);
+    }
+  }
+
+  private async fetchViperRoom(todayStart: Date, tomorrowEnd: Date): Promise<Prisma.EventCreateInput[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get('https://www.viper-room.at', {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          timeout: 6000,
+        }),
+      );
+      return parseViperRoomEvents(response.data, todayStart, tomorrowEnd);
+    } catch (err: any) {
+      throw new Error(`Viper Room error: ${err.message}`);
     }
   }
 }
