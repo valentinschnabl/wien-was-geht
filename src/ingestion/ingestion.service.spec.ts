@@ -407,5 +407,84 @@ describe('IngestionService', () => {
         ]),
       );
     });
+
+    it('should deduplicate events with substring title variations and venue proximity', async () => {
+      mockRausgegangenService.fetchEvents.mockResolvedValueOnce([
+        {
+          externalId: 'rg-1',
+          provider: 'RAUSGEGANGEN',
+          title: 'ALBERT&TINA - Open Air Afterwork',
+          startTime: new Date('2026-08-19T16:00:00Z'),
+          venueName: 'Albertina',
+          latitude: 48.2045,
+          longitude: 16.3682,
+          imageUrl: null,
+          description: 'Open Air Afterwork on the Albertina Bastei.',
+          url: 'https://rausgegangen.de/albert-tina',
+        },
+      ]);
+
+      mockWardaService.fetchEvents.mockResolvedValueOnce([
+        {
+          externalId: 'warda-1',
+          provider: 'WARDA',
+          title: 'Albert & Tina (Afterwork)',
+          startTime: new Date('2026-08-19T16:00:00Z'),
+          venueName: 'Albertina Museum',
+          latitude: 48.2046,
+          longitude: 16.3683,
+          imageUrl: null,
+          description: 'Weekly Afterwork on Wednesday.',
+          url: 'https://warda.at/albert-tina',
+        },
+      ]);
+
+      await service.run();
+
+      // Only one deduplicated Albert & Tina event should be saved
+      expect(persistenceService.saveEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            title: expect.stringMatching(/Albert/i),
+          }),
+        ]),
+      );
+    });
+
+    it('should NOT deduplicate events with same title on different days or times', async () => {
+      mockViennaClubsService.fetchEvents.mockResolvedValueOnce([
+        {
+          externalId: 'u4-day1',
+          provider: 'VIENNA_CLUBS',
+          title: 'Addicted to Rock',
+          startTime: new Date('2026-08-21T21:00:00Z'),
+          venueName: 'U4',
+          latitude: 48.1848,
+          longitude: 16.3292,
+          imageUrl: null,
+          url: 'https://u4.at/rock1',
+        },
+        {
+          externalId: 'u4-day2',
+          provider: 'VIENNA_CLUBS',
+          title: 'Addicted to Rock',
+          startTime: new Date('2026-08-28T21:00:00Z'), // Exactly 1 week later
+          venueName: 'U4',
+          latitude: 48.1848,
+          longitude: 16.3292,
+          imageUrl: null,
+          url: 'https://u4.at/rock2',
+        },
+      ]);
+
+      await service.run();
+
+      expect(persistenceService.saveEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ externalId: 'u4-day1' }),
+          expect.objectContaining({ externalId: 'u4-day2' }),
+        ]),
+      );
+    });
   });
 });

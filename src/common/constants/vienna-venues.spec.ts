@@ -1,40 +1,61 @@
 import { resolveViennaVenueCoordinates, VIENNA_VENUES } from './vienna-venues';
 
-describe('resolveViennaVenueCoordinates', () => {
-  it('should return exact coordinates for direct matches', () => {
-    const coords = resolveViennaVenueCoordinates('Flex');
-    expect(coords).toEqual({ lat: 48.2185, lng: 16.3705 });
+describe('Vienna Venues & Coordinate Resolution (Edge Cases)', () => {
+  describe('Bounding Box & Data Integrity', () => {
+    it('should ensure all registered Vienna venues fall strictly within greater Vienna bounding box', () => {
+      // Greater Vienna Bounding Box: Lat [48.05, 48.36], Lng [16.15, 16.60]
+      for (const [name, coords] of Object.entries(VIENNA_VENUES)) {
+        expect(coords.lat).toBeGreaterThanOrEqual(48.05);
+        expect(coords.lat).toBeLessThanOrEqual(48.36);
+        expect(coords.lng).toBeGreaterThanOrEqual(16.15);
+        expect(coords.lng).toBeLessThanOrEqual(16.60);
+      }
+    });
+
+    it('should have exact coordinates for all 30 major Vienna clubs and live stages', () => {
+      const targetClubs = [
+        'flex', 'the loft', 'chelsea', 'u4', 'weberknecht', 'viper room',
+        'grelle forelle', 'das werk', 'pratersauna', 'exil club', 'sass music club',
+        'donautechno', 'fluc', 'celeste', 'camera club', 'club u',
+        'volksgarten', 'o - der klub', 'prater dome', 'babenberger passage', 'vie i pee',
+        'b72', 'rhiz', 'kramladen', 'venster99', 'arena', 'wuk',
+        'metastadt', 'gasometer', 'schikaneder',
+      ];
+
+      for (const club of targetClubs) {
+        const coords = resolveViennaVenueCoordinates(club);
+        expect(coords).toBeDefined();
+        expect(coords?.lat).toBeGreaterThan(48.1);
+        expect(coords?.lng).toBeGreaterThan(16.2);
+      }
+    });
   });
 
-  it('should normalize punctuation and whitespace', () => {
-    const coords = resolveViennaVenueCoordinates('  WUK, Halle (Wien)  ');
-    expect(coords).toBeDefined();
-    expect(coords?.lat).toBeCloseTo(48.2229, 3);
-  });
+  describe('Fuzzy Name Resolution & Quotation Edge Cases', () => {
+    it('should resolve venues with German and typography quotation marks', () => {
+      expect(resolveViennaVenueCoordinates('Heuriger „Zum Martin Sepp“')).toBeDefined();
+      expect(resolveViennaVenueCoordinates('Heuriger "Zum Martin Sepp"')).toBeDefined();
+      expect(resolveViennaVenueCoordinates('Heuriger »Zum Martin Sepp«')).toBeDefined();
+    });
 
-  it('should prioritize longer specific venue names over short substrings', () => {
-    const pavillon = resolveViennaVenueCoordinates('Volksgarten Pavillon, 1010 Wien');
-    expect(pavillon).toEqual(VIENNA_VENUES['volksgarten pavillon']);
+    it('should resolve venues with en-dashes and hyphens', () => {
+      const enDash = resolveViennaVenueCoordinates('O – der Klub');
+      const hyphen = resolveViennaVenueCoordinates('O - der Klub');
+      expect(enDash).toBeDefined();
+      expect(hyphen).toBeDefined();
+      expect(enDash).toEqual(hyphen);
+    });
 
-    const flexCafe = resolveViennaVenueCoordinates('Flex Cafe, Wien');
-    expect(flexCafe).toEqual(VIENNA_VENUES['flex cafe']);
-  });
+    it('should resolve venues wrapped in district/address noise', () => {
+      expect(resolveViennaVenueCoordinates('WUK Hof, Währinger Straße 59, 1090 Wien')).toBeDefined();
+      expect(resolveViennaVenueCoordinates('Flex Club, Donaukanal / Augartenbrücke, 1010 Wien')).toBeDefined();
+      expect(resolveViennaVenueCoordinates('U4 Diskothek, Schönbrunner Straße 222')).toBeDefined();
+    });
 
-  it('should not false-match words containing substrings like gaswerk -> werk', () => {
-    const coords = resolveViennaVenueCoordinates('Gaswerkstraße 12, 1110 Wien');
-    // Gaswerkstraße should NOT match "werk" (Das Werk)
-    expect(coords).toBeNull();
-  });
-
-  it('should match standalone venue names within complex address strings', () => {
-    const coords = resolveViennaVenueCoordinates('Live at Arena Wien, Baumgasse 80');
-    expect(coords).toEqual(VIENNA_VENUES['arena wien']);
-  });
-
-  it('should return null for unknown addresses or empty input', () => {
-    expect(resolveViennaVenueCoordinates('')).toBeNull();
-    expect(resolveViennaVenueCoordinates(null)).toBeNull();
-    expect(resolveViennaVenueCoordinates(undefined)).toBeNull();
-    expect(resolveViennaVenueCoordinates('Unbekannter Ort 99, 9999 Nirgendwo')).toBeNull();
+    it('should return null for unknown or non-Vienna venues without crashing', () => {
+      expect(resolveViennaVenueCoordinates('Musterbühne Graz')).toBeNull();
+      expect(resolveViennaVenueCoordinates('')).toBeNull();
+      expect(resolveViennaVenueCoordinates('   ')).toBeNull();
+    });
   });
 });

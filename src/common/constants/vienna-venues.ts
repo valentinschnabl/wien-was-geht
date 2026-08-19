@@ -62,9 +62,10 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'volksgarten': { lat: 48.2065, lng: 16.3615 },
   'volksgarten pavillon': { lat: 48.2070, lng: 16.3616 },
   'hermannpark': { lat: 48.2120, lng: 16.3840 },
-  'o der klub': { lat: 48.2025, lng: 16.3685 },
+  'o der klub': { lat: 48.2023, lng: 16.3688 },
   'celeste': { lat: 48.1965, lng: 16.3602 },
   'donau techno': { lat: 48.2012, lng: 16.3545 },
+  'donautechno': { lat: 48.2012, lng: 16.3545 },
   'camera club': { lat: 48.1982, lng: 16.3524 },
   'club u': { lat: 48.2005, lng: 16.3695 },
   'ponyhof': { lat: 48.1988, lng: 16.3512 },
@@ -188,7 +189,7 @@ export function resolveViennaVenueCoordinates(
 
   const normalized = venueNameOrAddress
     .toLowerCase()
-    .replace(/[,\.\-\/\\()"„“»«']/g, ' ')
+    .replace(/[,\.\-\/\\()"„“»«'–—]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
