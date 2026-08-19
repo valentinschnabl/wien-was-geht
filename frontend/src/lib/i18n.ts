@@ -50,6 +50,8 @@ export interface Translations {
   filterFamily: string;
   toggleConcluded: string;
   toggleConcludedHint: string;
+  toggleHideMultiDay: string;
+  toggleHideMultiDayHint: string;
   searchPlaceholder: string;
 
   // Events list
@@ -128,6 +130,8 @@ export const translations: Record<Language, Translations> = {
     filterFamily: "Familie",
     toggleConcluded: "Beendete Events von heute anzeigen",
     toggleConcludedHint: "Zeigt auch heute bereits vorübergegangene Programmpunkte an (FR-303).",
+    toggleHideMultiDay: "Dauerevents ausblenden",
+    toggleHideMultiDayHint: "Blendet mehrtägige Ausstellungen und Dauerveranstaltungen aus.",
     searchPlaceholder: "Event oder Location suchen...",
 
     eventsTitle: "Events heute",
@@ -201,7 +205,9 @@ export const translations: Record<Language, Translations> = {
     filterNightlife: "Nightlife",
     filterFamily: "Family",
     toggleConcluded: "Show past events from today",
-    toggleConcludedHint: "Includes events scheduled today that have already ended (FR-303).",
+    toggleConcludedHint: "Shows events that have already concluded earlier today (FR-303).",
+    toggleHideMultiDay: "Hide multi-day events",
+    toggleHideMultiDayHint: "Hides long-running exhibitions and multi-day programs.",
     searchPlaceholder: "Search event or venue name...",
 
     eventsTitle: "Events Today",

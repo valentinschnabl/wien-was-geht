@@ -118,6 +118,7 @@ export default function EventMap() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [onlyFree, setOnlyFree] = useState(false);
   const [includeConcluded, setIncludeConcluded] = useState(false);
+  const [hideMultiDay, setHideMultiDay] = useState(false);
   const [quickFilter, setQuickFilter] = useState<"all" | "live" | "tomorrow">("all");
 
   // Mobile Tab state (Map vs List View for Mobile UX)
@@ -381,10 +382,20 @@ export default function EventMap() {
         } else {
           temporalStatus = "upcoming";
         }
+        
+        const isMultiDay =
+          ev.startTime &&
+          ev.endTime &&
+          new Date(ev.endTime).getTime() - new Date(ev.startTime).getTime() > 36 * 60 * 60 * 1000;
 
-        return { ...ev, distanceKm: dist, temporalStatus, startDate: start, endDate: end, isEventToday, isEventTomorrow };
+        return { ...ev, distanceKm: dist, temporalStatus, startDate: start, endDate: end, isEventToday, isEventTomorrow, isMultiDay };
       })
       .filter((ev) => {
+        // Hide Multi-Day / Long-running Exhibitions Filter
+        if (hideMultiDay && ev.isMultiDay) {
+          return false;
+        }
+
         // Date / Quick Filter Chip Filtering
         if (quickFilter === "tomorrow") {
           if (!ev.isEventTomorrow) return false;
@@ -433,7 +444,7 @@ export default function EventMap() {
         }
         return a.title.localeCompare(b.title);
       });
-  }, [events, userLocation, includeConcluded, searchQuery, quickFilter, selectedCategory, onlyFree]);
+  }, [events, userLocation, includeConcluded, hideMultiDay, searchQuery, quickFilter, selectedCategory, onlyFree]);
 
   // Compute category event counts for badges
   const stats = useMemo(() => {
@@ -466,6 +477,15 @@ export default function EventMap() {
     tomorrowEnd.setHours(23, 59, 59, 999);
 
     events.forEach((ev) => {
+      const isMultiDay =
+        ev.startTime &&
+        ev.endTime &&
+        new Date(ev.endTime).getTime() - new Date(ev.startTime).getTime() > 36 * 60 * 60 * 1000;
+
+      if (hideMultiDay && isMultiDay) {
+        return;
+      }
+
       const start = ev.startTime ? new Date(ev.startTime) : new Date();
       const end = ev.endTime ? new Date(ev.endTime) : new Date(start.getTime() + 3 * 3600000);
 
@@ -509,7 +529,7 @@ export default function EventMap() {
     });
 
     return { todayTotal, tomorrowTotal, liveTotal, freeTotal, categoryCounts };
-  }, [events, quickFilter, includeConcluded]);
+  }, [events, quickFilter, includeConcluded, hideMultiDay]);
 
   return (
     <div className="app-container-clean">
@@ -702,17 +722,31 @@ export default function EventMap() {
               <i className="fa-solid fa-map-location-dot"></i> <span>Wien Karte</span>
             </div>
 
-            {/* FR-303 Concluded Events Toggle */}
-            <label className="checkbox-label header-toggle">
-              <input
-                type="checkbox"
-                checked={includeConcluded}
-                onChange={(e) => setIncludeConcluded(e.target.checked)}
-                className="checkbox-input"
-              />
-              <span className="checkbox-custom"></span>
-              <span className="label-text">{t.toggleConcluded}</span>
-            </label>
+            <div className="header-toggle-group" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+              {/* Hide Multi-Day Events Toggle */}
+              <label className="checkbox-label header-toggle" title={t.toggleHideMultiDayHint}>
+                <input
+                  type="checkbox"
+                  checked={hideMultiDay}
+                  onChange={(e) => setHideMultiDay(e.target.checked)}
+                  className="checkbox-input"
+                />
+                <span className="checkbox-custom"></span>
+                <span className="label-text">{t.toggleHideMultiDay}</span>
+              </label>
+
+              {/* FR-303 Concluded Events Toggle */}
+              <label className="checkbox-label header-toggle" title={t.toggleConcludedHint}>
+                <input
+                  type="checkbox"
+                  checked={includeConcluded}
+                  onChange={(e) => setIncludeConcluded(e.target.checked)}
+                  className="checkbox-input"
+                />
+                <span className="checkbox-custom"></span>
+                <span className="label-text">{t.toggleConcluded}</span>
+              </label>
+            </div>
           </div>
 
           {loading ? <div className="map-loading">{t.loadingEvents}</div> : null}
@@ -905,13 +939,26 @@ export default function EventMap() {
             }}
           >
             <div className="panel-header list-panel-header">
-                <div className="list-title-row">
-                  <h2 className="list-title">
-                    {quickFilter === "tomorrow" ? t.eventsTomorrowTitle : t.eventsTitle}
-                  </h2>
-                  <span className="stats-pill">
-                    <i className="fa-solid fa-calendar-day"></i> {filteredEvents.length} Events
-                  </span>
+                <div className="list-title-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <h2 className="list-title">
+                      {quickFilter === "tomorrow" ? t.eventsTomorrowTitle : t.eventsTitle}
+                    </h2>
+                    <span className="stats-pill">
+                      <i className="fa-solid fa-calendar-day"></i> {filteredEvents.length} Events
+                    </span>
+                  </div>
+
+                  <label className="checkbox-label header-toggle" title={t.toggleHideMultiDayHint}>
+                    <input
+                      type="checkbox"
+                      checked={hideMultiDay}
+                      onChange={(e) => setHideMultiDay(e.target.checked)}
+                      className="checkbox-input"
+                    />
+                    <span className="checkbox-custom"></span>
+                    <span className="label-text">{t.toggleHideMultiDay}</span>
+                  </label>
                 </div>
               </div>
 
