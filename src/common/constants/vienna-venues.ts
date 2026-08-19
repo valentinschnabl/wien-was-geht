@@ -1,7 +1,7 @@
 /**
  * Centralized, fast in-memory coordinate lookup for prominent Vienna concert halls,
- * cultural centers, indie venues, clubs, and open-air locations.
- * Memory footprint: ~5 KB. Resolves coordinates in 0 ms without external network overhead.
+ * cultural centers, indie venues, clubs, markets, museums, parks, and open-air locations.
+ * Memory footprint: ~8 KB. Resolves coordinates in 0 ms without external network overhead.
  */
 export interface Coordinates {
   lat: number;
@@ -47,9 +47,15 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'szene': { lat: 48.1782, lng: 16.4172 },
   'badeschiff': { lat: 48.2118, lng: 16.3816 },
   'couch potato': { lat: 48.2403, lng: 16.3852 },
+  'porgy & bess': { lat: 48.2052, lng: 16.3742 },
+  'porgy and bess': { lat: 48.2052, lng: 16.3742 },
+  'jazzland': { lat: 48.2128, lng: 16.3744 },
+  'zwe': { lat: 48.2183, lng: 16.3755 },
+  'frau mayer': { lat: 48.2114, lng: 16.3758 },
   
   // Electronic, Club & Nightlife Venues
   'fluc': { lat: 48.2173, lng: 16.3905 },
+  'flucc': { lat: 48.2173, lng: 16.3905 },
   'fluc wanne': { lat: 48.2173, lng: 16.3905 },
   'das werk': { lat: 48.2346, lng: 16.3582 },
   'werk': { lat: 48.2346, lng: 16.3582 },
@@ -57,12 +63,15 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'pratersauna': { lat: 48.2132, lng: 16.4024 },
   'prst': { lat: 48.2195, lng: 16.3945 },
   'praterstrasse': { lat: 48.2195, lng: 16.3945 },
+  'praterstraße': { lat: 48.2195, lng: 16.3945 },
   'sass': { lat: 48.2007, lng: 16.3688 },
   'sass music club': { lat: 48.2007, lng: 16.3688 },
   'volksgarten': { lat: 48.2065, lng: 16.3615 },
   'volksgarten pavillon': { lat: 48.2070, lng: 16.3616 },
-  'hermannpark': { lat: 48.2120, lng: 16.3840 },
+  'volksgarten disco': { lat: 48.2069, lng: 16.3625 },
   'o der klub': { lat: 48.2023, lng: 16.3688 },
+  'o - der klub': { lat: 48.2023, lng: 16.3688 },
+  'o – der klub': { lat: 48.2023, lng: 16.3688 },
   'celeste': { lat: 48.1965, lng: 16.3602 },
   'donau techno': { lat: 48.2012, lng: 16.3545 },
   'donautechno': { lat: 48.2012, lng: 16.3545 },
@@ -78,25 +87,18 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'jenseits': { lat: 48.1983, lng: 16.3533 },
   'vie i pee': { lat: 48.2125, lng: 16.4022 },
   'vieipee': { lat: 48.2125, lng: 16.4022 },
-  'o - der klub': { lat: 48.2023, lng: 16.3688 },
-  'o – der klub': { lat: 48.2023, lng: 16.3688 },
-  'volksgarten disco': { lat: 48.2069, lng: 16.3625 },
   'bricks': { lat: 48.2178, lng: 16.3811 },
   'weberknecht': { lat: 48.2117, lng: 16.3403 },
-  'jazzland': { lat: 48.2128, lng: 16.3744 },
-  'zwe': { lat: 48.2183, lng: 16.3755 },
   'heuriger zum martin sepp': { lat: 48.2561, lng: 16.3256 },
   'zum martin sepp': { lat: 48.2561, lng: 16.3256 },
   'martin sepp': { lat: 48.2561, lng: 16.3256 },
   'vcbc': { lat: 48.2325, lng: 16.4445 },
   'vienna city beach club': { lat: 48.2325, lng: 16.4445 },
   'strandbar herrmann': { lat: 48.2120, lng: 16.3840 },
-  'wiener würstelstand': { lat: 48.2347, lng: 16.3578 },
-  'wiener wuerstelstand': { lat: 48.2347, lng: 16.3578 },
+  'hermannpark': { lat: 48.2120, lng: 16.3840 },
   'theater im park': { lat: 48.1969, lng: 16.3778 },
   'café concerto': { lat: 48.2122, lng: 16.3400 },
   'cafe concerto': { lat: 48.2122, lng: 16.3400 },
-  'frau mayer': { lat: 48.2114, lng: 16.3758 },
   'tudo bem': { lat: 48.1917, lng: 16.3705 },
   'louisiana blues pub': { lat: 48.1908, lng: 16.3750 },
   'zoku': { lat: 48.2172, lng: 16.4021 },
@@ -111,6 +113,92 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'usus am wasser': { lat: 48.2415, lng: 16.4278 },
   'usus': { lat: 48.2415, lng: 16.4278 },
   'schikaneder': { lat: 48.1965, lng: 16.3635 },
+  'mariatrink': { lat: 48.1979, lng: 16.3533 },
+  'jaz in the city': { lat: 48.1979, lng: 16.3533 },
+  'villa vida': { lat: 48.1950, lng: 16.3562 },
+  'ottakringer brauerei': { lat: 48.2133, lng: 16.3242 },
+  'ottakringer pl': { lat: 48.2133, lng: 16.3242 },
+  'ottakringer platz': { lat: 48.2133, lng: 16.3242 },
+  'zukunftshof': { lat: 48.1438, lng: 16.3888 },
+  'rosiwalgasse': { lat: 48.1438, lng: 16.3888 },
+  'neustift am walde': { lat: 48.2514, lng: 16.3015 },
+  'palais auersperg': { lat: 48.2076, lng: 16.3548 },
+  'palais freiluft': { lat: 48.2076, lng: 16.3548 },
+
+  // Vienna Markets (Wiener Märkte)
+  'naschmarkt': { lat: 48.1985, lng: 16.3635 },
+  'karmelitermarkt': { lat: 48.2167, lng: 16.3768 },
+  'brunnenmarkt': { lat: 48.2138, lng: 16.3355 },
+  'yppenplatz': { lat: 48.2148, lng: 16.3365 },
+  'volkertmarkt': { lat: 48.2235, lng: 16.3812 },
+  'meiselmarkt': { lat: 48.1985, lng: 16.3155 },
+  'viktor-adler-markt': { lat: 48.1755, lng: 16.3775 },
+  'viktor adler markt': { lat: 48.1755, lng: 16.3775 },
+  'kutschkermarkt': { lat: 48.2268, lng: 16.3475 },
+  'hannovermarkt': { lat: 48.2325, lng: 16.3685 },
+  'vorgartenmarkt': { lat: 48.2255, lng: 16.4035 },
+
+  // Museums, Sights & Culture
+  'kunsthistorisches museum': { lat: 48.2038, lng: 16.3618 },
+  'khm': { lat: 48.2038, lng: 16.3618 },
+  'naturhistorisches museum': { lat: 48.2052, lng: 16.3598 },
+  'nhm': { lat: 48.2052, lng: 16.3598 },
+  'haus der geschichte österreich': { lat: 48.2052, lng: 16.3644 },
+  'haus der geschichte oesterreich': { lat: 48.2052, lng: 16.3644 },
+  'hdgö': { lat: 48.2052, lng: 16.3644 },
+  'hdgoe': { lat: 48.2052, lng: 16.3644 },
+  'neue hofburg': { lat: 48.2052, lng: 16.3644 },
+  'heldenplatz': { lat: 48.2062, lng: 16.3635 },
+  'hofburg': { lat: 48.2065, lng: 16.3655 },
+  'kunsthauswien': { lat: 48.2114, lng: 16.3932 },
+  'kunsthaus wien': { lat: 48.2114, lng: 16.3932 },
+  'museum hundertwasser': { lat: 48.2114, lng: 16.3932 },
+  'hundertwasser': { lat: 48.2114, lng: 16.3932 },
+  'museumsquartier': { lat: 48.2035, lng: 16.3582 },
+  'mq': { lat: 48.2035, lng: 16.3582 },
+  'kunsthalle wien': { lat: 48.2035, lng: 16.3582 },
+  'kunsthalle': { lat: 48.2035, lng: 16.3582 },
+  'halle e': { lat: 48.2035, lng: 16.3582 },
+  'halle g': { lat: 48.2035, lng: 16.3582 },
+  'mumok': { lat: 48.2032, lng: 16.3585 },
+  'leopold museum': { lat: 48.2028, lng: 16.3592 },
+  'architekturzentrum wien': { lat: 48.2038, lng: 16.3588 },
+  'az w': { lat: 48.2038, lng: 16.3588 },
+  'mak': { lat: 48.2075, lng: 16.3815 },
+  'museum für angewandte kunst': { lat: 48.2075, lng: 16.3815 },
+  'albertina': { lat: 48.2045, lng: 16.3678 },
+  'albertina modern': { lat: 48.2008, lng: 16.3708 },
+  'belvedere': { lat: 48.1915, lng: 16.3808 },
+  'oberes belvedere': { lat: 48.1915, lng: 16.3808 },
+  'unteres belvedere': { lat: 48.1975, lng: 16.3805 },
+  'belvedere 21': { lat: 48.1865, lng: 16.3835 },
+  'secession': { lat: 48.2005, lng: 16.3655 },
+  'wiener secession': { lat: 48.2005, lng: 16.3655 },
+  'wien museum': { lat: 48.1995, lng: 16.3725 },
+  'technisches museum': { lat: 48.1908, lng: 16.3185 },
+  'heeresgeschichtliches museum': { lat: 48.1855, lng: 16.3875 },
+  'hgm': { lat: 48.1855, lng: 16.3875 },
+  'jüdisches museum wien': { lat: 48.2068, lng: 16.3702 },
+  'juedisches museum': { lat: 48.2068, lng: 16.3702 },
+  'mozarthaus': { lat: 48.2085, lng: 16.3752 },
+  'haus der musik': { lat: 48.2040, lng: 16.3732 },
+  'schloss schönbrunn': { lat: 48.1858, lng: 16.3128 },
+  'schönbrunn': { lat: 48.1858, lng: 16.3128 },
+  'schoenbrunn': { lat: 48.1858, lng: 16.3128 },
+
+  // Cinemas (Kinos)
+  'filmcasino': { lat: 48.1925, lng: 16.3589 },
+  'film casino': { lat: 48.1925, lng: 16.3589 },
+  'gartenbaukino': { lat: 48.2058, lng: 16.3785 },
+  'stadtkino': { lat: 48.2008, lng: 16.3688 },
+  'votivkino': { lat: 48.2162, lng: 16.3598 },
+  'kino de france': { lat: 48.2152, lng: 16.3638 },
+  'burg kino': { lat: 48.2038, lng: 16.3665 },
+  'top kino': { lat: 48.1985, lng: 16.3605 },
+  'breitenseer lichtspiele': { lat: 48.1988, lng: 16.3075 },
+  'admiral kino': { lat: 48.2025, lng: 16.3485 },
+  'bellaria kino': { lat: 48.2055, lng: 16.3565 },
+  'volxkino': { lat: 48.1872, lng: 16.3486 },
 
   // Large Concert Halls & Arenas
   'gasometer': { lat: 48.1852, lng: 16.4208 },
@@ -121,10 +209,6 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'stadthalle f': { lat: 48.2019, lng: 16.3376 },
   'ernst happel stadion': { lat: 48.2072, lng: 16.4211 },
   'happel stadion': { lat: 48.2072, lng: 16.4211 },
-
-  // Classical, Theatres & Culture
-  'porgy & bess': { lat: 48.2052, lng: 16.3742 },
-  'porgy and bess': { lat: 48.2052, lng: 16.3742 },
   'konzerthaus': { lat: 48.2008, lng: 16.3772 },
   'wiener konzerthaus': { lat: 48.2008, lng: 16.3772 },
   'musikverein': { lat: 48.2012, lng: 16.3725 },
@@ -136,18 +220,35 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'burgtheater': { lat: 48.2103, lng: 16.3614 },
   'akademietheater': { lat: 48.2001, lng: 16.3765 },
   'theater an der wien': { lat: 48.1995, lng: 16.3642 },
-  'museumsquartier': { lat: 48.2035, lng: 16.3582 },
-  'mq': { lat: 48.2035, lng: 16.3582 },
-  'halle e': { lat: 48.2035, lng: 16.3582 },
-  'halle g': { lat: 48.2035, lng: 16.3582 },
-  'mumok': { lat: 48.2032, lng: 16.3585 },
-  'leopold museum': { lat: 48.2028, lng: 16.3592 },
-  'belvedere': { lat: 48.1915, lng: 16.3808 },
-  'albertina': { lat: 48.2045, lng: 16.3678 },
-  'architekturzentrum wien': { lat: 48.2038, lng: 16.3588 },
-  'az w': { lat: 48.2038, lng: 16.3588 },
+  'stephansdom': { lat: 48.2085, lng: 16.3732 },
+  'wiener stephansdom': { lat: 48.2085, lng: 16.3732 },
 
-  // Recurring Parks & Public Spaces
+  // Parks, Squares & Outdoor Spaces
+  'bruno-kreisky-park': { lat: 48.1872, lng: 16.3486 },
+  'bruno kreisky park': { lat: 48.1872, lng: 16.3486 },
+  'bruno kreisky platz': { lat: 48.1872, lng: 16.3486 },
+  'votivpark': { lat: 48.2155, lng: 16.3592 },
+  'türkenschanzpark': { lat: 48.2353, lng: 16.3331 },
+  'türkenschanz park': { lat: 48.2353, lng: 16.3331 },
+  'tuerkenschanzpark': { lat: 48.2353, lng: 16.3331 },
+  'jesuitenwiese': { lat: 48.2081, lng: 16.4024 },
+  'jesuitenwiese prater': { lat: 48.2081, lng: 16.4024 },
+  'kirschblütenpark': { lat: 48.2386, lng: 16.4422 },
+  'kirschbluetenpark': { lat: 48.2386, lng: 16.4422 },
+  'stadtpark': { lat: 48.2038, lng: 16.3795 },
+  'burggarten': { lat: 48.2045, lng: 16.3662 },
+  'prater': { lat: 48.2165, lng: 16.3985 },
+  'hauptallee': { lat: 48.2075, lng: 16.4055 },
+  'kaiserwiese': { lat: 48.2175, lng: 16.3955 },
+  'alte donau': { lat: 48.2395, lng: 16.4255 },
+  'friedrich-julius-bieber-anlage': { lat: 48.1855, lng: 16.2955 },
+  'kurpark oberlaa': { lat: 48.1525, lng: 16.4025 },
+  'schweizergarten': { lat: 48.1885, lng: 16.3865 },
+  'arenawiese': { lat: 48.2045, lng: 16.4085 },
+  'pötzleinsdorfer schlosspark': { lat: 48.2435, lng: 16.3085 },
+  'poetzleinsdorfer schlosspark': { lat: 48.2435, lng: 16.3085 },
+  'liechtensteinpark': { lat: 48.2225, lng: 16.3595 },
+  'palais liechtenstein': { lat: 48.2225, lng: 16.3595 },
   'reithofferpark': { lat: 48.1957, lng: 16.3282 },
   'reiterhoffpark': { lat: 48.1957, lng: 16.3282 },
   'reithofferplatz': { lat: 48.1957, lng: 16.3282 },
@@ -172,6 +273,34 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'fußballverein 1210 wien': { lat: 48.2785, lng: 16.4025 },
   'fussballverein 1210 wien': { lat: 48.2785, lng: 16.4025 },
   '1210 wien': { lat: 48.2785, lng: 16.4025 },
+  'lammgasse': { lat: 48.2135, lng: 16.3515 },
+};
+
+// Vienna District Centroids for postal code fallbacks (e.g. "1050 Wien" -> Margareten instead of 1st district)
+export const VIENNA_DISTRICTS: Record<string, Coordinates> = {
+  '1010': { lat: 48.2082, lng: 16.3738 }, // Innere Stadt
+  '1020': { lat: 48.2185, lng: 16.3955 }, // Leopoldstadt
+  '1030': { lat: 48.1985, lng: 16.3925 }, // Landstraße
+  '1040': { lat: 48.1935, lng: 16.3685 }, // Wieden
+  '1050': { lat: 48.1855, lng: 16.3565 }, // Margareten
+  '1060': { lat: 48.1955, lng: 16.3495 }, // Mariahilf
+  '1070': { lat: 48.2025, lng: 16.3485 }, // Neubau
+  '1080': { lat: 48.2115, lng: 16.3495 }, // Josefstadt
+  '1090': { lat: 48.2235, lng: 16.3585 }, // Alsergrund
+  '1100': { lat: 48.1655, lng: 16.3815 }, // Favoriten
+  '1110': { lat: 48.1685, lng: 16.4385 }, // Simmering
+  '1120': { lat: 48.1735, lng: 16.3325 }, // Meidling
+  '1130': { lat: 48.1825, lng: 16.2755 }, // Hietzing
+  '1140': { lat: 48.2055, lng: 16.2725 }, // Penzing
+  '1150': { lat: 48.1975, lng: 16.3285 }, // Rudolfsheim-Fünfhaus
+  '1160': { lat: 48.2125, lng: 16.3155 }, // Ottakring
+  '1170': { lat: 48.2255, lng: 16.3055 }, // Hernals
+  '1180': { lat: 48.2335, lng: 16.3325 }, // Währing
+  '1190': { lat: 48.2525, lng: 16.3455 }, // Döbling
+  '1200': { lat: 48.2365, lng: 16.3755 }, // Brigittenau
+  '1210': { lat: 48.2785, lng: 16.4025 }, // Floridsdorf
+  '1220': { lat: 48.2385, lng: 16.4525 }, // Donaustadt
+  '1230': { lat: 48.1455, lng: 16.3185 }, // Liesing
 };
 
 // Pre-sorted venue entries (longest key first) for precise fuzzy matching
@@ -207,6 +336,12 @@ export function resolveViennaVenueCoordinates(
     if (regex.test(normalized)) {
       return coords;
     }
+  }
+
+  // 3. District Postal Code Resolution (e.g., "1050 Wien", "1160", etc.)
+  const postalMatch = normalized.match(/\b(1[0-2][0-9]0)\b/);
+  if (postalMatch && VIENNA_DISTRICTS[postalMatch[1]]) {
+    return VIENNA_DISTRICTS[postalMatch[1]];
   }
 
   return null;
