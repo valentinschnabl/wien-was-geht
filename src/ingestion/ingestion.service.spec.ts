@@ -15,7 +15,6 @@ import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
 import { WardaService } from './warda/warda.service';
-import { PartytimerService } from './partytimer/partytimer.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -36,13 +35,8 @@ describe('IngestionService', () => {
   let viennaClubsService: ViennaClubsService;
   let rausgegangenService: RausgegangenService;
   let wardaService: WardaService;
-  let partytimerService: PartytimerService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
-
-  const mockPartytimerService = {
-    fetchEvents: jest.fn().mockResolvedValue([]),
-  };
 
   const mockWardaService = {
     fetchEvents: jest.fn().mockResolvedValue([]),
@@ -252,7 +246,6 @@ describe('IngestionService', () => {
         { provide: ViennaClubsService, useValue: mockViennaClubsService },
         { provide: RausgegangenService, useValue: mockRausgegangenService },
         { provide: WardaService, useValue: mockWardaService },
-        { provide: PartytimerService, useValue: mockPartytimerService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -274,7 +267,6 @@ describe('IngestionService', () => {
     viennaClubsService = module.get<ViennaClubsService>(ViennaClubsService);
     rausgegangenService = module.get<RausgegangenService>(RausgegangenService);
     wardaService = module.get<WardaService>(WardaService);
-    partytimerService = module.get<PartytimerService>(PartytimerService);
     aiCategorizerService = module.get<AiCategorizerService>(AiCategorizerService);
     persistenceService = module.get<EventPersistenceService>(EventPersistenceService);
   });

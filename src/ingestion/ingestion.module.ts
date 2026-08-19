@@ -15,7 +15,6 @@ import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
 import { WardaService } from './warda/warda.service';
-import { PartytimerService } from './partytimer/partytimer.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventPersistenceService } from './event-persistence.service';
@@ -42,7 +41,6 @@ import { IngestionController } from './ingestion.controller';
     ViennaClubsService,
     RausgegangenService,
     WardaService,
-    PartytimerService,
     AiCategorizerService,
     EventPersistenceService,
     IngestionService,
@@ -63,7 +61,6 @@ import { IngestionController } from './ingestion.controller';
     ViennaClubsService,
     RausgegangenService,
     WardaService,
-    PartytimerService,
     AiCategorizerService,
     IngestionService,
   ],
