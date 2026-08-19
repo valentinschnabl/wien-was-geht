@@ -15,6 +15,8 @@ import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
 import { WardaService } from './warda/warda.service';
+import { BewegtImParkService } from './bewegt-im-park/bewegt-im-park.service';
+import { WienLaeuftService } from './wienlaeuft/wienlaeuft.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 
@@ -35,8 +37,18 @@ describe('IngestionService', () => {
   let viennaClubsService: ViennaClubsService;
   let rausgegangenService: RausgegangenService;
   let wardaService: WardaService;
+  let bewegtImParkService: BewegtImParkService;
+  let wienLaeuftService: WienLaeuftService;
   let aiCategorizerService: AiCategorizerService;
   let persistenceService: EventPersistenceService;
+
+  const mockBewegtImParkService = {
+    fetchEvents: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockWienLaeuftService = {
+    fetchEvents: jest.fn().mockResolvedValue([]),
+  };
 
   const mockWardaService = {
     fetchEvents: jest.fn().mockResolvedValue([]),
@@ -246,6 +258,8 @@ describe('IngestionService', () => {
         { provide: ViennaClubsService, useValue: mockViennaClubsService },
         { provide: RausgegangenService, useValue: mockRausgegangenService },
         { provide: WardaService, useValue: mockWardaService },
+        { provide: BewegtImParkService, useValue: mockBewegtImParkService },
+        { provide: WienLaeuftService, useValue: mockWienLaeuftService },
         { provide: AiCategorizerService, useValue: mockAiCategorizerService },
         { provide: EventPersistenceService, useValue: mockPersistenceService },
       ],
@@ -261,6 +275,8 @@ describe('IngestionService', () => {
     residentAdvisorService = module.get<ResidentAdvisorService>(ResidentAdvisorService);
     capeetService = module.get<CapeetService>(CapeetService);
     ohSchonHellService = module.get<OhSchonHellService>(OhSchonHellService);
+    bewegtImParkService = module.get<BewegtImParkService>(BewegtImParkService);
+    wienLaeuftService = module.get<WienLaeuftService>(WienLaeuftService);
     eintrittFreiService = module.get<EintrittFreiService>(EintrittFreiService);
     kultursommerService = module.get<KultursommerService>(KultursommerService);
     lumaService = module.get<LumaService>(LumaService);

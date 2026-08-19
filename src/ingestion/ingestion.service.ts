@@ -15,6 +15,8 @@ import { LumaService } from './luma/luma.service';
 import { ViennaClubsService } from './vienna-clubs/vienna-clubs.service';
 import { RausgegangenService } from './rausgegangen/rausgegangen.service';
 import { WardaService } from './warda/warda.service';
+import { BewegtImParkService } from './bewegt-im-park/bewegt-im-park.service';
+import { WienLaeuftService } from './wienlaeuft/wienlaeuft.service';
 import { AiCategorizerService } from './ai-categorizer/ai-categorizer.service';
 import { EventPersistenceService } from './event-persistence.service';
 import { Prisma } from '@prisma/client';
@@ -48,6 +50,8 @@ export class IngestionService implements OnModuleInit {
     private readonly viennaClubsProvider: ViennaClubsService,
     private readonly rausgegangenProvider: RausgegangenService,
     private readonly wardaProvider: WardaService,
+    private readonly bewegtImParkProvider: BewegtImParkService,
+    private readonly wienLaeuftProvider: WienLaeuftService,
     private readonly aiCategorizer: AiCategorizerService,
     private readonly persistence: EventPersistenceService,
   ) {}
@@ -97,6 +101,8 @@ export class IngestionService implements OnModuleInit {
       { name: 'Vienna Clubs', fetcher: () => this.viennaClubsProvider.fetchEvents() },
       { name: 'Rausgegangen Wien', fetcher: () => this.rausgegangenProvider.fetchEvents() },
       { name: 'WARDA Wien', fetcher: () => this.wardaProvider.fetchEvents() },
+      { name: 'Bewegt im Park', fetcher: () => this.bewegtImParkProvider.fetchEvents() },
+      { name: 'Wienläuft', fetcher: () => this.wienLaeuftProvider.fetchEvents() },
     ];
 
     const results = await Promise.allSettled(providers.map(p => p.fetcher()));
