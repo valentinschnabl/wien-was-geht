@@ -137,6 +137,11 @@ export const VIENNA_VENUES: Record<string, Coordinates> = {
   'kutschkermarkt': { lat: 48.2268, lng: 16.3475 },
   'hannovermarkt': { lat: 48.2325, lng: 16.3685 },
   'vorgartenmarkt': { lat: 48.2255, lng: 16.4035 },
+  'schlingermarkt': { lat: 48.2612, lng: 16.4025 },
+  'floridsdorfer markt': { lat: 48.2612, lng: 16.4025 },
+  'julius-tandler-platz': { lat: 48.2265, lng: 16.3608 },
+  'julius tandler platz': { lat: 48.2265, lng: 16.3608 },
+  'franz-josefs-bahnhof': { lat: 48.2265, lng: 16.3608 },
 
   // Museums, Sights & Culture
   'kunsthistorisches museum': { lat: 48.2038, lng: 16.3618 },

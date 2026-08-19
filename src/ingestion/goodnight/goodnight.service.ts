@@ -133,16 +133,14 @@ export class GoodnightService implements IEventProvider {
         // Address and venue resolution
         const address = event.location?.address;
         const venueTitle = event.location?.title;
-        let latitude = 48.2082;
-        let longitude = 16.3738;
+        let latitude = 0;
+        let longitude = 0;
 
         const street = address?.street;
         const city = address?.city || 'Wien';
         const zipCode = address?.zip_code;
 
         if (street || venueTitle) {
-          // 1s delay to comply with OpenStreetMap Nominatim usage policy
-          await this.sleep(1000);
           const coords = await this.geocodeAddress(street, city, zipCode, venueTitle);
           if (coords.lat !== 0 && coords.lng !== 0) {
             latitude = coords.lat;
@@ -211,7 +209,8 @@ export class GoodnightService implements IEventProvider {
     // Fast in-memory lookup for prominent Vienna nightlife and event venues
     const resolvedFast =
       (venueTitle && resolveViennaVenueCoordinates(venueTitle)) ||
-      (streetClean && resolveViennaVenueCoordinates(streetClean));
+      (streetClean && resolveViennaVenueCoordinates(streetClean)) ||
+      resolveViennaVenueCoordinates(query);
     if (resolvedFast) {
       return resolvedFast;
     }
