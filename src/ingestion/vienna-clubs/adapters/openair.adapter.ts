@@ -81,5 +81,99 @@ export function parseOpenAirAndStageEvents(
     }
   });
 
+  // 2. Direct DOM Parsing for Arena Wien (which does not use JSON-LD)
+  if (venue === 'Arena') {
+    const GERMAN_MONTHS: Record<string, string> = {
+      jan: '01', jän: '01', jaen: '01',
+      feb: '02',
+      mär: '03', maerz: '03', mar: '03',
+      apr: '04',
+      mai: '05', may: '05',
+      jun: '06',
+      jul: '07',
+      aug: '08',
+      sep: '09', sept: '09',
+      okt: '10', oct: '10',
+      nov: '11',
+      dez: '12', dec: '12',
+    };
+
+    const seenIds = new Set<string>();
+
+    $('a[href*="Detail"]').each((_, el) => {
+      const href = $(el).attr('href') || '';
+      const text = $(el).text().trim().replace(/\s+/g, ' ');
+      if (!text || text.toLowerCase() === 'ticket' || text.length < 10) return;
+
+      const dateMatch =
+        text.match(/(\d{1,2})\s+[A-Za-z\.]+\s+([A-Za-zäöüÄÖÜ]+)\s*\|\s*(\d{4})/i) ||
+        text.match(/([A-Za-z\.]+)\s+(\d{1,2})\s+([A-Za-zäöüÄÖÜ]+)\s*\|\s*(\d{4})/i);
+
+      if (!dateMatch) return;
+
+      let dayStr: string;
+      let monthName: string;
+      let yearStr: string;
+
+      if (dateMatch.length === 4) {
+        dayStr = dateMatch[1].padStart(2, '0');
+        monthName = dateMatch[2].toLowerCase().substring(0, 3);
+        yearStr = dateMatch[3];
+      } else {
+        dayStr = dateMatch[2].padStart(2, '0');
+        monthName = dateMatch[3].toLowerCase().substring(0, 3);
+        yearStr = dateMatch[4];
+      }
+
+      const monthNum = GERMAN_MONTHS[monthName];
+      if (!monthNum) return;
+
+      const timeMatch = text.match(/(?:Doors open:\s*)?(\d{1,2}:\d{2})/i);
+      const timeStr = timeMatch ? timeMatch[1] : '19:00';
+      const [h, m] = timeStr.split(':').map(Number);
+
+      const eventDate = new Date(parseInt(yearStr, 10), parseInt(monthNum, 10) - 1, parseInt(dayStr, 10));
+      const start = applyViennaTime(eventDate, h, m);
+      if (isNaN(start.getTime())) return;
+      if (start < todayStart || start > tomorrowEnd) return;
+
+      const end = new Date(start.getTime() + 4 * 3600000);
+
+      let title = text
+        .replace(/(\d{1,2}\s+[A-Za-z\.]+\s+[A-Za-zäöüÄÖÜ]+\s*\|\s*\d{4})/gi, '')
+        .replace(/([A-Za-z\.]+\s+\d{1,2}\s+[A-Za-zäöüÄÖÜ]+\s*\|\s*\d{4})/gi, '')
+        .replace(/Arena Wien\s*-\s*[^\s]+/gi, '')
+        .replace(/Doors open:\s*\d{1,2}:\d{2}/gi, '')
+        .replace(/\d{1,2}:\d{2}/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const concertIdMatch = href.match(/concert-id[=/](\d+)/);
+      const concertId = concertIdMatch ? concertIdMatch[1] : title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      if (seenIds.has(concertId)) return;
+      seenIds.add(concertId);
+
+      const fullUrl = href.startsWith('http')
+        ? href
+        : `https://arena.wien${href.startsWith('/') ? '' : '/'}${href}`;
+
+      events.push({
+        externalId: `arena-${concertId}`,
+        provider: 'VIENNA_CLUBS',
+        title,
+        description: `Konzert / Live Event in der Arena Wien. Beginn: ${timeStr} Uhr.`,
+        category: 'Music',
+        url: fullUrl,
+        imageUrl: null,
+        startTime: start,
+        endTime: end,
+        venueName: 'Arena Wien',
+        latitude: coords.lat,
+        longitude: coords.lng,
+        isFree: false,
+      });
+    });
+  }
+
   return events;
 }
