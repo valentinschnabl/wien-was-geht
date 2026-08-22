@@ -1,5 +1,11 @@
+import * as dns from 'dns';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+
+// Force IPv4 first to eliminate IPv6 ENETUNREACH timeouts on Render Linux containers
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

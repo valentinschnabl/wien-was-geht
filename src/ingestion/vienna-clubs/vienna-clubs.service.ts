@@ -68,8 +68,6 @@ export class ViennaClubsService implements IEventProvider {
       // 5. Electronic & Underground Clubs
       { name: 'Grelle Forelle', url: 'https://www.grelleforelle.com', category: 'Nightlife' },
       { name: 'Das Werk', url: 'https://www.daswerk.org', category: 'Nightlife' },
-      { name: 'EXIL Club', url: 'https://clubexil.at', category: 'Nightlife' },
-      { name: 'SASS Music Club', url: 'https://sassmusicclub.at', category: 'Nightlife' },
       { name: 'DonauTechno', url: 'https://www.donautechno.com', category: 'Nightlife' },
       { name: 'Flucc', url: 'https://www.fluc.at', category: 'Nightlife' },
       { name: 'Celeste', url: 'https://www.celeste.co.at', category: 'Nightlife' },
@@ -79,7 +77,6 @@ export class ViennaClubsService implements IEventProvider {
       { name: 'VIE i PEE', url: 'https://vieipee.com/', category: 'Nightlife' },
       { name: 'B72', url: 'https://www.b72.at', category: 'Music' },
       { name: 'Rhiz', url: 'https://rhiz.wien', category: 'Music' },
-      { name: 'Kramladen', url: 'https://kramladen.wien', category: 'Music' },
       { name: 'Venster 99', url: 'https://venster99.at', category: 'Music' },
       { name: 'WUK', url: 'https://www.wuk.at/programm/', category: 'Culture' },
       { name: 'Wiener Gasometer', url: 'https://www.planet.tt', category: 'Music' },
