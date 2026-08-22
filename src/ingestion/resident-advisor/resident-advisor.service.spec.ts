@@ -106,7 +106,7 @@ describe('ResidentAdvisorService', () => {
       expect(ev2.title).toBe('SASS Klubnacht');
       expect(ev2.venueName).toBe('SASS Music Club');
       expect(ev2.latitude).toBeCloseTo(48.2011, 3);
-      expect(ev2.longitude).toBeCloseTo(16.3694, 3);
+      expect(ev2.longitude).toBeCloseTo(16.3688, 3);
       expect(ev2.imageUrl).toBeNull();
     });
 

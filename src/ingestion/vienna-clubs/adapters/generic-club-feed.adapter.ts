@@ -13,7 +13,7 @@ export function parseGenericClubEvents(
 ): Prisma.EventCreateInput[] {
   const events: Prisma.EventCreateInput[] = [];
   const $ = cheerio.load(html);
-  const coords = resolveViennaVenueCoordinates(venueName) || VIENNA_VENUES[venueName.toLowerCase()] || { lat: 48.2082, lng: 16.3738 };
+  const coords = resolveViennaVenueCoordinates(venueName) || VIENNA_VENUES[venueName.toLowerCase()] || { lat: 0, lng: 0 };
   const seenIds = new Set<string>();
 
   // 1. Check Schema.org / JSON-LD

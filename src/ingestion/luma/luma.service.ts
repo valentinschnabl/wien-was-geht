@@ -134,8 +134,8 @@ export class LumaService implements IEventProvider {
             latitude = resolved.lat;
             longitude = resolved.lng;
           } else {
-            latitude = 48.2082;
-            longitude = 16.3738;
+            latitude = 0;
+            longitude = 0;
           }
         }
 

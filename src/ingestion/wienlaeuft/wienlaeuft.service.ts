@@ -77,8 +77,8 @@ export class WienLaeuftService implements IEventProvider {
       const resolved =
         resolveViennaVenueCoordinates(venueDescription) ||
         resolveViennaVenueCoordinates(title) || {
-          lat: 48.2082,
-          lng: 16.3738,
+          lat: 0,
+          lng: 0,
         };
 
       // Default running race start time is usually morning (09:00 - 13:00) unless Night Run

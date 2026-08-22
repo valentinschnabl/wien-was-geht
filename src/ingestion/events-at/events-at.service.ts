@@ -205,12 +205,12 @@ export class EventsAtService implements IEventProvider {
 
           // Fallback if still unresolved
           if (lat === null || lng === null) {
-            lat = 48.2082;
-            lng = 16.3738;
+            lat = 0;
+            lng = 0;
           }
 
           // Proximity check: Must be in Vienna region (distance <= 35km or locality matches Wien)
-          if (!locality.toLowerCase().includes('wien') && !this.isInViennaRegion(lat, lng)) {
+          if (!locality.toLowerCase().includes('wien') && lat !== 0 && !this.isInViennaRegion(lat, lng)) {
             continue;
           }
 

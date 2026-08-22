@@ -3,45 +3,32 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
 import { IEventProvider } from '../../interfaces/event-provider.interface';
+import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
 
-interface RaVenue {
-  id?: string;
-  name?: string;
-  address?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  location?: {
-    latitude?: number | null;
-    longitude?: number | null;
-  } | null;
-}
-
-interface RaImage {
-  id?: string;
-  filename?: string;
-  type?: string;
-}
-
-interface RaEvent {
-  id?: string;
-  title?: string;
-  startTime?: string;
-  endTime?: string | null;
-  contentUrl?: string;
-  images?: RaImage[] | null;
-  venue?: RaVenue | null;
-}
-
-interface RaEventListingItem {
-  id?: string;
-  event?: RaEvent;
-}
-
-interface RaGraphQLResponse {
-  data?: {
-    eventListings?: {
-      data?: RaEventListingItem[];
-      totalResults?: number;
+interface RAEventListing {
+  id: string;
+  event: {
+    id: string;
+    title: string;
+    startTime: string;
+    endTime?: string;
+    contentUrl?: string;
+    images?: Array<{
+      id: string;
+      filename: string;
+      rawUrl?: string;
+      type?: string;
+    }>;
+    venue?: {
+      id: string;
+      name: string;
+      address?: string;
+      latitude?: number;
+      longitude?: number;
+      location?: {
+        latitude?: number;
+        longitude?: number;
+      };
     };
   };
 }
@@ -49,8 +36,7 @@ interface RaGraphQLResponse {
 @Injectable()
 export class ResidentAdvisorService implements IEventProvider {
   private readonly logger = new Logger(ResidentAdvisorService.name);
-  private readonly graphqlUrl = 'https://ra.co/graphql';
-  private readonly viennaAreaId = 450; // Official Vienna Area ID on Resident Advisor
+  private readonly graphqlEndpoint = 'https://ra.co/graphql';
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -58,15 +44,11 @@ export class ResidentAdvisorService implements IEventProvider {
     this.logger.log('Fetching Vienna electronic & nightlife events from Resident Advisor...');
 
     const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const tomorrowEnd = new Date(now);
-    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-    tomorrowEnd.setHours(23, 59, 59, 999);
+    const todayStr = now.toISOString().split('T')[0];
 
     const query = `
-      query GET_EVENT_LISTINGS($filters: FilterInputDtoInput, $pageSize: Int, $page: Int) {
-        eventListings(filters: $filters, pageSize: $pageSize, page: $page) {
+      query GET_EVENT_LISTINGS($indices: [IndexType!], $filters: [FilterInput], $pageSize: Int, $page: Int) {
+        eventListings(indices: $indices, filters: $filters, pageSize: $pageSize, page: $page) {
           data {
             id
             event {
@@ -78,12 +60,15 @@ export class ResidentAdvisorService implements IEventProvider {
               images {
                 id
                 filename
+                rawUrl
                 type
               }
               venue {
                 id
                 name
                 address
+                latitude
+                longitude
                 location {
                   latitude
                   longitude
@@ -97,30 +82,37 @@ export class ResidentAdvisorService implements IEventProvider {
     `;
 
     const variables = {
-      filters: {
-        areas: { eq: this.viennaAreaId },
-        listingDate: {
-          gte: todayStart.toISOString(),
-          lte: tomorrowEnd.toISOString(),
+      indices: ['EVENT'],
+      filters: [
+        {
+          type: 'AREA',
+          value: '44', // Area 44 = Vienna / Austria in Resident Advisor GraphQL
         },
-      },
-      pageSize: 100,
+        {
+          type: 'DATE',
+          value: todayStr,
+        },
+      ],
+      pageSize: 40,
       page: 1,
     };
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post<RaGraphQLResponse>(
-          this.graphqlUrl,
-          { query, variables },
+        this.httpService.post<any>(
+          this.graphqlEndpoint,
+          {
+            query,
+            variables,
+          },
           {
             headers: {
+              'Content-Type': 'application/json',
               'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Content-Type': 'application/json',
               Referer: 'https://ra.co/events/at/vienna',
-              Origin: 'https://ra.co',
             },
+            timeout: 10000,
           },
         ),
       );
@@ -136,15 +128,19 @@ export class ResidentAdvisorService implements IEventProvider {
           continue;
         }
 
-        const start = new Date(ev.startTime);
-        const end = ev.endTime ? new Date(ev.endTime) : null;
+        const startTime = new Date(ev.startTime);
+        const endTime = ev.endTime ? new Date(ev.endTime) : null;
+        const venueName = ev.venue?.name || 'Wien';
 
-        // Resolve coordinates
+        // Resolve coordinates: try in-memory first, then API coordinates, then Nominatim geocoding
         let lat = ev.venue?.latitude ?? ev.venue?.location?.latitude ?? 0;
         let lng = ev.venue?.longitude ?? ev.venue?.location?.longitude ?? 0;
 
-        // If coordinates are missing or 0, fallback to geocoding or central Vienna
-        if (lat === 0 || lng === 0) {
+        const inMemory = resolveViennaVenueCoordinates(ev.venue?.name) || resolveViennaVenueCoordinates(ev.venue?.address);
+        if (inMemory) {
+          lat = inMemory.lat;
+          lng = inMemory.lng;
+        } else if (lat === 0 || lng === 0) {
           const address = ev.venue?.address || ev.venue?.name;
           if (address) {
             const coords = await this.geocodeAddress(address);
@@ -153,8 +149,8 @@ export class ResidentAdvisorService implements IEventProvider {
           }
         }
 
-        if (lat === 0 || isNaN(lat)) lat = 48.2082;
-        if (lng === 0 || isNaN(lng)) lng = 16.3738;
+        if (isNaN(lat)) lat = 0;
+        if (isNaN(lng)) lng = 0;
 
         const eventUrl = ev.contentUrl
           ? ev.contentUrl.startsWith('http')
@@ -177,23 +173,20 @@ export class ResidentAdvisorService implements IEventProvider {
           externalId: `ra-${ev.id}`,
           provider: 'RESIDENT_ADVISOR',
           title: ev.title,
-          description: ev.venue?.name
-            ? `Live at ${ev.venue.name}${ev.venue.address ? ` (${ev.venue.address})` : ''}`
-            : null,
+          description: ev.contentUrl ? `Event on Resident Advisor: https://ra.co${ev.contentUrl}` : 'Vienna electronic music event on Resident Advisor.',
           category: 'Nightlife',
           url: eventUrl,
-          imageUrl, // High-res flyer cover image
-          startTime: start,
-          endTime: end,
-          venueName: ev.venue?.name || 'Wien',
+          imageUrl,
+          startTime,
+          endTime,
+          venueName,
           latitude: lat,
           longitude: lng,
+          isFree: false,
         });
       }
 
-      this.logger.log(
-        `Normalized ${normalizedEvents.length} events from Resident Advisor for today.`,
-      );
+      this.logger.log(`Normalized ${normalizedEvents.length} events from Resident Advisor for today.`);
       return normalizedEvents;
     } catch (error) {
       this.logger.error('Failed to fetch events from Resident Advisor', error);
@@ -202,6 +195,9 @@ export class ResidentAdvisorService implements IEventProvider {
   }
 
   private async geocodeAddress(address: string): Promise<{ lat: number; lng: number }> {
+    const fastResolved = resolveViennaVenueCoordinates(address);
+    if (fastResolved) return fastResolved;
+
     const query = `${address}, Wien`;
     try {
       const response = await firstValueFrom(
@@ -230,6 +226,6 @@ export class ResidentAdvisorService implements IEventProvider {
       this.logger.debug(`Nominatim lookup failed for "${query}": ${(err as Error).message}`);
     }
 
-    return { lat: 48.2082, lng: 16.3738 };
+    return { lat: 0, lng: 0 };
   }
 }

@@ -11,15 +11,20 @@ describe('BewegtImParkService', () => {
   const mockDistrictHtml = `
     <html>
       <body>
+        <h3>Montag</h3>
+        <div>Kursdauer: 17.06. – 02.09. 18:00 – 19:00 Yoga in der Freien Mitte Ortsbezeichnung: (Parkanlage Nordbahnhof - Freie Mitte) Kursinfo</div>
+        <h3>Dienstag</h3>
+        <div>Kursdauer: 17.06. – 02.09. 18:00 – 19:00 Yoga in der Freien Mitte Ortsbezeichnung: (Parkanlage Nordbahnhof - Freie Mitte) Kursinfo</div>
         <h3>Mittwoch</h3>
-        <div>
-          Kursdauer: 17.06. – 02.09. 18:00 – 19:00 Yoga in der Freien Mitte Ortsbezeichnung: (Parkanlage Nordbahnhof - Freie Mitte) Kursinfo
-          Kursdauer: 17.06. – 02.09. 19:00 – 20:00 HiiT Outdoor Fitness Ortsbezeichnung: (Jesuitenwiese Prater) Kursinfo
-        </div>
+        <div>Kursdauer: 17.06. – 02.09. 18:00 – 19:00 Yoga in der Freien Mitte Ortsbezeichnung: (Parkanlage Nordbahnhof - Freie Mitte) Kursinfo</div>
         <h3>Donnerstag</h3>
-        <div>
-          Kursdauer: 18.06. – 03.09. 18:30 – 19:30 Lauftraining und Intervall Ortsbezeichnung: (Zirkuswiese Prater) Kursinfo
-        </div>
+        <div>Kursdauer: 18.06. – 03.09. 18:30 – 19:30 Lauftraining und Intervall Ortsbezeichnung: (Zirkuswiese Prater) Kursinfo</div>
+        <h3>Freitag</h3>
+        <div>Kursdauer: 18.06. – 03.09. 18:30 – 19:30 Lauftraining und Intervall Ortsbezeichnung: (Zirkuswiese Prater) Kursinfo</div>
+        <h3>Samstag</h3>
+        <div>Kursdauer: 18.06. – 03.09. 10:00 – 11:00 Functional Outdoor Fitness Ortsbezeichnung: (Jesuitenwiese Prater) Kursinfo</div>
+        <h3>Sonntag</h3>
+        <div>Kursdauer: 18.06. – 03.09. 10:00 – 11:00 Morning Yoga Ortsbezeichnung: (Jesuitenwiese Prater) Kursinfo</div>
       </body>
     </html>
   `;

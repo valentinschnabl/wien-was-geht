@@ -192,7 +192,7 @@ export class EintrittFreiService implements IEventProvider {
       // Resolve venue & coordinates
       const venueClean = item.venueName || 'Wien';
       const coords = resolveViennaVenueCoordinates(venueClean) ||
-        resolveViennaVenueCoordinates(cleanTitle) || { lat: 48.2082, lng: 16.3738 };
+        resolveViennaVenueCoordinates(cleanTitle) || { lat: 0, lng: 0 };
 
       const year = startTime.getFullYear();
       const month = String(startTime.getMonth() + 1).padStart(2, '0');

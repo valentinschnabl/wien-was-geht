@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Prisma } from '@prisma/client';
-import { IEventProvider } from '../../interfaces/event-provider.interface';
 import { createViennaDate } from '../../common/utils/time.util';
+import { resolveViennaVenueCoordinates } from '../../common/constants/vienna-venues';
+import { IEventProvider } from '../../interfaces/event-provider.interface';
 
 interface EventbriteTag {
   prefix?: string;
@@ -214,25 +215,37 @@ export class EventbriteService implements IEventProvider {
         );
 
         const v = res.data;
-        const lat = v.latitude ? parseFloat(v.latitude) : 48.2082;
-        const lng = v.longitude ? parseFloat(v.longitude) : 16.3738;
         const name =
           v.name ||
           v.address?.localized_address_display ||
           v.address?.address_1 ||
           'Vienna';
 
+        let lat = v.latitude ? parseFloat(v.latitude) : 0;
+        let lng = v.longitude ? parseFloat(v.longitude) : 0;
+
+        if (lat === 0 || lng === 0 || isNaN(lat) || isNaN(lng)) {
+          const resolved = resolveViennaVenueCoordinates(name);
+          if (resolved) {
+            lat = resolved.lat;
+            lng = resolved.lng;
+          } else {
+            lat = 0;
+            lng = 0;
+          }
+        }
+
         this.venueCache.set(venueId, {
           name,
-          latitude: isNaN(lat) ? 48.2082 : lat,
-          longitude: isNaN(lng) ? 16.3738 : lng,
+          latitude: isNaN(lat) ? 0 : lat,
+          longitude: isNaN(lng) ? 0 : lng,
         });
       } catch (err) {
         this.logger.debug(`Could not resolve venue ${venueId}: ${(err as Error).message}`);
         this.venueCache.set(venueId, {
           name: 'Vienna',
-          latitude: 48.2082,
-          longitude: 16.3738,
+          latitude: 0,
+          longitude: 0,
         });
       }
     }
@@ -252,8 +265,8 @@ export class EventbriteService implements IEventProvider {
 
       // Venue lookup
       let venueName = 'Vienna';
-      let latitude = 48.2082;
-      let longitude = 16.3738;
+      let latitude = 0;
+      let longitude = 0;
 
       if (event.primary_venue_id && this.venueCache.has(event.primary_venue_id)) {
         const venue = this.venueCache.get(event.primary_venue_id)!;

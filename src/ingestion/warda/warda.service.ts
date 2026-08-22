@@ -124,8 +124,8 @@ export class WardaService implements IEventProvider {
           const venueName = String(location.name || 'Wien').trim();
           const venueCoords = resolveViennaVenueCoordinates(venueName);
 
-          const latitude = venueCoords?.lat ?? 48.2082;
-          const longitude = venueCoords?.lng ?? 16.3738;
+          const latitude = venueCoords?.lat ?? 0;
+          const longitude = venueCoords?.lng ?? 0;
 
           // Free Entry detection
           const isFree =

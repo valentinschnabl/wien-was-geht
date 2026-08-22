@@ -56,6 +56,20 @@ export class AiCategorizerService {
         ev.category !== 'General' &&
         VALID_CATEGORIES.includes(ev.category as EventCategory);
 
+      const isActualStephansplatz =
+        ev.venueName &&
+        (ev.venueName.toLowerCase().includes('stephansplatz') ||
+          ev.venueName.toLowerCase().includes('stephansdom') ||
+          ev.venueName.toLowerCase().includes('dompfarre'));
+
+      const isUnresolvedOrCenter =
+        !ev.latitude ||
+        !ev.longitude ||
+        (ev.latitude === 0 && ev.longitude === 0) ||
+        (Math.abs(ev.latitude - 48.2082) < 0.001 &&
+          Math.abs(ev.longitude - 16.3738) < 0.001 &&
+          !isActualStephansplatz);
+
       const hasValidCoords =
         typeof ev.latitude === 'number' &&
         typeof ev.longitude === 'number' &&
@@ -63,7 +77,7 @@ export class AiCategorizerService {
         ev.latitude <= 48.36 &&
         ev.longitude >= 16.15 &&
         ev.longitude <= 16.60 &&
-        !(ev.latitude === 48.2082 && ev.longitude === 16.3738 && (!ev.venueName || ev.venueName === 'Wien'));
+        !isUnresolvedOrCenter;
 
       if (isFreeResolved !== null && hasSpecificCategory && hasValidCoords) {
         resolvedEvents.push({
@@ -108,6 +122,14 @@ export class AiCategorizerService {
         ev.isFree !== undefined && ev.isFree !== null
           ? ev.isFree
           : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
+      latitude:
+        ev.latitude && ev.latitude !== 0 && !(Math.abs(ev.latitude - 48.2082) < 0.001 && Math.abs(ev.longitude! - 16.3738) < 0.001)
+          ? ev.latitude
+          : 0,
+      longitude:
+        ev.longitude && ev.longitude !== 0 && !(Math.abs(ev.latitude! - 48.2082) < 0.001 && Math.abs(ev.longitude - 16.3738) < 0.001)
+          ? ev.longitude
+          : 0,
     }));
 
     return [...resolvedEvents, ...fallbackEvents];
@@ -134,13 +156,16 @@ export class AiCategorizerService {
       }));
 
       const prompt = `
-You are an expert event categorization, pricing and geocoding AI for events happening in Vienna, Austria.
+You are an expert event categorization, pricing and precise geocoding AI for events in Vienna (Wien), Austria.
 For each event, determine:
 1. "category": EXACTLY ONE of "Music", "Nightlife", "Culture", "Sports", "Culinary", "Family".
-2. "isFree": boolean (true if the event is free of charge / gratis / free admission / open air without ticket / freie Spende / vernissage / community festival; false if commercial ticket, entrance fee or club admission is required).
-3. "latitude" (number) and "longitude" (number): If venue or address is recognized in Vienna, provide exact GPS coordinates within Vienna (lat 48.10 to 48.33, lng 16.20 to 16.55). If location is unknown, outside Vienna, or unidentifiable, return null for both.
+2. "isFree": boolean (true if free of charge / gratis / free admission / open air without ticket / freie Spende / vernissage / community festival; false if commercial ticket, entrance fee or club admission is required).
+3. "latitude" (number) and "longitude" (number):
+   - You MUST identify the real-world venue/address in Vienna based on "venue", "title", and "description" (e.g. "Kino am Dach" -> 48.2025, 16.3382; "Praterdome" -> 48.2168, 16.3975; "Lucky Punch Comedy Club" -> 48.2255, 16.3638; "Himmel und Wasser" -> 48.1755, 16.4835; "boulderbar Seestadt" -> 48.2268, 16.5078; "Palais Schönborn" -> 48.2122, 16.3665; "Stadioncenter" -> 48.2112, 16.4215).
+   - If located in Vienna, return the EXACT latitude and longitude numbers (lat 48.10 to 48.33, lng 16.20 to 16.55).
+   - If OUTSIDE Vienna (e.g. St. Pölten, Kautzen, Graz, Germany) or truly has no recognizable physical location, return null for both latitude and longitude.
 
-Return ONLY a valid JSON array of objects with "id", "category", "isFree", "latitude", and "longitude".
+Return ONLY a valid JSON array of objects with fields: "id", "category", "isFree", "latitude", "longitude".
 
 Events:
 ${JSON.stringify(batchInput, null, 2)}
@@ -195,11 +220,20 @@ ${JSON.stringify(batchInput, null, 2)}
             let finalLat = ev.latitude;
             let finalLng = ev.longitude;
 
-            // If coordinates are missing or default fallback, try AI resolved coordinates
+            const isActualStephansplatz =
+              ev.venueName &&
+              (ev.venueName.toLowerCase().includes('stephansplatz') ||
+                ev.venueName.toLowerCase().includes('stephansdom') ||
+                ev.venueName.toLowerCase().includes('dompfarre'));
+
+            // If coordinates are missing, 0, or default Stephansplatz fallback for a non-Stephansplatz venue
             const isUnresolvedCoord =
               !finalLat ||
               !finalLng ||
-              (Math.abs(finalLat - 48.2082) < 0.0001 && Math.abs(finalLng - 16.3738) < 0.0001 && (!ev.venueName || ev.venueName === 'Wien'));
+              (finalLat === 0 && finalLng === 0) ||
+              (Math.abs(finalLat - 48.2082) < 0.001 &&
+                Math.abs(finalLng - 16.3738) < 0.001 &&
+                !isActualStephansplatz);
 
             if (isUnresolvedCoord) {
               if (
@@ -213,7 +247,7 @@ ${JSON.stringify(batchInput, null, 2)}
                 finalLat = aiItem.latitude;
                 finalLng = aiItem.longitude;
               } else {
-                // If unknown, set 0,0 so it's only shown on list, not on map
+                // If unknown or outside Vienna, set 0,0 so it's only shown on list, not on map
                 finalLat = 0;
                 finalLng = 0;
               }
