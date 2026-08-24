@@ -591,11 +591,9 @@ export default function EventMap() {
         <div className="category-chips-scroll">
           <button
             type="button"
-            className={`cat-chip ${quickFilter === "all" && selectedCategory === "all" && !onlyFree ? "active" : ""}`}
+            className={`cat-chip ${quickFilter === "all" ? "active" : ""}`}
             onClick={() => {
               setQuickFilter("all");
-              setSelectedCategory("all");
-              setOnlyFree(false);
               setSelectedEvent(null);
             }}
           >

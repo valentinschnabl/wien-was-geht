@@ -48,7 +48,7 @@ export class AiCategorizerService {
     const eventsNeedingAi: Prisma.EventCreateInput[] = [];
 
     for (const ev of events) {
-      const keywordFree = detectIsFree(ev.provider, ev.title, ev.description);
+      const keywordFree = detectIsFree(ev.provider, ev.title, ev.description, null, ev.venueName);
       const isFreeResolved =
         ev.isFree !== undefined && ev.isFree !== null ? ev.isFree : keywordFree;
       const hasSpecificCategory =
@@ -121,7 +121,7 @@ export class AiCategorizerService {
       isFree:
         ev.isFree !== undefined && ev.isFree !== null
           ? ev.isFree
-          : detectIsFree(ev.provider, ev.title, ev.description) ?? false,
+          : detectIsFree(ev.provider, ev.title, ev.description, null, ev.venueName) ?? false,
       latitude:
         ev.latitude && ev.latitude !== 0 && !(Math.abs(ev.latitude - 48.2082) < 0.001 && Math.abs(ev.longitude! - 16.3738) < 0.001)
           ? ev.latitude
@@ -159,7 +159,7 @@ export class AiCategorizerService {
 You are an expert event categorization, pricing and precise geocoding AI for events in Vienna (Wien), Austria.
 For each event, determine:
 1. "category": EXACTLY ONE of "Music", "Nightlife", "Culture", "Sports", "Culinary", "Family".
-2. "isFree": boolean (true if free of charge / gratis / free admission / open air without ticket / freie Spende / vernissage / community festival; false if commercial ticket, entrance fee or club admission is required).
+2. "isFree": boolean (true ONLY if free of charge / gratis / free general admission / open air without ticket / freie Spende / vernissage / community festival. Note: Major federal/commercial museums like Albertina, KHM, NHM, Belvedere, MUMOK, MAK, Leopold Museum, Kunsthalle are PAID for adult general admission; age discounts like 'Eintritt frei bis 19 Jahre' do NOT make the event free; false if ticket, entrance fee or club admission is required).
 3. "latitude" (number) and "longitude" (number):
    - You MUST identify the real-world venue/address in Vienna based on "venue", "title", and "description" (e.g. "Kino am Dach" -> 48.2025, 16.3382; "Praterdome" -> 48.2168, 16.3975; "Lucky Punch Comedy Club" -> 48.2255, 16.3638; "Himmel und Wasser" -> 48.1755, 16.4835; "boulderbar Seestadt" -> 48.2268, 16.5078; "Palais Schönborn" -> 48.2122, 16.3665; "Stadioncenter" -> 48.2112, 16.4215).
    - If located in Vienna, return the EXACT latitude and longitude numbers (lat 48.10 to 48.33, lng 16.20 to 16.55).

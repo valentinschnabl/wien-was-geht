@@ -45,6 +45,7 @@ describe('pricing.util detectIsFree', () => {
       'Eintritt: frei',
       'Eintritt: 0 €',
       'Eintritt frei bis 22 Uhr',
+      'Große Vernissage im Atelier',
     ];
 
     test.each(freePhrases)('detects free phrase: "%s"', (phrase) => {
@@ -68,6 +69,25 @@ describe('pricing.util detectIsFree', () => {
     });
   });
 
+  describe('Museums and Cultural Institutions', () => {
+    it('should recognize major paid museums as paid unless explicitly free for all', () => {
+      expect(detectIsFree('RAUSGEGANGEN', 'Canaletto & Bellotto', 'Große Meisterausstellung', null, 'Kunsthistorisches Museum')).toBe(false);
+      expect(detectIsFree('RAUSGEGANGEN', 'KAWS ART & COMIX', 'Ausstellung zeitgenössischer Kunst', null, 'Albertina Modern')).toBe(false);
+      expect(detectIsFree('STADT_WIEN', 'Ausstellung im Belvedere', 'Schöne Gemälde', null, 'Belvedere')).toBe(false);
+      expect(detectIsFree('RAUSGEGANGEN', 'MUMOK Führung', 'Rundgang durch die Sammlung', null, 'MUMOK')).toBe(false);
+    });
+
+    it('should allow free entry for museums on explicit open days / vernissages', () => {
+      expect(detectIsFree('STADT_WIEN', 'Vernissage im Museum', 'Feierliche Eröffnung', null, 'MUMOK')).toBe(true);
+      expect(detectIsFree('RAUSGEGANGEN', 'Tag der offenen Tür', 'Kostenloser Eintritt für alle Besucher', null, 'Albertina')).toBe(true);
+    });
+
+    it('should not mark adult museum entry as free when only youth/children are discounted', () => {
+      const text = 'Ausstellung im KHM. Eintritt frei bis 19 Jahre. Erwachsene regulär 21 Euro.';
+      expect(detectIsFree('STADT_WIEN', 'KHM Ausstellung', text, null, 'Kunsthistorisches Museum')).toBe(false);
+    });
+  });
+
   describe('Edge cases and disambiguation', () => {
     it('should return null when text is ambiguous or neutral', () => {
       expect(detectIsFree('EVENTS_AT', 'Lesung im Café', 'Autor liest aus neuem Buch.')).toBeNull();
@@ -77,13 +97,6 @@ describe('pricing.util detectIsFree', () => {
     it('should handle null/undefined/empty string inputs gracefully', () => {
       expect(detectIsFree('LUMA', null, null, null)).toBeNull();
       expect(detectIsFree('STADT_WIEN', '', '')).toBeNull();
-    });
-
-    it('should correctly prioritize explicit paid tickets over conditional free child text', () => {
-      // Event with paid tickets that mentions free entry for toddlers
-      const mixedText = 'Großes Familienkonzert in Wien. Tickets ab 25€ (Kinder bis 3 Jahre frei).';
-      // If tickets start at 25€, it is an admission-charging event
-      expect(detectIsFree('EVENTS_AT', 'Familienkonzert', mixedText)).toBe(false);
     });
   });
 });

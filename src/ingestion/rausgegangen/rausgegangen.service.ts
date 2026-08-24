@@ -129,11 +129,9 @@ export class RausgegangenService implements IEventProvider {
           const longitude = venueCoords?.lng ?? 0;
 
           // Free Entry detection
-          const priceOffer = eventData.offers?.price;
-          const isFree =
-            priceOffer === 0 ||
-            detectIsFree('RAUSGEGANGEN', rawTitle, description ?? '') ||
-            false;
+          const priceOffer = typeof eventData.offers?.price === 'number' ? eventData.offers.price : null;
+          const detectedFree = detectIsFree('RAUSGEGANGEN', rawTitle, description ?? '', priceOffer, venueName);
+          const isFree = detectedFree ?? false;
 
           // External URL (Prefer direct ticket/organizer URL if available, fallback to Rausgegangen)
           const targetUrl = eventData.offers?.url || detailUrl;
