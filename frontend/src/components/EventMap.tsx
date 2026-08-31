@@ -102,10 +102,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
   useEffect(() => {
     const savedTheme = localStorage.getItem("wienwasgeht_theme");
     if (savedTheme === "dark" || savedTheme === "light") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTheme(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
-      setTheme("light");
       document.documentElement.setAttribute("data-theme", "light");
     }
   }, []);
@@ -148,8 +148,29 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
 
   const t = translations[language];
 
+  const requestBrowserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationState("denied");
+      return;
+    }
+
+    setLocationState("locating");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ lat: latitude, lng: longitude });
+        setLocationState("active");
+      },
+      () => {
+        setLocationState("denied");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   // Request location directly using browser standard API on page load
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestBrowserLocation();
   }, []);
 
@@ -178,6 +199,7 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
     if (eventId) {
       const matched = events.find((e) => e.id === eventId);
       if (matched) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectionSource("map");
         setSelectedEvent(matched);
         setHoveredEventId(matched.id);
@@ -262,8 +284,8 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
       try {
         await navigator.share(shareData);
         return;
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
+      } catch (err: unknown) {
+        if ((err as { name?: string })?.name === "AbortError") return;
       }
     }
 
@@ -278,26 +300,6 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
 
   const handleImageError = (id: string) => {
     setFailedImageIds((prev) => ({ ...prev, [id]: true }));
-  };
-
-  const requestBrowserLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationState("denied");
-      return;
-    }
-
-    setLocationState("locating");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setLocationState("active");
-      },
-      (_err) => {
-        setLocationState("denied");
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
   };
 
   // Fetch events from NestJS API (Loads active events for today and tomorrow)
@@ -327,6 +329,7 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
     };
 
     void loadEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter events: SCOPED TO TODAY OR TOMORROW
