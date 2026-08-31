@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -16,6 +16,16 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wienwasgeht.at";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -72,12 +82,21 @@ export const metadata: Metadata = {
     siteName: "WienWasGeht",
     locale: "de_AT",
     type: "website",
+    images: [
+      {
+        url: `${siteUrl}/og-image.jpg`,
+        width: 1200,
+        height: 675,
+        alt: "WienWasGeht — Interaktive Live-Event-Karte für Wien",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "WienWasGeht — Events heute in Wien & Vienna Events Today",
     description:
       "Tagesaktuelle Veranstaltungen, Club-Nächte, Konzerte und Kultur-Highlights in Wien auf der Live-Karte. What's on in Vienna today.",
+    images: [`${siteUrl}/og-image.jpg`],
   },
   icons: {
     icon: [
