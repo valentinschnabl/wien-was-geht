@@ -84,9 +84,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${siteUrl}/og-image.jpg`,
+        url: `${siteUrl}/og-image.png`,
         width: 1200,
-        height: 675,
+        height: 630,
         alt: "WienWasGeht — Interaktive Live-Event-Karte für Wien",
       },
     ],
@@ -96,7 +96,7 @@ export const metadata: Metadata = {
     title: "WienWasGeht — Events heute in Wien & Vienna Events Today",
     description:
       "Tagesaktuelle Veranstaltungen, Club-Nächte, Konzerte und Kultur-Highlights in Wien auf der Live-Karte. What's on in Vienna today.",
-    images: [`${siteUrl}/og-image.jpg`],
+    images: [`${siteUrl}/og-image.png`],
   },
   icons: {
     icon: [
