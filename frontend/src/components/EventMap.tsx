@@ -87,11 +87,15 @@ function formatEventDateRange(
   }
 }
 
-export default function EventMap() {
+interface EventMapProps {
+  initialEvents?: EventRecord[];
+}
+
+export default function EventMap({ initialEvents = [] }: EventMapProps) {
   const [language, setLanguage] = useState<Language>("de");
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [events, setEvents] = useState<EventRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<EventRecord[]>(initialEvents);
+  const [loading, setLoading] = useState(initialEvents.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize theme from localStorage or default strictly to Light (White) mode on start
@@ -303,7 +307,9 @@ export default function EventMap() {
 
     const loadEvents = async () => {
       try {
-        setLoading(true);
+        if (events.length === 0) {
+          setLoading(true);
+        }
         const response = await fetch(`${apiBase}/api/v1/events?limit=1000`);
         if (!response.ok) {
           throw new Error(`API returned status ${response.status}`);
@@ -312,7 +318,9 @@ export default function EventMap() {
         const payload = await response.json();
         setEvents(payload.data ?? []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        if (events.length === 0) {
+          setError(err instanceof Error ? err.message : "Unknown error");
+        }
       } finally {
         setLoading(false);
       }
