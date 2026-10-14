@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WienWasGeht — Events heute in Wien & Vienna Events Today",
+    default: "Events heute in Wien — Veranstaltungen & Live-Karte | WienWasGeht",
     template: "%s | WienWasGeht",
   },
   description:
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "WienWasGeht — Events heute in Wien & Vienna Events Today",
+    title: "Events heute in Wien — Veranstaltungen & Live-Karte | WienWasGeht",
     description:
       "Was geht heute in Wien? Entdecke tagesaktuelle Events, Live-Konzerte, Nightlife & Kultur auf der interaktiven Karte von Wien. Vienna events today & tonight.",
     url: siteUrl,
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "WienWasGeht — Events heute in Wien & Vienna Events Today",
+    title: "Events heute in Wien — Veranstaltungen & Live-Karte | WienWasGeht",
     description:
       "Tagesaktuelle Veranstaltungen, Club-Nächte, Konzerte und Kultur-Highlights in Wien auf der Live-Karte. What's on in Vienna today.",
     images: [`${siteUrl}/og-image.png`],

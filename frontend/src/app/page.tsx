@@ -24,8 +24,90 @@ async function getInitialEvents(): Promise<EventRecord[]> {
   }
 }
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wienwasgeht.at";
+
+function safeIsoDate(dateStr?: string | null): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function generateEventJsonLd(events: EventRecord[], baseUrl: string) {
+  const validEvents = events
+    .filter((ev) => ev.title && safeIsoDate(ev.startTime))
+    .slice(0, 50);
+
+  if (validEvents.length === 0) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Events heute in Wien",
+    "description": "Tagesaktuelle Events, Konzerte, Nightlife und Kultur in Wien",
+    "numberOfItems": validEvents.length,
+    "itemListElement": validEvents.map((ev, index) => {
+      const startDate = safeIsoDate(ev.startTime)!;
+      const endDate = safeIsoDate(ev.endTime);
+      const eventUrl = ev.url || `${baseUrl}/?event=${encodeURIComponent(ev.id)}`;
+      const imageUrl = ev.imageUrl || `${baseUrl}/og-image.png`;
+
+      return {
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Event",
+          "@id": `${baseUrl}/?event=${encodeURIComponent(ev.id)}#event`,
+          "name": ev.title,
+          "description":
+            ev.description ||
+            `${ev.title} in Wien (${ev.venueName || "Wien"}). Live-Karte & Details auf WienWasGeht.`,
+          "startDate": startDate,
+          ...(endDate ? { "endDate": endDate } : {}),
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "location": {
+            "@type": "Place",
+            "name": ev.venueName || "Wien",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Wien",
+              "postalCode": "1010",
+              "addressCountry": "AT",
+            },
+            ...(typeof ev.latitude === "number" &&
+            typeof ev.longitude === "number" &&
+            ev.latitude !== 0
+              ? {
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": ev.latitude,
+                    "longitude": ev.longitude,
+                  },
+                }
+              : {}),
+          },
+          "image": [imageUrl],
+          "offers": {
+            "@type": "Offer",
+            "url": eventUrl,
+            ...(ev.isFree === true ? { "price": "0" } : {}),
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock",
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": ev.venueName || "WienWasGeht",
+            "url": baseUrl,
+          },
+        },
+      };
+    }),
+  };
+}
+
 export default async function Home() {
   const initialEvents = await getInitialEvents();
+  const eventJsonLd = generateEventJsonLd(initialEvents, siteUrl);
 
   const todayStr = new Date().toLocaleDateString("de-AT", {
     weekday: "long",
@@ -46,9 +128,15 @@ export default async function Home() {
 
   return (
     <main className="main-wrapper">
+      {eventJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+        />
+      )}
       {/* Semantic Search Engine Crawler Header & FAQ (Indexed by Googlebot & Search Engines) */}
       <section className="sr-only" aria-label="WienWasGeht — Events heute in Wien & Vienna Events Today">
-        <h1>WienWasGeht — Events heute in Wien &amp; Vienna Events Today</h1>
+        <h2>WienWasGeht — Events heute in Wien &amp; Vienna Events Today</h2>
         <p>
           Was geht heute in Wien ({todayStr} / {todayStrEn})? WienWasGeht ist die
           tagesaktuelle Live-Event-Karte für Wien. Entdecke Live-Konzerte, Club-Partys,
