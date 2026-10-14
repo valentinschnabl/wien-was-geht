@@ -24,7 +24,7 @@ async function getInitialEvents(): Promise<EventRecord[]> {
   }
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wienwasgeht.at";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.wienwasgeht.at";
 
 function safeIsoDate(dateStr?: string | null): string | null {
   if (!dateStr) return null;

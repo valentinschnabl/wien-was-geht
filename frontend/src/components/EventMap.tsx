@@ -98,6 +98,30 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
   const [loading, setLoading] = useState(initialEvents.length === 0);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize language from URL query parameter (?lang=en) or default to German
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get("lang");
+    if (lang === "en" || lang === "de") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLanguage(lang);
+    }
+  }, []);
+
+  const handleLanguageChange = (newLang: Language) => {
+    setLanguage(newLang);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (newLang === "en") {
+        url.searchParams.set("lang", "en");
+      } else {
+        url.searchParams.delete("lang");
+      }
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
   // Initialize theme from localStorage or default strictly to Light (White) mode on start
   useEffect(() => {
     const savedTheme = localStorage.getItem("wienwasgeht_theme");
@@ -579,7 +603,7 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
           />
           <LanguageSwitcher
             currentLanguage={language}
-            onLanguageChange={setLanguage}
+            onLanguageChange={handleLanguageChange}
           />
           <a
             href="https://buymeacoffee.com/wienwasgeht"

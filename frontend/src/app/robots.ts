@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wienwasgeht.at";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.wienwasgeht.at";
 
   return {
     rules: {

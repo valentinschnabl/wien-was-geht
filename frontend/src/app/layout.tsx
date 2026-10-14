@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wienwasgeht.at";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.wienwasgeht.at";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -71,7 +71,8 @@ export const metadata: Metadata = {
     canonical: "/",
     languages: {
       "de-AT": "/",
-      "en-US": "/",
+      "en-US": "/?lang=en",
+      "x-default": "/",
     },
   },
   openGraph: {
