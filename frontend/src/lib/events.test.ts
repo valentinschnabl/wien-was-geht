@@ -174,11 +174,15 @@ describe("events.ts — Category and Venue Hubs & Structured Data", () => {
       expect(ev1.location.geo.latitude).toBe(48.2185);
       expect(ev1.location.geo.longitude).toBe(16.3912);
       expect(ev1.offers.url).toBe("https://example.com/event-1");
+      expect(ev1.offers.validFrom).toBeTruthy();
+      expect(ev1.performer).toBeDefined();
+      expect(ev1.performer.name).toBeTruthy();
 
       // Second item (free event)
       const ev2 = items?.[1].item;
       expect(ev2.name).toBe("Free Jazz Session");
       expect(ev2.offers.price).toBe("0");
+      expect(ev2.offers.validFrom).toBeTruthy();
       expect(ev2.image[0]).toContain("og-image.png"); // fallback
     });
 

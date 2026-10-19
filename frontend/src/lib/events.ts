@@ -56,6 +56,23 @@ export function generateEventJsonLd(
       const eventUrl = ev.url || `${baseUrl}/?event=${encodeURIComponent(ev.id)}`;
       const imageUrl = ev.imageUrl || `${baseUrl}/og-image.png`;
 
+      // Extract performer name from title if structured (e.g. "Artist - Title") or fallback to venue
+      let performerName = ev.venueName || "WienWasGeht";
+      if (ev.title.includes(" - ")) {
+        const parts = ev.title.split(" - ");
+        if (parts[0].trim().length > 1) {
+          performerName = parts[0].trim();
+        }
+      } else if (ev.title.includes(" feat. ")) {
+        const parts = ev.title.split(" feat. ");
+        performerName = parts[0].trim();
+      }
+
+      // Compute validFrom date (approx 30 days before event)
+      const validFromDate = new Date(startDate);
+      validFromDate.setDate(validFromDate.getDate() - 30);
+      const validFromStr = validFromDate.toISOString();
+
       return {
         "@type": "ListItem",
         "position": index + 1,
@@ -70,6 +87,10 @@ export function generateEventJsonLd(
           ...(endDate ? { "endDate": endDate } : {}),
           "eventStatus": "https://schema.org/EventScheduled",
           "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "performer": {
+            "@type": "PerformingGroup",
+            "name": performerName,
+          },
           "location": {
             "@type": "Place",
             "name": ev.venueName || "Vienna",
@@ -98,6 +119,7 @@ export function generateEventJsonLd(
             ...(ev.isFree === true ? { "price": "0" } : {}),
             "priceCurrency": "EUR",
             "availability": "https://schema.org/InStock",
+            "validFrom": validFromStr,
           },
           "organizer": {
             "@type": "Organization",
