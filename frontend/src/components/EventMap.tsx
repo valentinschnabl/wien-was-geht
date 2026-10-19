@@ -7,7 +7,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import type { EventRecord, UserLocation } from "./MapView";
 import { calculateDistanceKm } from "@/lib/distance";
-import { CATEGORY_TO_SLUG, SLUG_TO_CATEGORY } from "@/lib/events";
+import { buildOverloadedUrl, parseUrlFilters } from "@/lib/routing";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -250,27 +250,18 @@ export default function EventMap({
   // Synchronize initial filters from URL query parameters on direct load (e.g. for direct links with query params)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const searchParams = new URLSearchParams(window.location.search);
-    const whenParam = searchParams.get("when");
-    const freeParam = searchParams.get("free");
-    const catParam = searchParams.get("category");
-
-    if (whenParam === "tomorrow") {
+    const parsed = parseUrlFilters(window.location.pathname, window.location.search);
+    if (parsed.quickFilter !== "all") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setQuickFilter("tomorrow");
-    } else if (whenParam === "live") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setQuickFilter("live");
+      setQuickFilter(parsed.quickFilter);
     }
-
-    if (freeParam === "true") {
+    if (parsed.onlyFree) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOnlyFree(true);
     }
-
-    if (catParam && SLUG_TO_CATEGORY[catParam]) {
+    if (parsed.category !== "all") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedCategory(SLUG_TO_CATEGORY[catParam]);
+      setSelectedCategory(parsed.category);
     }
   }, []);
 
@@ -282,75 +273,13 @@ export default function EventMap({
     if (typeof window === "undefined") return;
 
     const currentUrl = new URL(window.location.href);
-    const isVenuePage = currentUrl.pathname.startsWith("/venue/");
-    const isWeekendPage = currentUrl.pathname === "/weekend";
-    const searchParams = new URLSearchParams();
-
-    // Preserve language parameter if English
-    const currentLang = currentUrl.searchParams.get("lang");
-    if (currentLang === "en" || language === "en") {
-      searchParams.set("lang", "en");
-    }
-
-    let targetPath = "/";
-
-    if (isVenuePage) {
-      // Stay on current venue page and overload with params
-      targetPath = currentUrl.pathname;
-      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
-        searchParams.set("category", CATEGORY_TO_SLUG[newCategory]);
-      }
-      if (newOnlyFree) {
-        searchParams.set("free", "true");
-      }
-      if (newQuickFilter === "tomorrow") {
-        searchParams.set("when", "tomorrow");
-      } else if (newQuickFilter === "live") {
-        searchParams.set("when", "live");
-      }
-    } else if (isWeekendPage && newQuickFilter !== "tomorrow") {
-      targetPath = "/weekend";
-      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
-        searchParams.set("category", CATEGORY_TO_SLUG[newCategory]);
-      }
-      if (newOnlyFree) {
-        searchParams.set("free", "true");
-      }
-      if (newQuickFilter === "live") {
-        searchParams.set("when", "live");
-      }
-    } else {
-      // General routing rules
-      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
-        targetPath = `/category/${CATEGORY_TO_SLUG[newCategory]}`;
-        if (newOnlyFree) {
-          searchParams.set("free", "true");
-        }
-        if (newQuickFilter === "tomorrow") {
-          searchParams.set("when", "tomorrow");
-        } else if (newQuickFilter === "live") {
-          searchParams.set("when", "live");
-        }
-      } else if (newQuickFilter === "tomorrow") {
-        targetPath = "/tomorrow";
-        if (newOnlyFree) {
-          searchParams.set("free", "true");
-        }
-      } else if (newOnlyFree) {
-        targetPath = "/category/free";
-        if (newQuickFilter === "live") {
-          searchParams.set("when", "live");
-        }
-      } else {
-        targetPath = "/";
-        if (newQuickFilter === "live") {
-          searchParams.set("when", "live");
-        }
-      }
-    }
-
-    const queryStr = searchParams.toString();
-    const nextUrl = queryStr ? `${targetPath}?${queryStr}` : targetPath;
+    const nextUrl = buildOverloadedUrl({
+      currentPath: currentUrl.pathname,
+      category: newCategory,
+      onlyFree: newOnlyFree,
+      quickFilter: newQuickFilter,
+      lang: currentUrl.searchParams.get("lang") === "en" || language === "en" ? "en" : "de",
+    });
 
     const currentUrlRelative = currentUrl.pathname + (currentUrl.search ? currentUrl.search : "");
     if (nextUrl !== currentUrlRelative) {
@@ -363,19 +292,16 @@ export default function EventMap({
     if (typeof window === "undefined") return;
 
     const handlePopState = () => {
-      const pathname = window.location.pathname;
-      const searchParams = new URLSearchParams(window.location.search);
+      const parsed = parseUrlFilters(window.location.pathname, window.location.search);
 
       // 1. Language sync
-      const lang = searchParams.get("lang");
-      if (lang === "en" || lang === "de") {
-        setLanguage(lang);
+      if (parsed.lang) {
+        setLanguage(parsed.lang);
       }
 
       // 2. Event selection sync
-      const eventId = searchParams.get("event");
-      if (eventId) {
-        const matched = events.find((e) => e.id === eventId);
+      if (parsed.eventId) {
+        const matched = events.find((e) => e.id === parsed.eventId);
         if (matched) {
           setSelectedEvent(matched);
           setHoveredEventId(matched.id);
@@ -389,44 +315,9 @@ export default function EventMap({
       }
 
       // 3. Filters sync
-      let nextCategory = "all";
-      let nextOnlyFree = false;
-      let nextQuickFilter: "all" | "live" | "tomorrow" = "all";
-
-      // Query params first
-      const whenParam = searchParams.get("when");
-      if (whenParam === "tomorrow") {
-        nextQuickFilter = "tomorrow";
-      } else if (whenParam === "live") {
-        nextQuickFilter = "live";
-      }
-
-      if (searchParams.get("free") === "true") {
-        nextOnlyFree = true;
-      }
-
-      const categoryParam = searchParams.get("category");
-      if (categoryParam && SLUG_TO_CATEGORY[categoryParam]) {
-        nextCategory = SLUG_TO_CATEGORY[categoryParam];
-      }
-
-      // Pathname overrides/defaults
-      if (pathname === "/tomorrow") {
-        nextQuickFilter = "tomorrow";
-      } else if (pathname === "/category/free") {
-        nextOnlyFree = true;
-      } else if (pathname.startsWith("/category/")) {
-        const slug = pathname.replace("/category/", "").replace(/\/$/, "");
-        if (slug === "free") {
-          nextOnlyFree = true;
-        } else if (SLUG_TO_CATEGORY[slug]) {
-          nextCategory = SLUG_TO_CATEGORY[slug];
-        }
-      }
-
-      setSelectedCategory(nextCategory);
-      setOnlyFree(nextOnlyFree);
-      setQuickFilter(nextQuickFilter);
+      setSelectedCategory(parsed.category);
+      setOnlyFree(parsed.onlyFree);
+      setQuickFilter(parsed.quickFilter);
     };
 
     window.addEventListener("popstate", handlePopState);
