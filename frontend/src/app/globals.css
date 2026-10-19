@@ -1554,6 +1554,98 @@ html, body {
   gap: 8px;
 }
 
+/* Event Detail Support / Buy Me a Coffee Card (Option A) */
+.detail-support-card {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .detail-support-card {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.detail-support-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-support-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.detail-support-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detail-support-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.detail-support-desc {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.btn-support-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 12px;
+  background: #f59e0b;
+  color: #ffffff;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.18);
+}
+
+.btn-support-card:hover {
+  background: #d97706;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+}
+
+.btn-support-card i {
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-support-card {
+  background: #d97706;
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+[data-theme="dark"] .btn-support-card:hover {
+  background: #b45309;
+}
+
 /* Floating Share Toast Notification */
 .share-toast {
   position: fixed;
@@ -2075,6 +2167,17 @@ html, body {
     touch-action: pan-y;
     padding-right: 4px;
     padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+
+  .detail-support-card {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+  }
+
+  .btn-support-card {
+    min-height: 38px;
+    font-size: 0.8rem;
   }
 
   /* Leaflet attribution compact styling on mobile so it never overlaps UI */

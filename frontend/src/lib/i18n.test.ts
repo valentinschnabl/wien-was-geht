@@ -53,6 +53,17 @@ describe("i18n Localization Dictionaries", () => {
     expect(translations.en.badgeFree).toBe("FREE ENTRY");
   });
 
+  it("should contain translation entries for Support / Donation card", () => {
+    expect(translations.de.supportCardTitle).toContain("WienWasGeht");
+    expect(translations.en.supportCardTitle).toContain("WienWasGeht");
+    expect(translations.de.supportCardDesc).toContain("werbefrei");
+    expect(translations.en.supportCardDesc).toContain("ad-free");
+    expect(translations.de.supportCardButton).toContain("Bier");
+    expect(translations.en.supportCardButton).toContain("beer");
+    expect(translations.de.supportCardButton).not.toContain("3");
+    expect(translations.en.supportCardButton).not.toContain("3");
+  });
+
   it("should normalize and label categories correctly", () => {
     expect(normalizeCategory("Konzert")).toBe("Music");
     expect(normalizeCategory("Party")).toBe("Nightlife");

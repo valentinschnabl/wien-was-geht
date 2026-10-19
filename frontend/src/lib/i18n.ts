@@ -71,6 +71,11 @@ export interface Translations {
   venueDefault: string;
   loadingEvents: string;
   errorLoading: string;
+
+  // Support & Donation Callout Card
+  supportCardTitle: string;
+  supportCardDesc: string;
+  supportCardButton: string;
   
   // Footer & Impressum / Privacy Modal
   imprint: string;
@@ -151,6 +156,10 @@ export const translations: Record<Language, Translations> = {
     loadingEvents: "Lade Events...",
     errorLoading: "Fehler beim Laden der Events",
 
+    supportCardTitle: "Gefällt dir WienWasGeht?",
+    supportCardDesc: "WienWasGeht ist 100% werbefrei und unabhängig. Wenn wir dir bei der Abendplanung helfen, spendier uns gern ein Bier!",
+    supportCardButton: "Bier spendieren",
+
     imprint: "Impressum",
     privacyPolicy: "Datenschutz",
     imprintTitle: "Impressum & Offenlegung",
@@ -226,6 +235,10 @@ export const translations: Record<Language, Translations> = {
     venueDefault: "Vienna",
     loadingEvents: "Loading events...",
     errorLoading: "Error loading event data",
+
+    supportCardTitle: "Enjoying WienWasGeht?",
+    supportCardDesc: "WienWasGeht is 100% ad-free & independent. If we helped you find plans, buy us a beer!",
+    supportCardButton: "Buy us a beer",
 
     imprint: "Imprint",
     privacyPolicy: "Privacy Policy",

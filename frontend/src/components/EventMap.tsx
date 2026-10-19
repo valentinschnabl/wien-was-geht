@@ -1046,6 +1046,26 @@ export default function EventMap({
                     </a>
                   )}
                 </div>
+
+                {/* Community Support / Buy Me a Coffee Callout (Option A) */}
+                <div className="detail-support-card">
+                  <div className="detail-support-header">
+                    <span className="detail-support-icon" aria-hidden="true">🍺</span>
+                    <div className="detail-support-text">
+                      <span className="detail-support-title">{t.supportCardTitle}</span>
+                      <p className="detail-support-desc">{t.supportCardDesc}</p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://buymeacoffee.com/wienwasgeht"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-support-card"
+                  >
+                    <i className="fa-solid fa-beer-mug-empty"></i>{" "}
+                    <span>{t.supportCardButton}</span>
+                  </a>
+                </div>
               </div>
             </div>
           )}
