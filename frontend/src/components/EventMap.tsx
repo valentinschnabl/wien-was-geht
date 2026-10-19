@@ -7,6 +7,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import type { EventRecord, UserLocation } from "./MapView";
 import { calculateDistanceKm } from "@/lib/distance";
+import { CATEGORY_TO_SLUG, SLUG_TO_CATEGORY } from "@/lib/events";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -87,11 +88,21 @@ function formatEventDateRange(
   }
 }
 
-interface EventMapProps {
+export interface EventMapProps {
   initialEvents?: EventRecord[];
+  initialCategory?: string;
+  initialOnlyFree?: boolean;
+  initialQuickFilter?: "all" | "live" | "tomorrow";
+  initialSearchQuery?: string;
 }
 
-export default function EventMap({ initialEvents = [] }: EventMapProps) {
+export default function EventMap({
+  initialEvents = [],
+  initialCategory,
+  initialOnlyFree,
+  initialQuickFilter,
+  initialSearchQuery,
+}: EventMapProps) {
   const [language, setLanguage] = useState<Language>("de");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [events, setEvents] = useState<EventRecord[]>(initialEvents);
@@ -142,12 +153,16 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
   };
 
   // Filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [onlyFree, setOnlyFree] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? "");
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    initialCategory ?? "all"
+  );
+  const [onlyFree, setOnlyFree] = useState(initialOnlyFree ?? false);
   const [includeConcluded, setIncludeConcluded] = useState(false);
   const [hideMultiDay, setHideMultiDay] = useState(false);
-  const [quickFilter, setQuickFilter] = useState<"all" | "live" | "tomorrow">("all");
+  const [quickFilter, setQuickFilter] = useState<"all" | "live" | "tomorrow">(
+    initialQuickFilter ?? "all"
+  );
 
   // Mobile Tab state (Map vs List View for Mobile UX)
   const [mobileTab, setMobileTab] = useState<"map" | "list">("map");
@@ -232,23 +247,186 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
     }
   }, [events]);
 
+  // Synchronize initial filters from URL query parameters on direct load (e.g. for direct links with query params)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const whenParam = searchParams.get("when");
+    const freeParam = searchParams.get("free");
+    const catParam = searchParams.get("category");
+
+    if (whenParam === "tomorrow") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuickFilter("tomorrow");
+    } else if (whenParam === "live") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuickFilter("live");
+    }
+
+    if (freeParam === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOnlyFree(true);
+    }
+
+    if (catParam && SLUG_TO_CATEGORY[catParam]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedCategory(SLUG_TO_CATEGORY[catParam]);
+    }
+  }, []);
+
+  const updateBrowserUrl = (
+    newCategory: string,
+    newOnlyFree: boolean,
+    newQuickFilter: "all" | "live" | "tomorrow"
+  ) => {
+    if (typeof window === "undefined") return;
+
+    const currentUrl = new URL(window.location.href);
+    const isVenuePage = currentUrl.pathname.startsWith("/venue/");
+    const isWeekendPage = currentUrl.pathname === "/weekend";
+    const searchParams = new URLSearchParams();
+
+    // Preserve language parameter if English
+    const currentLang = currentUrl.searchParams.get("lang");
+    if (currentLang === "en" || language === "en") {
+      searchParams.set("lang", "en");
+    }
+
+    let targetPath = "/";
+
+    if (isVenuePage) {
+      // Stay on current venue page and overload with params
+      targetPath = currentUrl.pathname;
+      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
+        searchParams.set("category", CATEGORY_TO_SLUG[newCategory]);
+      }
+      if (newOnlyFree) {
+        searchParams.set("free", "true");
+      }
+      if (newQuickFilter === "tomorrow") {
+        searchParams.set("when", "tomorrow");
+      } else if (newQuickFilter === "live") {
+        searchParams.set("when", "live");
+      }
+    } else if (isWeekendPage && newQuickFilter !== "tomorrow") {
+      targetPath = "/weekend";
+      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
+        searchParams.set("category", CATEGORY_TO_SLUG[newCategory]);
+      }
+      if (newOnlyFree) {
+        searchParams.set("free", "true");
+      }
+      if (newQuickFilter === "live") {
+        searchParams.set("when", "live");
+      }
+    } else {
+      // General routing rules
+      if (newCategory !== "all" && CATEGORY_TO_SLUG[newCategory]) {
+        targetPath = `/category/${CATEGORY_TO_SLUG[newCategory]}`;
+        if (newOnlyFree) {
+          searchParams.set("free", "true");
+        }
+        if (newQuickFilter === "tomorrow") {
+          searchParams.set("when", "tomorrow");
+        } else if (newQuickFilter === "live") {
+          searchParams.set("when", "live");
+        }
+      } else if (newQuickFilter === "tomorrow") {
+        targetPath = "/tomorrow";
+        if (newOnlyFree) {
+          searchParams.set("free", "true");
+        }
+      } else if (newOnlyFree) {
+        targetPath = "/category/free";
+        if (newQuickFilter === "live") {
+          searchParams.set("when", "live");
+        }
+      } else {
+        targetPath = "/";
+        if (newQuickFilter === "live") {
+          searchParams.set("when", "live");
+        }
+      }
+    }
+
+    const queryStr = searchParams.toString();
+    const nextUrl = queryStr ? `${targetPath}?${queryStr}` : targetPath;
+
+    const currentUrlRelative = currentUrl.pathname + (currentUrl.search ? currentUrl.search : "");
+    if (nextUrl !== currentUrlRelative) {
+      window.history.pushState({}, "", nextUrl);
+    }
+  };
+
   // Handle browser Back/Forward navigation (popstate)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const eventId = params.get("event");
+      const pathname = window.location.pathname;
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // 1. Language sync
+      const lang = searchParams.get("lang");
+      if (lang === "en" || lang === "de") {
+        setLanguage(lang);
+      }
+
+      // 2. Event selection sync
+      const eventId = searchParams.get("event");
       if (eventId) {
         const matched = events.find((e) => e.id === eventId);
         if (matched) {
           setSelectedEvent(matched);
           setHoveredEventId(matched.id);
-          return;
+        } else {
+          setSelectedEvent(null);
+          setHoveredEventId(null);
+        }
+      } else {
+        setSelectedEvent(null);
+        setHoveredEventId(null);
+      }
+
+      // 3. Filters sync
+      let nextCategory = "all";
+      let nextOnlyFree = false;
+      let nextQuickFilter: "all" | "live" | "tomorrow" = "all";
+
+      // Query params first
+      const whenParam = searchParams.get("when");
+      if (whenParam === "tomorrow") {
+        nextQuickFilter = "tomorrow";
+      } else if (whenParam === "live") {
+        nextQuickFilter = "live";
+      }
+
+      if (searchParams.get("free") === "true") {
+        nextOnlyFree = true;
+      }
+
+      const categoryParam = searchParams.get("category");
+      if (categoryParam && SLUG_TO_CATEGORY[categoryParam]) {
+        nextCategory = SLUG_TO_CATEGORY[categoryParam];
+      }
+
+      // Pathname overrides/defaults
+      if (pathname === "/tomorrow") {
+        nextQuickFilter = "tomorrow";
+      } else if (pathname === "/category/free") {
+        nextOnlyFree = true;
+      } else if (pathname.startsWith("/category/")) {
+        const slug = pathname.replace("/category/", "").replace(/\/$/, "");
+        if (slug === "free") {
+          nextOnlyFree = true;
+        } else if (SLUG_TO_CATEGORY[slug]) {
+          nextCategory = SLUG_TO_CATEGORY[slug];
         }
       }
-      setSelectedEvent(null);
-      setHoveredEventId(null);
+
+      setSelectedCategory(nextCategory);
+      setOnlyFree(nextOnlyFree);
+      setQuickFilter(nextQuickFilter);
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -572,7 +750,9 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
       <header className="app-header-clean">
         <div className="header-branding">
           <div className="city-badge-row">
-            <h1 className="header-title">{t.appTitle}</h1>
+            <a href="/" style={{ textDecoration: "none", color: "inherit" }} title="WienWasGeht — Startseite">
+              <h1 className="header-title">{t.appTitle}</h1>
+            </a>
             <span className="stats-pill">
               {quickFilter === "tomorrow" ? (
                 <>
@@ -630,6 +810,7 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             onClick={() => {
               setQuickFilter("all");
               setSelectedEvent(null);
+              updateBrowserUrl(selectedCategory, onlyFree, "all");
             }}
           >
             <i className="fa-solid fa-calendar-day"></i>
@@ -640,8 +821,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip cat-chip-live ${quickFilter === "live" ? "active" : ""}`}
             onClick={() => {
-              setQuickFilter(quickFilter === "live" ? "all" : "live");
+              const next = quickFilter === "live" ? "all" : "live";
+              setQuickFilter(next);
               setSelectedEvent(null);
+              updateBrowserUrl(selectedCategory, onlyFree, next);
             }}
           >
             <i className="fa-solid fa-bolt"></i>
@@ -652,8 +835,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip cat-chip-tomorrow ${quickFilter === "tomorrow" ? "active" : ""}`}
             onClick={() => {
-              setQuickFilter(quickFilter === "tomorrow" ? "all" : "tomorrow");
+              const next = quickFilter === "tomorrow" ? "all" : "tomorrow";
+              setQuickFilter(next);
               setSelectedEvent(null);
+              updateBrowserUrl(selectedCategory, onlyFree, next);
             }}
           >
             <i className="fa-solid fa-calendar-plus"></i>
@@ -664,8 +849,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip cat-chip-free ${onlyFree ? "active" : ""}`}
             onClick={() => {
-              setOnlyFree(!onlyFree);
+              const nextOnlyFree = !onlyFree;
+              setOnlyFree(nextOnlyFree);
               setSelectedEvent(null);
+              updateBrowserUrl(selectedCategory, nextOnlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-tag"></i>
@@ -676,8 +863,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Culture" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Culture" ? "all" : "Culture");
+              const nextCategory = selectedCategory === "Culture" ? "all" : "Culture";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-masks-theater"></i>
@@ -688,8 +877,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Nightlife" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Nightlife" ? "all" : "Nightlife");
+              const nextCategory = selectedCategory === "Nightlife" ? "all" : "Nightlife";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-moon"></i>
@@ -700,8 +891,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Music" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Music" ? "all" : "Music");
+              const nextCategory = selectedCategory === "Music" ? "all" : "Music";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-music"></i>
@@ -712,8 +905,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Family" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Family" ? "all" : "Family");
+              const nextCategory = selectedCategory === "Family" ? "all" : "Family";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-children"></i>
@@ -724,8 +919,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Sports" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Sports" ? "all" : "Sports");
+              const nextCategory = selectedCategory === "Sports" ? "all" : "Sports";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-futbol"></i>
@@ -736,8 +933,10 @@ export default function EventMap({ initialEvents = [] }: EventMapProps) {
             type="button"
             className={`cat-chip ${selectedCategory === "Culinary" ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory(selectedCategory === "Culinary" ? "all" : "Culinary");
+              const nextCategory = selectedCategory === "Culinary" ? "all" : "Culinary";
+              setSelectedCategory(nextCategory);
               setSelectedEvent(null);
+              updateBrowserUrl(nextCategory, onlyFree, quickFilter);
             }}
           >
             <i className="fa-solid fa-utensils"></i>

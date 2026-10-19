@@ -1,111 +1,23 @@
 import EventMap from "@/components/EventMap";
-import type { EventRecord } from "@/components/MapView";
+import {
+  getInitialEvents,
+  generateEventJsonLd,
+  siteUrl,
+  SLUG_TO_CATEGORY,
+} from "@/lib/events";
 
-async function getInitialEvents(): Promise<EventRecord[]> {
-  try {
-    const rawApiBase =
-      process.env.INTERNAL_API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3000";
-    const apiBase = rawApiBase.replace(/\/+$/, "");
+type Props = {
+  searchParams?: Promise<{ when?: string; free?: string; category?: string; lang?: string; event?: string }>;
+};
 
-    const res = await fetch(`${apiBase}/api/v1/events?limit=1000`, {
-      next: { revalidate: 300 }, // ISR: refresh every 5 minutes
-    });
+export default async function Home({ searchParams }: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const isTomorrow = resolvedSearchParams.when === "tomorrow";
+  const isLive = resolvedSearchParams.when === "live";
+  const isFree = resolvedSearchParams.free === "true";
+  const categorySlug = resolvedSearchParams.category;
+  const initialCategory = categorySlug ? SLUG_TO_CATEGORY[categorySlug] : undefined;
 
-    if (!res.ok) {
-      return [];
-    }
-
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.wienwasgeht.at";
-
-function safeIsoDate(dateStr?: string | null): string | null {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? null : d.toISOString();
-}
-
-function generateEventJsonLd(events: EventRecord[], baseUrl: string) {
-  const validEvents = events
-    .filter((ev) => ev.title && safeIsoDate(ev.startTime))
-    .slice(0, 50);
-
-  if (validEvents.length === 0) return null;
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "name": "Events heute in Wien",
-    "description": "Tagesaktuelle Events, Konzerte, Nightlife und Kultur in Wien",
-    "numberOfItems": validEvents.length,
-    "itemListElement": validEvents.map((ev, index) => {
-      const startDate = safeIsoDate(ev.startTime)!;
-      const endDate = safeIsoDate(ev.endTime);
-      const eventUrl = ev.url || `${baseUrl}/?event=${encodeURIComponent(ev.id)}`;
-      const imageUrl = ev.imageUrl || `${baseUrl}/og-image.png`;
-
-      return {
-        "@type": "ListItem",
-        "position": index + 1,
-        "item": {
-          "@type": "Event",
-          "@id": `${baseUrl}/?event=${encodeURIComponent(ev.id)}#event`,
-          "name": ev.title,
-          "description":
-            ev.description ||
-            `${ev.title} in Wien (${ev.venueName || "Wien"}). Live-Karte & Details auf WienWasGeht.`,
-          "startDate": startDate,
-          ...(endDate ? { "endDate": endDate } : {}),
-          "eventStatus": "https://schema.org/EventScheduled",
-          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-          "location": {
-            "@type": "Place",
-            "name": ev.venueName || "Wien",
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": "Wien",
-              "postalCode": "1010",
-              "addressCountry": "AT",
-            },
-            ...(typeof ev.latitude === "number" &&
-            typeof ev.longitude === "number" &&
-            ev.latitude !== 0
-              ? {
-                  "geo": {
-                    "@type": "GeoCoordinates",
-                    "latitude": ev.latitude,
-                    "longitude": ev.longitude,
-                  },
-                }
-              : {}),
-          },
-          "image": [imageUrl],
-          "offers": {
-            "@type": "Offer",
-            "url": eventUrl,
-            ...(ev.isFree === true ? { "price": "0" } : {}),
-            "priceCurrency": "EUR",
-            "availability": "https://schema.org/InStock",
-          },
-          "organizer": {
-            "@type": "Organization",
-            "name": ev.venueName || "WienWasGeht",
-            "url": baseUrl,
-          },
-        },
-      };
-    }),
-  };
-}
-
-export default async function Home() {
   const initialEvents = await getInitialEvents();
   const eventJsonLd = generateEventJsonLd(initialEvents, siteUrl);
 
@@ -194,7 +106,12 @@ export default async function Home() {
         </div>
       </section>
 
-      <EventMap initialEvents={initialEvents} />
+      <EventMap
+        initialEvents={initialEvents}
+        initialCategory={initialCategory}
+        initialOnlyFree={isFree}
+        initialQuickFilter={isTomorrow ? "tomorrow" : isLive ? "live" : undefined}
+      />
     </main>
   );
 }
